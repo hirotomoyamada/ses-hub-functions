@@ -13,6 +13,12 @@ type Data = {
   page?: number;
 };
 
+type Results =
+  | Algolia.Matter
+  | Algolia.Resource
+  | Algolia.PersonItem
+  | undefined;
+
 export const extractPosts = functions
   .region(location)
   .runWith(runtime)
@@ -39,7 +45,7 @@ const fetchAlgolia = async (
   status: boolean,
   demo: boolean
 ): Promise<{
-  posts: (Algolia.Matter | Algolia.Resource | Algolia.PersonItem | undefined)[];
+  posts: Results[];
   hit: Algolia.Hit;
 }> => {
   const index = algolia.initIndex(data.index);
@@ -69,25 +75,27 @@ const fetchAlgolia = async (
       );
     });
 
-  const posts = results?.map((hit) =>
-    hit && data.index === "matters" && hit.uid === context.auth?.uid
-      ? fetch.auth.matter(<Algolia.Matter>hit)
-      : hit &&
-        data.index === "matters" &&
-        (hit as Algolia.Matter).display === "public" &&
-        status
-      ? fetch.other.matter(<Algolia.Matter>hit)
-      : hit && data.index === "resources" && hit.uid === context.auth?.uid
-      ? fetch.auth.resource(<Algolia.Resource>hit)
-      : hit &&
-        data.index === "resources" &&
-        (hit as Algolia.Resource).display === "public" &&
-        status
-      ? fetch.auth.resource(<Algolia.Resource>hit)
-      : hit && data.index === "persons" && hit.status === "enable" && status
-      ? fetch.other.person(<Algolia.Person>hit)
-      : undefined
-  );
+  const posts = results
+    ?.map((hit) =>
+      hit && data.index === "matters" && hit.uid === context.auth?.uid
+        ? fetch.auth.matter(<Algolia.Matter>hit)
+        : hit &&
+          data.index === "matters" &&
+          (hit as Algolia.Matter).display === "public" &&
+          status
+        ? fetch.other.matter(<Algolia.Matter>hit)
+        : hit && data.index === "resources" && hit.uid === context.auth?.uid
+        ? fetch.auth.resource(<Algolia.Resource>hit)
+        : hit &&
+          data.index === "resources" &&
+          (hit as Algolia.Resource).display === "public" &&
+          status
+        ? fetch.auth.resource(<Algolia.Resource>hit)
+        : hit && data.index === "persons" && hit.status === "enable" && status
+        ? fetch.other.person(<Algolia.Person>hit)
+        : undefined
+    )
+    ?.filter((post) => post) as Results[];
 
   return { posts, hit };
 };
@@ -95,7 +103,7 @@ const fetchAlgolia = async (
 const fetchFirestore = async (
   context: functions.https.CallableContext,
   data: Data,
-  posts: (Algolia.Matter | Algolia.Resource | Algolia.PersonItem | undefined)[]
+  posts: Results[]
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(

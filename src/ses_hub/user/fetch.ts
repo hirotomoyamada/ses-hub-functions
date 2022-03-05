@@ -43,7 +43,7 @@ const fetchProfile = async (
 > => {
   const user = await fetchAlgolia(data, demo, status);
 
-  user && (await fetchFirestore(context, data, user));
+  user && (await fetchFirestore(context, status, data, user));
 
   return user;
 };
@@ -112,6 +112,7 @@ const fetchAlgolia = async (
 
 const fetchFirestore = async (
   context: functions.https.CallableContext,
+  status: boolean,
   data: Data,
   user: Algolia.CompanyItem | Algolia.PersonItem | Algolia.CompanyItem[]
 ): Promise<void> => {
@@ -153,6 +154,11 @@ const fetchFirestore = async (
             "notFound"
           );
         }
+
+        if (!status) {
+          (user as Algolia.CompanyItem).profile.email = undefined;
+        }
+
         (user as Algolia.CompanyItem).status = data.payment.status;
         (user as Algolia.CompanyItem).type = data.type;
       }

@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "prod": "ses-hub",
+    "dev": "ses-hub-dev-ed356"
+  }
+}

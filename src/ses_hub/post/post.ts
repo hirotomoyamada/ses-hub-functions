@@ -82,7 +82,11 @@ export const sendPost = functions
       }
 
       await sendMail(index, data, post);
-      await sendTweet(index, data, post);
+
+      // ver 2.X.X 削除予定
+      if (index === "persons") {
+        await sendTweet(index, data, post);
+      }
     }
 
     return;

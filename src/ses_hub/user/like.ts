@@ -75,28 +75,13 @@ const updateFirestore = async ({
   if (doc) {
     const active = doc.data().active;
 
-    await doc.ref
-      .set(
-        data.objectID
-          ? {
-              index: data.index,
-              objectID: data.objectID,
-              active: !active,
-            }
-          : {
-              index: data.index,
-              uid: data.uid,
-              active: !active,
-            },
-        { merge: true }
-      )
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "data-loss",
-          "いいねの追加に失敗しました",
-          "firebase"
-        );
-      });
+    await doc.ref.set({ active: !active }, { merge: true }).catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "いいねの追加に失敗しました",
+        "firebase"
+      );
+    });
   } else {
     await collection
       .add(

@@ -16,6 +16,10 @@ export type Data = {
   emailVerified: boolean;
 };
 
+type Collections = {
+  [key: string]: string[] | { [key: string]: string[] };
+};
+
 export const login = functions
   .region(location)
   .runWith(runtime)
@@ -56,12 +60,19 @@ const fetchUser = async (
       await updateProvider(doc, data, timestamp);
       await loginAuthenticated({ doc: doc });
 
-      return fetch.login({ context: context, doc: doc, data: data });
+      const collections = await fetchCollections(context);
+
+      return {
+        ...fetch.login({ context: context, doc: doc, data: data }),
+        ...collections,
+      };
     } else {
       await updateLogin(doc, timestamp);
       await loginAuthenticated({ doc: doc });
 
-      return fetch.login({ context: context, doc: doc });
+      const collections = await fetchCollections(context);
+
+      return { ...fetch.login({ context: context, doc: doc }), ...collections };
     }
   } else {
     throw new functions.https.HttpsError(
@@ -70,6 +81,87 @@ const fetchUser = async (
       "profile"
     );
   }
+};
+
+const fetchCollections = async (
+  context: functions.https.CallableContext
+): Promise<Collections> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
+
+  const collections: Collections = {
+    posts: { matters: [], resources: [] },
+    follows: [],
+    home: [],
+    likes: { matters: [], resources: [], persons: [] },
+    outputs: { matters: [], resources: [] },
+    entries: { matters: [], resources: [], persons: [] },
+  };
+
+  for await (const key of Object.keys(collections)) {
+    const querySnapshot = await db
+      .collection("companys")
+      .doc(context.auth.uid)
+      .collection(key === "home" ? "follows" : key)
+      .where("active", "==", true)
+      .withConverter(converter<Firestore.Posts | Firestore.Users>())
+      .get()
+      .catch(() => {});
+
+    if (!querySnapshot) {
+      continue;
+    }
+
+    querySnapshot.forEach((doc) => {
+      const collection = collections[key];
+      const data = doc.data();
+
+      if (collection instanceof Array) {
+        if ("uid" in data) {
+          const uid = data.uid;
+
+          if ("home" in data) {
+            const home = data.home;
+
+            if (home) {
+              Object.assign(collections, {
+                [key]: [uid, ...collection],
+              });
+            }
+          } else {
+            Object.assign(collections, {
+              [key]: [uid, ...collection],
+            });
+          }
+        }
+      } else {
+        const index = data.index;
+
+        if ("objectID" in data) {
+          const objectID = data.objectID;
+
+          Object.assign(collections[key], {
+            [index]: [objectID, ...collection[index]],
+          });
+        }
+
+        if ("uid" in data) {
+          const uid = data.uid;
+
+          Object.assign(collections[key], {
+            [index]: [uid, ...collection[index]],
+          });
+        }
+      }
+    });
+  }
+
+  return collections;
 };
 
 const updateLogin = async (

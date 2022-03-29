@@ -34,12 +34,6 @@ export const login = ({
     application: doc.data()?.application,
     agree: doc.data()?.agree,
     payment: doc.data()?.payment,
-    posts: doc.data()?.posts,
-    entries: doc.data()?.entries,
-    likes: doc.data()?.likes,
-    follows: doc.data()?.follows,
-    home: doc.data()?.home,
-    outputs: doc.data()?.outputs,
     createAt: doc.data()?.createAt,
     updateAt: doc.data()?.updateAt,
   };
@@ -69,7 +63,7 @@ export const company = {
       createAt: hit.createAt,
     };
   },
-  
+
   canceled: (hit: Algolia.Company, demo?: boolean): Algolia.CompanyItem => {
     return {
       uid: hit.objectID,

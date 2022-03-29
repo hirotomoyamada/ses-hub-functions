@@ -19,7 +19,7 @@ export const addLike = functions
       index: data.index,
     });
 
-    await updateFirestore({ context: context, data: data, add: true });
+    await updateFirestore({ context: context, data: data });
 
     return;
   });
@@ -38,11 +38,9 @@ export const removeLike = functions
 const updateFirestore = async ({
   context,
   data,
-  add,
 }: {
   context: functions.https.CallableContext;
   data: Data;
-  add?: boolean;
 }): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -54,10 +52,15 @@ const updateFirestore = async ({
 
   const timestamp = Date.now();
 
-  const doc = await db
+  const collection = db
     .collection("companys")
-    .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
+    .collection("likes")
+    .withConverter(converter<Firestore.Posts | Firestore.Users>());
+
+  const querySnapshot = await collection
+    .where("index", "==", data.index)
+    .where(data.objectID ? "objectID" : "uid", "==", data.objectID || data.uid)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
@@ -67,36 +70,49 @@ const updateFirestore = async ({
       );
     });
 
-  if (doc.exists) {
-    const likes = add
-      ? doc.data()?.likes?.[data.index]
-      : doc
-          .data()
-          ?.likes[data.index].filter(
-            (id) => id !== (data.objectID ? data.objectID : data.uid)
-          );
+  const doc = querySnapshot.docs[0];
 
-    if (likes && likes.indexOf(data.objectID ? data.objectID : data.uid) >= 0) {
-      throw new functions.https.HttpsError(
-        "cancelled",
-        "データが重複しているため、追加できません",
-        "firebase"
-      );
-    }
+  if (doc) {
+    const active = doc.data().active;
 
     await doc.ref
       .set(
-        {
-          likes: Object.assign(doc.data()?.likes, {
-            [data.index]: add
-              ? likes?.length
-                ? [data.objectID ? data.objectID : data.uid, ...likes]
-                : [data.objectID ? data.objectID : data.uid]
-              : [...(likes as string[])],
-          }),
-          updateAt: timestamp,
-        },
+        data.objectID
+          ? {
+              index: data.index,
+              objectID: data.objectID,
+              active: !active,
+            }
+          : {
+              index: data.index,
+              uid: data.uid,
+              active: !active,
+            },
         { merge: true }
+      )
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "いいねの追加に失敗しました",
+          "firebase"
+        );
+      });
+  } else {
+    await collection
+      .add(
+        data.objectID
+          ? {
+              index: data.index,
+              objectID: data.objectID,
+              active: true,
+              at: timestamp,
+            }
+          : {
+              index: data.index,
+              uid: data.uid,
+              active: true,
+              at: timestamp,
+            }
       )
       .catch(() => {
         throw new functions.https.HttpsError(

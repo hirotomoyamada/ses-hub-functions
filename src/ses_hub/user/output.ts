@@ -6,7 +6,7 @@ import * as Firestore from "../../types/firestore";
 type Data = {
   index: "matters" | "resources";
   objectID: string;
-  objectIDs?: string;
+  objectIDs?: string[];
 };
 
 export const addOutput = functions
@@ -15,7 +15,7 @@ export const addOutput = functions
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated({ context: context, demo: true });
 
-    await updateFirestore({ context: context, data: data, add: true });
+    await updateFirestore({ context: context, data: data });
 
     return;
   });
@@ -23,7 +23,7 @@ export const addOutput = functions
 export const removeOutput = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data, context) => {
+  .https.onCall(async (data: Data, context) => {
     await userAuthenticated({ context: context, demo: true });
 
     await updateFirestore({ context: context, data: data });
@@ -34,7 +34,6 @@ export const removeOutput = functions
 const updateFirestore = async ({
   context,
   data,
-  add,
 }: {
   context: functions.https.CallableContext;
   data: Data;
@@ -50,61 +49,71 @@ const updateFirestore = async ({
 
   const timestamp = Date.now();
 
-  const doc = await db
+  const collection = db
     .collection("companys")
-    .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
-    .get()
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
-        "firebase"
-      );
-    });
+    .collection("outputs")
+    .withConverter(converter<Firestore.Posts>());
 
-  if (doc.exists) {
-    const outputs = add
-      ? doc.data()?.outputs?.[data.index]
-      : !data.objectIDs
-      ? doc
-          .data()
-          ?.outputs[data.index].filter((objectID) => objectID !== data.objectID)
-      : doc
-          .data()
-          ?.outputs[data.index].filter(
-            (objectID) => data.objectIDs?.indexOf(objectID) === -1
-          );
+  const query = !data.objectIDs
+    ? collection
+        .where("index", "==", data.index)
+        .where("objectID", "==", data.objectID)
+    : collection.where("index", "==", data.index);
 
-    if ((outputs as string[]).indexOf(data.objectID) >= 0) {
-      throw new functions.https.HttpsError(
-        "cancelled",
-        "データが重複しているため、追加できません",
-        "firebase"
-      );
-    }
+  const querySnapshot = await query.get().catch(() => {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "ユーザーの取得に失敗しました",
+      "firebase"
+    );
+  });
 
-    await doc.ref
-      .set(
-        {
-          outputs: Object.assign(doc.data()?.outputs, {
-            [data.index]: add
-              ? outputs?.length
-                ? [data.objectID, ...outputs]
-                : [data.objectID]
-              : [...(outputs as string[])],
-          }),
-          updateAt: timestamp,
-        },
-        { merge: true }
-      )
-      .catch(() => {
+  const objectIDs = data.objectIDs;
+
+  if (!objectIDs) {
+    const doc = querySnapshot.docs[0];
+
+    if (doc) {
+      const active = doc.data().active;
+
+      await doc.ref.set({ active: !active }, { merge: true }).catch(() => {
         throw new functions.https.HttpsError(
           "data-loss",
-          add ? "出力の追加に失敗しました" : "出力の削除に失敗しました",
+          "いいねの追加に失敗しました",
           "firebase"
         );
       });
+    } else {
+      await collection
+        .add({
+          index: data.index,
+          objectID: data.objectID,
+          active: true,
+          at: timestamp,
+        })
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "data-loss",
+            "いいねの追加に失敗しました",
+            "firebase"
+          );
+        });
+    }
+  } else {
+    querySnapshot.forEach(async (doc) => {
+      const objectID = doc.data().objectID;
+
+      if (objectIDs.indexOf(objectID) >= 0) {
+        await doc.ref.set({ active: false }, { merge: true }).catch(() => {
+          throw new functions.https.HttpsError(
+            "data-loss",
+            "いいねの追加に失敗しました",
+            "firebase"
+          );
+        });
+      }
+    });
   }
 
   return;

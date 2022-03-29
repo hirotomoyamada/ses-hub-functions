@@ -27,20 +27,6 @@ export interface Company {
       linkedIn: string | null;
     };
   };
-  posts: { matters: string[]; resources: string[] };
-  entries: {
-    matters: string[];
-    resources: string[];
-    persons: string[];
-  };
-  likes: {
-    matters: string[];
-    resources: string[];
-    persons: string[];
-  };
-  outputs: { matters: string[]; resources: string[] };
-  follows: string[];
-  home: string[];
   payment: {
     status: string;
     trial: boolean;
@@ -117,6 +103,21 @@ export interface Person {
   createAt: number;
   updateAt?: number;
   lastLogin?: number;
+}
+
+export interface Posts {
+  index: string;
+  objectID: string;
+  active: boolean;
+  at: number;
+}
+
+export interface Users {
+  index: string;
+  uid: string;
+  active: boolean;
+  home?: boolean;
+  at: number;
 }
 
 export interface Data {

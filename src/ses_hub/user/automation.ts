@@ -48,9 +48,6 @@ export const deleteUser = functions
   .auth.user()
   .onDelete(async (snapshot) => {
     const uid = snapshot.uid;
-    const companys = algolia.initIndex("companys");
-    const matters = algolia.initIndex("matters");
-    const resources = algolia.initIndex("resources");
 
     const doc = await db
       .collection("companys")
@@ -59,22 +56,87 @@ export const deleteUser = functions
       .get();
 
     if (doc.exists) {
-      const posts = doc.data()?.posts;
       const child = doc.data()?.type === "child";
       const parent = doc.data()?.payment.parent;
 
       await db.collection("companys").doc(uid).delete();
       await db.collection("customers").doc(uid).delete();
-      await companys.deleteObject(uid);
 
-      posts?.matters[0] && (await matters.deleteObjects(posts.matters));
-      posts?.resources[0] && (await resources.deleteObjects(posts.resources));
+      await updateFirestore(uid);
+      await deleteAlgolia(uid);
 
       child && parent && (await deleteChild({ child: uid, parent: parent }));
     }
 
     return;
   });
+
+const updateFirestore = async (uid: string) => {
+  const collections = ["posts", "likes", "outputs", "follows"];
+
+  for await (const collection of collections) {
+    const querySnapshot = await db
+      .collection("companys")
+      .doc(uid)
+      .collection(collection)
+      .withConverter(converter<Firestore.Post>())
+      .where("active", "==", true)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "コレクションの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    const timestamp = Date.now();
+
+    querySnapshot.forEach(async (doc) => {
+      if (doc) {
+        await doc.ref
+          .set(
+            collection !== "posts"
+              ? { active: false, updateAt: timestamp }
+              : { active: false, display: "private", deleteAt: timestamp },
+            { merge: true }
+          )
+          .catch(() => {});
+      }
+    });
+  }
+};
+
+const deleteAlgolia = async (uid: string) => {
+  for await (const i of ["companys", "matters", "resources"]) {
+    const index = algolia.initIndex(i);
+
+    if (i === "companys") {
+      await index.deleteObject(uid);
+    } else {
+      const querySnapshot = await db
+        .collection("companys")
+        .doc(uid)
+        .collection("posts")
+        .withConverter(converter<Firestore.Post>())
+        .where("index", "==", i)
+        .get()
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "not-found",
+            "コレクションの取得に失敗しました",
+            "firebase"
+          );
+        });
+
+      const posts = querySnapshot.docs.map((doc) => doc.data().objectID);
+
+      if (posts.length) {
+        await index.deleteObjects(posts);
+      }
+    }
+  }
+};
 
 const deleteChild = async ({
   child,
@@ -95,10 +157,12 @@ const deleteChild = async ({
     if (payment) {
       const children = payment.children?.filter((uid) => uid !== child);
 
-      await doc.ref.set(
-        { payment: Object.assign(payment, { children: children }) },
-        { merge: true }
-      );
+      await doc.ref
+        .set(
+          { payment: Object.assign(payment, { children: children }) },
+          { merge: true }
+        )
+        .catch(() => {});
     }
   }
 

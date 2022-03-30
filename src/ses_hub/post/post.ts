@@ -29,7 +29,7 @@ export const createPost = functions
 
     const post = await createAlgolia(context, data);
 
-    await createFirestore(context, data, post);
+    await updateFirestore({ context, data, post });
 
     return { index: data.index, post: post };
   });
@@ -42,6 +42,7 @@ export const editPost = functions
 
     if (context.auth?.uid === data.post.uid) {
       await editAlgolia(context, data);
+      await updateFirestore({ context, data, edit: true });
     }
   });
 
@@ -53,7 +54,7 @@ export const deletePost = functions
 
     if (context.auth?.uid === data.post.uid) {
       await deleteAlgolia(data);
-      await deleteFirestore(context, data);
+      await updateFirestore({ context, data });
     }
   });
 
@@ -102,12 +103,12 @@ const createAlgolia = async (
     data.index === "matters"
       ? format.matter({
           post: data.post as NestedPartial<Algolia.Matter>,
-          context: context,
+          context,
         })
       : data.index === "resources" &&
         format.resource({
           post: data.post as NestedPartial<Algolia.Resource>,
-          context: context,
+          context,
         });
 
   if (!post) {
@@ -144,13 +145,13 @@ const editAlgolia = async (
     data.index === "matters"
       ? format.matter({
           post: data.post as NestedPartial<Algolia.Matter>,
-          context: context,
+          context,
           edit: true,
         })
       : data.index === "resources" &&
         format.resource({
           post: data.post as NestedPartial<Algolia.Resource>,
-          context: context,
+          context,
           edit: true,
         });
 
@@ -195,11 +196,17 @@ const deleteAlgolia = async (data: Data) => {
   return;
 };
 
-const createFirestore = async (
-  context: functions.https.CallableContext,
-  data: Data,
-  post: Algolia.Matter | Algolia.Resource
-) => {
+const updateFirestore = async ({
+  context,
+  data,
+  post,
+  edit,
+}: {
+  context: functions.https.CallableContext;
+  data: Data;
+  post?: Algolia.Matter | Algolia.Resource;
+  edit?: boolean;
+}): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -208,83 +215,73 @@ const createFirestore = async (
     );
   }
 
-  const doc = await db
+  const timestamp = Date.now();
+
+  const collection = db
     .collection("companys")
-    .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
+    .collection("posts")
+    .withConverter(converter<Firestore.Posts>());
+
+  const querySnapshot = await collection
+    .where("index", "==", data.index)
+    .where("objectID", "==", post?.objectID || data.post.objectID)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
         "not-found",
-        "プロフィールが存在しません",
-        "profile"
-      );
-    });
-
-  if (doc.exists) {
-    const posts = doc.data()?.posts;
-
-    doc.ref
-      .set(
-        {
-          posts: Object.assign(
-            posts,
-            posts?.[data.index].length
-              ? { [data.index]: [post.objectID, ...posts[data.index]] }
-              : { [data.index]: [post.objectID] }
-          ),
-        },
-        { merge: true }
-      )
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "unavailable",
-          "プロフィールの更新に失敗しました",
-          "disable"
-        );
-      });
-  }
-};
-
-const deleteFirestore = async (
-  context: functions.https.CallableContext,
-  data: Data
-) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
-    );
-  }
-
-  const doc = await db
-    .collection("companys")
-    .withConverter(converter<Firestore.Company>())
-    .doc(context.auth.uid)
-    .get()
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "投稿の削除に失敗しました",
+        "コレクションの取得に失敗しました",
         "firebase"
       );
     });
 
-  if (doc.exists) {
-    const posts = doc
-      .data()
-      ?.posts[data.index].filter((objectID) => objectID !== data.post.objectID);
+  const doc = querySnapshot.docs[0];
 
-    doc.ref.set(
-      {
-        posts: Object.assign(doc.data()?.posts, {
-          [data.index]: [...(posts as string[])],
-        }),
-      },
-      { merge: true }
-    );
+  if (doc) {
+    await doc.ref
+      .set(
+        edit
+          ? { display: data.post.display, updateAt: timestamp }
+          : { active: false, display: "private", deleteAt: timestamp },
+        {
+          merge: true,
+        }
+      )
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "データの更新に失敗しました",
+          "firebase"
+        );
+      });
+  } else {
+    if (!post?.uid || !post?.objectID) {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "データの追加に失敗しました",
+        "firebase"
+      );
+    }
+
+    await collection
+      .add({
+        index: data.index,
+        uid: post.uid,
+        objectID: post.objectID,
+        display: post.display,
+        active: true,
+        createAt: timestamp,
+      })
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "データの追加に失敗しました",
+          "firebase"
+        );
+      });
   }
+
+  return;
 };
 
 const sendMail = async (
@@ -314,14 +311,16 @@ const sendMail = async (
       ? body.post.matter(post as Algolia.Matter, user, url)
       : body.post.resource(post as Algolia.Resource, user, url);
 
+  const from =
+    index === "companys"
+      ? `SES_HUB <${functions.config().admin.ses_hub}>`
+      : `Freelance Direct <${functions.config().admin.freelance_direct}>`;
+
   const mail = {
-    to: to,
-    from:
-      index === "companys"
-        ? `SES_HUB <${functions.config().admin.ses_hub}>`
-        : `Freelance Direct <${functions.config().admin.freelance_direct}>`,
-    subject: subject,
-    text: text,
+    to,
+    from,
+    subject,
+    text,
   };
 
   await send(mail);

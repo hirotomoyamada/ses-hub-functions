@@ -25,7 +25,7 @@ export const createPost = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await postAuthenticated({ context: context });
+    await postAuthenticated({ context });
 
     const post = await createAlgolia(context, data);
 
@@ -38,7 +38,7 @@ export const editPost = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await postAuthenticated({ context: context });
+    await postAuthenticated({ context });
 
     if (context.auth?.uid === data.post.uid) {
       await editAlgolia(context, data);
@@ -50,7 +50,7 @@ export const deletePost = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await postAuthenticated({ context: context });
+    await postAuthenticated({ context });
 
     if (context.auth?.uid === data.post.uid) {
       await deleteAlgolia(data);

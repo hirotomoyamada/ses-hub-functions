@@ -110,7 +110,10 @@ export interface Posts {
   objectID: string;
   uid: string;
   active: boolean;
-  at: number;
+  createAt: number;
+  display?: string;
+  updateAt?: number;
+  deleteAt?: number;
 }
 
 export interface Users {
@@ -118,7 +121,8 @@ export interface Users {
   uid: string;
   active: boolean;
   home?: boolean;
-  at: number;
+  createAt: number;
+  updateAt?: number;
 }
 
 export interface Data {

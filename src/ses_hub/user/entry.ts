@@ -27,55 +27,38 @@ export const addEntry = functions
 
     const timestamp = Date.now();
 
-    const doc = await db
+    const collection = db
       .collection("companys")
-      .withConverter(converter<Firestore.Company>())
-
       .doc(context.auth.uid)
+      .collection("entries")
+      .withConverter(converter<Firestore.Posts>());
+
+    const querySnapshot = await collection
+      .where("index", "==", data.index)
+      .where("objectID", "==", data.objectID)
       .get()
       .catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
-          "ユーザーの取得に失敗しました",
+          "コレクションの取得に失敗しました",
           "firebase"
         );
       });
 
-    if (doc.exists) {
-      const entries = doc.data()?.entries;
+    const doc = querySnapshot.docs[0];
 
-      if (
-        entries?.[data.index] &&
-        entries[data.index].indexOf(data.objectID) >= 0
-      ) {
-        throw new functions.https.HttpsError(
-          "cancelled",
-          "データが重複しているため、追加できません",
-          "firebase"
-        );
-      }
-
-      await doc.ref
-        .set(
-          {
-            entries: Object.assign(
-              entries,
-              entries?.[data.index].length
-                ? {
-                    [data.index]: [data.objectID, ...entries[data.index]],
-                  }
-                : {
-                    [data.index]: [data.objectID],
-                  }
-            ),
-            updateAt: timestamp,
-          },
-          { merge: true }
-        )
+    if (!doc) {
+      await collection
+        .add({
+          index: data.index,
+          objectID: data.objectID,
+          active: true,
+          at: timestamp,
+        })
         .catch(() => {
           throw new functions.https.HttpsError(
             "data-loss",
-            "エントリーの追加に失敗しました",
+            "データの追加に失敗しました",
             "firebase"
           );
         });

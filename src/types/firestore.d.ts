@@ -105,22 +105,23 @@ export interface Person {
   lastLogin?: number;
 }
 
-export interface Posts {
-  index: string;
+export interface Post {
+  index: "matters" | "resources";
   objectID: string;
   uid: string;
   active: boolean;
   createAt: number;
-  display?: string;
+  display?: "public" | "private";
   updateAt?: number;
   deleteAt?: number;
 }
 
-export interface Users {
-  index: string;
+export interface User {
+  index: "companys" | "persons";
   uid: string;
   active: boolean;
   home?: boolean;
+  status?: "enable" | "hold" | "disable";
   createAt: number;
   updateAt?: number;
 }

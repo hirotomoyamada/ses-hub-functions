@@ -108,6 +108,7 @@ export interface Person {
 export interface Posts {
   index: string;
   objectID: string;
+  uid: string;
   active: boolean;
   at: number;
 }

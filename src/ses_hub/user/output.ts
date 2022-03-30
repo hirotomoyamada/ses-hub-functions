@@ -37,7 +37,6 @@ const updateFirestore = async ({
 }: {
   context: functions.https.CallableContext;
   data: Data;
-  add?: boolean;
 }): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(

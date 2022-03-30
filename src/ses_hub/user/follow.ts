@@ -54,7 +54,7 @@ const updateFirestore = async ({
     .collection("companys")
     .doc(context.auth.uid)
     .collection("follows")
-    .withConverter(converter<Firestore.Users>());
+    .withConverter(converter<Firestore.User>());
 
   const doc = await collection
     .doc(data)

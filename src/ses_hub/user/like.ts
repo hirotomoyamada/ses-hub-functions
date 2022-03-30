@@ -56,7 +56,7 @@ const updateFirestore = async ({
     .collection("companys")
     .doc(context.auth.uid)
     .collection("likes")
-    .withConverter(converter<Firestore.Posts | Firestore.Users>());
+    .withConverter(converter<Firestore.Post | Firestore.User>());
 
   const querySnapshot = await collection
     .where("index", "==", data.index)
@@ -85,30 +85,46 @@ const updateFirestore = async ({
         );
       });
   } else {
-    await collection
-      .add(
-        data.objectID
-          ? {
-              index: data.index,
-              objectID: data.objectID,
-              uid: data.uid,
-              active: true,
-              createAt: timestamp,
-            }
-          : {
-              index: data.index,
-              uid: data.uid,
-              active: true,
-              createAt: timestamp,
-            }
-      )
-      .catch(() => {
+    if (data.index !== "persons") {
+      if (!data.objectID) {
         throw new functions.https.HttpsError(
           "data-loss",
           "データの追加に失敗しました",
           "firebase"
         );
-      });
+      }
+
+      await collection
+        .add({
+          index: data.index,
+          objectID: data.objectID,
+          uid: data.uid,
+          active: true,
+          createAt: timestamp,
+        })
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "data-loss",
+            "データの追加に失敗しました",
+            "firebase"
+          );
+        });
+    } else {
+      await collection
+        .add({
+          index: data.index,
+          uid: data.uid,
+          active: true,
+          createAt: timestamp,
+        })
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "data-loss",
+            "データの追加に失敗しました",
+            "firebase"
+          );
+        });
+    }
   }
 
   return;

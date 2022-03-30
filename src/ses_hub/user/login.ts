@@ -109,7 +109,7 @@ const fetchCollections = async (
       .doc(context.auth.uid)
       .collection(key === "home" ? "follows" : key)
       .where("active", "==", true)
-      .withConverter(converter<Firestore.Posts | Firestore.Users>())
+      .withConverter(converter<Firestore.Post | Firestore.User>())
       .get()
       .catch(() => {});
 

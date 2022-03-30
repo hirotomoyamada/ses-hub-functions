@@ -53,7 +53,7 @@ const updateFirestore = async ({
     .collection("companys")
     .doc(context.auth.uid)
     .collection("outputs")
-    .withConverter(converter<Firestore.Posts>());
+    .withConverter(converter<Firestore.Post>());
 
   const query = !data.objectIDs
     ? collection

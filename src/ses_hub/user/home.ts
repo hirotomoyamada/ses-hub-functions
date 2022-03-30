@@ -25,7 +25,7 @@ export const updateHome = functions
       .collection("companys")
       .doc(context.auth.uid)
       .collection("follows")
-      .withConverter(converter<Firestore.Users>());
+      .withConverter(converter<Firestore.User>());
 
     const querySnapshot = await collection.get().catch(() => {
       throw new functions.https.HttpsError(

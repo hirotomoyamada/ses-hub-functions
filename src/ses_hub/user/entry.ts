@@ -4,7 +4,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
 
 type Data = {
-  index: "matters" | "resources" | "persons";
+  index: "matters" | "resources";
   uid: string;
   objectID: string;
 };
@@ -32,7 +32,7 @@ export const addEntry = functions
       .collection("companys")
       .doc(context.auth.uid)
       .collection("entries")
-      .withConverter(converter<Firestore.Posts>());
+      .withConverter(converter<Firestore.Post>());
 
     const querySnapshot = await collection
       .where("index", "==", data.index)

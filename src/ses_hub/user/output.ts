@@ -64,7 +64,7 @@ const updateFirestore = async ({
   const querySnapshot = await query.get().catch(() => {
     throw new functions.https.HttpsError(
       "not-found",
-      "ユーザーの取得に失敗しました",
+      "コレクションの取得に失敗しました",
       "firebase"
     );
   });
@@ -80,7 +80,7 @@ const updateFirestore = async ({
       await doc.ref.set({ active: !active }, { merge: true }).catch(() => {
         throw new functions.https.HttpsError(
           "data-loss",
-          "いいねの追加に失敗しました",
+          "データの更新に失敗しました",
           "firebase"
         );
       });
@@ -95,7 +95,7 @@ const updateFirestore = async ({
         .catch(() => {
           throw new functions.https.HttpsError(
             "data-loss",
-            "いいねの追加に失敗しました",
+            "データの追加に失敗しました",
             "firebase"
           );
         });
@@ -108,7 +108,7 @@ const updateFirestore = async ({
         await doc.ref.set({ active: false }, { merge: true }).catch(() => {
           throw new functions.https.HttpsError(
             "data-loss",
-            "いいねの追加に失敗しました",
+            "データの削除に失敗しました",
             "firebase"
           );
         });

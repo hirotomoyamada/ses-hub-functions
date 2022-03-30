@@ -14,9 +14,9 @@ export const addOutput = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFirestore({ context, data });
 
     return;
   });
@@ -25,9 +25,9 @@ export const removeOutput = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFirestore({ context, data });
 
     return;
   });
@@ -77,13 +77,15 @@ const updateFirestore = async ({
     if (doc) {
       const active = doc.data().active;
 
-      await doc.ref.set({ active: !active }, { merge: true }).catch(() => {
-        throw new functions.https.HttpsError(
-          "data-loss",
-          "データの更新に失敗しました",
-          "firebase"
-        );
-      });
+      await doc.ref
+        .set({ active: !active, updateAt: timestamp }, { merge: true })
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "data-loss",
+            "データの更新に失敗しました",
+            "firebase"
+          );
+        });
     } else {
       if (!data.uid || !data.objectID) {
         throw new functions.https.HttpsError(
@@ -99,7 +101,7 @@ const updateFirestore = async ({
           uid: data.uid,
           objectID: data.objectID,
           active: true,
-          at: timestamp,
+          createAt: timestamp,
         })
         .catch(() => {
           throw new functions.https.HttpsError(
@@ -114,13 +116,15 @@ const updateFirestore = async ({
       const objectID = doc.data().objectID;
 
       if (objectIDs.indexOf(objectID) >= 0) {
-        await doc.ref.set({ active: false }, { merge: true }).catch(() => {
-          throw new functions.https.HttpsError(
-            "data-loss",
-            "データの削除に失敗しました",
-            "firebase"
-          );
-        });
+        await doc.ref
+          .set({ active: false, updateAt: timestamp }, { merge: true })
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "data-loss",
+              "データの削除に失敗しました",
+              "firebase"
+            );
+          });
       }
     });
   }

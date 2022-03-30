@@ -9,3 +9,6 @@ export type NestedRequired<T> = {
     ? Array<NestedRequired<R>>
     : NestedRequired<T[K]>;
 };
+
+export type PartiallyPartial<T, K extends keyof T> = Required<Pick<T, K>> &
+  NestedPartial<T>;

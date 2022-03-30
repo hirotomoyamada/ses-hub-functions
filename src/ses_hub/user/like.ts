@@ -89,6 +89,7 @@ const updateFirestore = async ({
           ? {
               index: data.index,
               objectID: data.objectID,
+              uid: data.uid,
               active: true,
               at: timestamp,
             }

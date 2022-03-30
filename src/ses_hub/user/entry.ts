@@ -5,6 +5,7 @@ import * as Firestore from "../../types/firestore";
 
 type Data = {
   index: "matters" | "resources" | "persons";
+  uid: string;
   objectID: string;
 };
 
@@ -51,6 +52,7 @@ export const addEntry = functions
       await collection
         .add({
           index: data.index,
+          uid: data.uid,
           objectID: data.objectID,
           active: true,
           at: timestamp,

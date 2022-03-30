@@ -5,7 +5,8 @@ import * as Firestore from "../../types/firestore";
 
 type Data = {
   index: "matters" | "resources";
-  objectID: string;
+  uid?: string;
+  objectID?: string;
   objectIDs?: string[];
 };
 
@@ -84,9 +85,18 @@ const updateFirestore = async ({
         );
       });
     } else {
+      if (!data.uid || !data.objectID) {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "データの追加に失敗しました",
+          "firebase"
+        );
+      }
+
       await collection
         .add({
           index: data.index,
+          uid: data.uid,
           objectID: data.objectID,
           active: true,
           at: timestamp,

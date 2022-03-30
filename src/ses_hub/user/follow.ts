@@ -13,7 +13,8 @@ export const addFollow = functions
       canceled: true,
     });
 
-    await updateFirestore({ context: context, data: data, add: true });
+    await updateFollow({ context: context, data: data });
+    await updateFollower({ context: context, data: data });
 
     return;
   });
@@ -28,19 +29,18 @@ export const removeFollow = functions
       canceled: true,
     });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFollow({ context: context, data: data });
+    await updateFollower({ context: context, data: data });
 
     return;
   });
 
-const updateFirestore = async ({
+const updateFollow = async ({
   context,
   data,
-  add,
 }: {
   context: functions.https.CallableContext;
   data: string;
-  add?: boolean;
 }): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -52,69 +52,129 @@ const updateFirestore = async ({
 
   const timestamp = Date.now();
 
-  const doc = await db
+  const collection = db
     .collection("companys")
-    .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
+    .collection("follows")
+    .withConverter(converter<Firestore.Users>());
+
+  const doc = await collection
+    .doc(data)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
         "not-found",
-        "ユーザーの取得に失敗しました",
+        "コレクションの取得に失敗しました",
+        "firebase"
+      );
+    });
+
+  const querySnapshot = await collection
+    .where("home", "==", true)
+    .get()
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "コレクションの取得に失敗しました",
         "firebase"
       );
     });
 
   if (doc.exists) {
-    const follows = add
-      ? doc.data()?.follows
-      : doc.data()?.follows.filter((uid) => uid !== data);
-
-    const home = add
-      ? doc.data()?.home
-      : doc.data()?.home.filter((uid) => uid !== data);
-
-    if (
-      (follows as string[]).indexOf(data) >= 0 ||
-      (home as string[]).indexOf(data) >= 0
-    ) {
-      throw new functions.https.HttpsError(
-        "cancelled",
-        "データが重複しているため、追加できません",
-        "firebase"
-      );
-    }
+    const active = doc.data()?.active;
+    const home = querySnapshot.docs.length;
 
     await doc.ref
       .set(
-        add
-          ? home?.length && follows?.length && home.length < 15
-            ? {
-                follows: [data, ...follows],
-                home: [data, ...home],
-                updateAt: timestamp,
-              }
-            : follows?.length
-            ? {
-                follows: [data, ...follows],
-                updateAt: timestamp,
-              }
-            : {
-                follows: [data],
-                home: [data],
-                updateAt: timestamp,
-              }
-          : {
-              follows: [...(follows as string[])],
-              home: [...(home as string[])],
-              updateAt: timestamp,
-            },
+        { active: !active, home: active ? !active : home < 15 || false },
         { merge: true }
       )
       .catch(() => {
         throw new functions.https.HttpsError(
           "data-loss",
-          add ? "フォローの追加に失敗しました" : "フォローの削除に失敗しました",
+          "データの更新に失敗しました",
+          "firebase"
+        );
+      });
+  } else {
+    const home = querySnapshot.docs.length;
+
+    await doc.ref
+      .set({
+        index: "companys",
+        uid: data,
+        active: true,
+        home: home < 15 || false,
+        at: timestamp,
+      })
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "データの追加に失敗しました",
+          "firebase"
+        );
+      });
+  }
+
+  return;
+};
+
+const updateFollower = async ({
+  context,
+  data,
+}: {
+  context: functions.https.CallableContext;
+  data: string;
+}): Promise<void> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
+
+  const timestamp = Date.now();
+
+  const collection = db
+    .collection("companys")
+    .doc(data)
+    .collection("followers")
+    .withConverter(converter<Firestore.Users>());
+
+  const doc = await collection
+    .doc(context.auth.uid)
+    .get()
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "コレクションの取得に失敗しました",
+        "firebase"
+      );
+    });
+
+  if (doc.exists) {
+    const active = doc.data()?.active;
+
+    await doc.ref.set({ active: !active }, { merge: true }).catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "データの更新に失敗しました",
+        "firebase"
+      );
+    });
+  } else {
+    await doc.ref
+      .set({
+        index: "companys",
+        uid: data,
+        active: true,
+        at: timestamp,
+      })
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "データの追加に失敗しました",
           "firebase"
         );
       });

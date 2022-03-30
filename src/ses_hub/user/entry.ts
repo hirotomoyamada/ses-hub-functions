@@ -14,7 +14,7 @@ export const addEntry = functions
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated({
-      context: context,
+      context,
       demo: true,
     });
 
@@ -55,7 +55,7 @@ export const addEntry = functions
           uid: data.uid,
           objectID: data.objectID,
           active: true,
-          at: timestamp,
+          createAt: timestamp,
         })
         .catch(() => {
           throw new functions.https.HttpsError(

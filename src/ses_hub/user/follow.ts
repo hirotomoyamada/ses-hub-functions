@@ -8,12 +8,12 @@ export const addFollow = functions
   .runWith(runtime)
   .https.onCall(async (data: string, context) => {
     await userAuthenticated({
-      context: context,
+      context,
       demo: true,
       canceled: true,
     });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFirestore({ context, data });
 
     return;
   });
@@ -28,7 +28,7 @@ export const removeFollow = functions
       canceled: true,
     });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFirestore({ context, data });
 
     return;
   });
@@ -84,7 +84,11 @@ const updateFirestore = async ({
 
     await doc.ref
       .set(
-        { active: !active, home: active ? !active : home < 15 || false },
+        {
+          active: !active,
+          home: active ? !active : home < 15 || false,
+          updateAt: timestamp,
+        },
         { merge: true }
       )
       .catch(() => {
@@ -103,7 +107,7 @@ const updateFirestore = async ({
         uid: data,
         active: true,
         home: home < 15 || false,
-        at: timestamp,
+        createAt: timestamp,
       })
       .catch(() => {
         throw new functions.https.HttpsError(

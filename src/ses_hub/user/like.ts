@@ -14,12 +14,12 @@ export const addLike = functions
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated({
-      context: context,
+      context,
       demo: true,
       index: data.index,
     });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFirestore({ context, data });
 
     return;
   });
@@ -28,9 +28,9 @@ export const removeLike = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFirestore({ context, data });
 
     return;
   });
@@ -75,13 +75,15 @@ const updateFirestore = async ({
   if (doc) {
     const active = doc.data().active;
 
-    await doc.ref.set({ active: !active }, { merge: true }).catch(() => {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "データの更新に失敗しました",
-        "firebase"
-      );
-    });
+    await doc.ref
+      .set({ active: !active, updateAt: timestamp }, { merge: true })
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "データの更新に失敗しました",
+          "firebase"
+        );
+      });
   } else {
     await collection
       .add(
@@ -91,13 +93,13 @@ const updateFirestore = async ({
               objectID: data.objectID,
               uid: data.uid,
               active: true,
-              at: timestamp,
+              createAt: timestamp,
             }
           : {
               index: data.index,
               uid: data.uid,
               active: true,
-              at: timestamp,
+              createAt: timestamp,
             }
       )
       .catch(() => {

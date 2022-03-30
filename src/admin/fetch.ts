@@ -2,7 +2,6 @@ import * as functions from "firebase-functions";
 import { algolia } from "../algolia";
 import { converter, db, location, runtime } from "../firebase";
 import { userAuthenticated } from "./_userAuthenticated";
-import { dataOrganize } from "./_dataOrganize";
 import * as fetch from "./_fetch";
 import * as Firestore from "../types/firestore";
 import * as Auth from "../types/auth";
@@ -28,6 +27,10 @@ type Posts =
   | Algolia.Person;
 
 type Results = Algolia.Matter | Algolia.Resource | Auth.Company | Auth.Person;
+
+type Collections = {
+  [key: string]: string[] | { [key: string]: string[] };
+};
 
 export const fetchPosts = functions
   .region(location)
@@ -198,35 +201,34 @@ const fetchFirestore = async (
       );
     }
 
-    const list = await dataOrganize(arg.index, doc).catch(() => {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "ユーザーの編集に失敗しました",
-        "firebase"
-      );
+    const collections = await fetchCollections({
+      index: arg.index,
+      uid: doc.id,
     });
 
-    if ("payment" in data && "posts" in list) {
+    if ("payment" in data) {
       const parent =
         data.type === "child"
           ? await fetchParent(data.payment.parent)
           : undefined;
 
       const user: Auth.Company = !parent
-        ? { uid: doc.id, ...fetch.company.main(data, list) }
+        ? { uid: doc.id, ...fetch.company.main(data), ...collections }
         : {
             uid: doc.id,
             parent: parent,
-            ...fetch.company.main(data, list),
+            ...fetch.company.main(data),
+            ...collections,
           };
 
       return user;
     }
 
-    if ("resume" in data && "requests" in list) {
+    if ("resume" in data) {
       const user: Auth.Person = {
         uid: doc.id,
-        ...fetch.person.main(data, list),
+        ...fetch.person.main(data),
+        ...collections,
       };
 
       return user;
@@ -236,6 +238,110 @@ const fetchFirestore = async (
   }
 
   return;
+};
+
+const fetchCollections = async ({
+  index,
+  uid,
+}: {
+  index: "companys" | "persons";
+  uid: string;
+}): Promise<Collections> => {
+  const collections: Collections =
+    index === "companys"
+      ? {
+          posts: { matters: [], resources: [] },
+          follows: [],
+          home: [],
+          likes: { matters: [], resources: [], persons: [] },
+          outputs: { matters: [], resources: [] },
+          entries: { matters: [], resources: [], persons: [] },
+        }
+      : {
+          follows: [],
+          home: [],
+          likes: [],
+          entries: [],
+          histories: [],
+          requests: { enable: [], hold: [], disable: [] },
+        };
+
+  for await (const key of Object.keys(collections)) {
+    const querySnapshot = await db
+      .collection(index)
+      .doc(uid)
+      .collection(key === "home" ? "follows" : key)
+      .where("active", "==", true)
+      .withConverter(converter<Firestore.Post | Firestore.User>())
+      .get()
+      .catch(() => {});
+
+    if (!querySnapshot) {
+      continue;
+    }
+
+    querySnapshot.forEach((doc) => {
+      const collection = collections[key];
+      const data = doc.data();
+
+      if (collection instanceof Array) {
+        if ("objectID" in data) {
+          const objectID = data.objectID;
+
+          Object.assign(collections, {
+            [key]: [objectID, ...collection],
+          });
+        } else {
+          const uid = data.uid;
+
+          if ("home" in data) {
+            const home = data.home;
+
+            if (home) {
+              Object.assign(collections, {
+                [key]: [uid, ...collection],
+              });
+            }
+          } else {
+            Object.assign(collections, {
+              [key]: [uid, ...collection],
+            });
+          }
+        }
+      } else {
+        if (key !== "requests") {
+          const index = data.index;
+
+          if ("objectID" in data) {
+            const objectID = data.objectID;
+
+            Object.assign(collections[key], {
+              [index]: [objectID, ...collection[index]],
+            });
+          }
+
+          if ("uid" in data) {
+            const uid = data.uid;
+
+            Object.assign(collections[key], {
+              [index]: [uid, ...collection[index]],
+            });
+          }
+        } else if ("status" in data) {
+          const status = data.status;
+          const uid = data.uid;
+
+          if (status) {
+            Object.assign(collections[key], {
+              [status]: [uid, ...collection[status]],
+            });
+          }
+        }
+      }
+    });
+  }
+
+  return collections;
 };
 
 const fetchAlgolia = async (

@@ -1,10 +1,10 @@
 import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "firebase";
+import { converter, db, location, runtime } from "../../firebase";
 import { userAuthenticated } from "./_userAuthenticated";
-import { send } from "sendgrid";
-import * as body from "ses_hub/mail";
-import * as Firestore from "types/firestore";
-import { PartiallyPartial } from "types/utils";
+import { send } from "../../sendgrid";
+import * as body from "../mail";
+import * as Firestore from "../../types/firestore";
+import { PartiallyPartial } from "../../types/utils";
 
 type Data = {
   uid: string;

@@ -221,7 +221,7 @@ const updateFirestore = async ({
     .collection("companys")
     .doc(context.auth.uid)
     .collection("posts")
-    .withConverter(converter<Firestore.Posts>());
+    .withConverter(converter<Firestore.Post>());
 
   const querySnapshot = await collection
     .where("index", "==", data.index)

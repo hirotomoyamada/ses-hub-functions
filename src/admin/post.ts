@@ -64,38 +64,41 @@ const editAlgolia = async (data: Data): Promise<void> => {
 };
 
 const deleteFirestore = async (data: Data): Promise<void> => {
-  const doc = await db
+  const timestamp = Date.now();
+
+  const collection = db
     .collection("companys")
-    .withConverter(converter<Firestore.Company>())
     .doc(data.post.uid)
+    .collection("posts")
+    .withConverter(converter<Firestore.Post>());
+
+  const querySnapshot = await collection
+    .where("index", "==", data.index)
+    .where("objectID", "==", data.post.objectID)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "投稿の削除に失敗しました",
+        "not-found",
+        "コレクションの取得に失敗しました",
         "firebase"
       );
     });
 
-  if (doc.exists) {
-    const posts = doc
-      .data()
-      ?.posts[data.index].filter((objectID) => objectID !== data.post.objectID);
+  const doc = querySnapshot.docs[0];
 
-    if (!posts) {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "投稿の削除に失敗しました",
-        "firebase"
-      );
-    }
-
-    doc.ref.set(
-      {
-        posts: Object.assign(doc.data()?.posts, { [data.index]: [...posts] }),
-      },
-      { merge: true }
-    );
+  if (doc) {
+    await doc.ref
+      .set(
+        { active: false, display: "private", deleteAt: timestamp },
+        { merge: true }
+      )
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "データの更新に失敗しました",
+          "firebase"
+        );
+      });
   }
 
   return;

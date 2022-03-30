@@ -86,7 +86,6 @@ export const company = {
     const timestamp = Date.now();
 
     return {
-      uid: user.uid,
       type: user.type,
       icon: user.icon,
       cover: user.cover,
@@ -136,7 +135,6 @@ export const person = {
     const timestamp = Date.now();
 
     return {
-      uid: user.uid,
       icon: user.icon,
       cover: user.cover,
       status: user.status,

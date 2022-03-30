@@ -13,8 +13,7 @@ export const addFollow = functions
       canceled: true,
     });
 
-    await updateFollow({ context: context, data: data });
-    await updateFollower({ context: context, data: data });
+    await updateFirestore({ context: context, data: data });
 
     return;
   });
@@ -29,13 +28,12 @@ export const removeFollow = functions
       canceled: true,
     });
 
-    await updateFollow({ context: context, data: data });
-    await updateFollower({ context: context, data: data });
+    await updateFirestore({ context: context, data: data });
 
     return;
   });
 
-const updateFollow = async ({
+const updateFirestore = async ({
   context,
   data,
 }: {
@@ -105,70 +103,6 @@ const updateFollow = async ({
         uid: data,
         active: true,
         home: home < 15 || false,
-        at: timestamp,
-      })
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "data-loss",
-          "データの追加に失敗しました",
-          "firebase"
-        );
-      });
-  }
-
-  return;
-};
-
-const updateFollower = async ({
-  context,
-  data,
-}: {
-  context: functions.https.CallableContext;
-  data: string;
-}): Promise<void> => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
-    );
-  }
-
-  const timestamp = Date.now();
-
-  const collection = db
-    .collection("companys")
-    .doc(data)
-    .collection("followers")
-    .withConverter(converter<Firestore.Users>());
-
-  const doc = await collection
-    .doc(context.auth.uid)
-    .get()
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "コレクションの取得に失敗しました",
-        "firebase"
-      );
-    });
-
-  if (doc.exists) {
-    const active = doc.data()?.active;
-
-    await doc.ref.set({ active: !active }, { merge: true }).catch(() => {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "データの更新に失敗しました",
-        "firebase"
-      );
-    });
-  } else {
-    await doc.ref
-      .set({
-        index: "companys",
-        uid: data,
-        active: true,
         at: timestamp,
       })
       .catch(() => {

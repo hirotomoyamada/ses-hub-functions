@@ -61,7 +61,7 @@ export const editProfile = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
     const child = await fetchChild(context, data);
 
@@ -156,9 +156,9 @@ const createFirestore = async (
     });
 
   const profile = format.createFirestore({
-    context: context,
-    data: data,
-    customer: customer,
+    context,
+    data,
+    customer,
   });
 
   if (!profile) {
@@ -208,9 +208,9 @@ const editFirestore = async (
     });
 
   const profile = format.editFirestore({
-    context: context,
-    data: data,
-    doc: doc,
+    context,
+    data,
+    doc,
   });
 
   if (doc.exists && profile) {
@@ -231,8 +231,8 @@ const createAlgolia = async (
   const index = algolia.initIndex("companys");
 
   const profile: Algolia.Company = format.createAlgolia({
-    context: context,
-    data: data,
+    context,
+    data,
   });
 
   if (!profile) {
@@ -263,8 +263,8 @@ const editAlgolia = async (
   const index = algolia.initIndex("companys");
 
   const profile: Partial<Algolia.Company> = format.editAlgolia({
-    context: context,
-    data: data,
+    context,
+    data,
   });
 
   if (!profile) {

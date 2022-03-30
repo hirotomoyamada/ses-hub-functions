@@ -14,7 +14,7 @@ export const addProvider = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
     await addFirestore(context, data);
     data.email && addAlgolia(context, data);

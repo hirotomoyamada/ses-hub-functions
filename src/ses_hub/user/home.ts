@@ -8,7 +8,7 @@ export const updateHome = functions
   .runWith(runtime)
   .https.onCall(async (data: string[], context) => {
     await userAuthenticated({
-      context: context,
+      context,
       demo: true,
       canceled: true,
     });

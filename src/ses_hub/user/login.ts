@@ -24,7 +24,7 @@ export const login = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await loginAuthenticated({ context: context, data: data });
+    await loginAuthenticated({ context, data });
 
     const user = await fetchUser(context, data);
     const seshub = await fetchData();
@@ -58,21 +58,21 @@ const fetchUser = async (
 
     if (doc.data()?.provider.length !== data.providerData.length) {
       await updateProvider(doc, data, timestamp);
-      await loginAuthenticated({ doc: doc });
+      await loginAuthenticated({ doc });
 
       const collections = await fetchCollections(context);
 
       return {
-        ...fetch.login({ context: context, doc: doc, data: data }),
+        ...fetch.login({ context, doc, data }),
         ...collections,
       };
     } else {
       await updateLogin(doc, timestamp);
-      await loginAuthenticated({ doc: doc });
+      await loginAuthenticated({ doc });
 
       const collections = await fetchCollections(context);
 
-      return { ...fetch.login({ context: context, doc: doc }), ...collections };
+      return { ...fetch.login({ context, doc }), ...collections };
     }
   } else {
     throw new functions.https.HttpsError(

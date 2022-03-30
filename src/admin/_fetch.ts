@@ -1,7 +1,6 @@
 import * as Algolia from "../types/algolia";
 import * as Firestore from "../types/firestore";
 import * as Auth from "../types/auth";
-import { List } from "./_dataOrganize";
 import { NestedPartial } from "../types/utils";
 
 export const matter = (hit: Algolia.Matter): Algolia.Matter => {
@@ -61,7 +60,7 @@ export const resource = (hit: Algolia.Resource): Algolia.Resource => {
 };
 
 export const company = {
-  main: (data: Firestore.Company, list?: List["company"]): Auth.Company => {
+  main: (data: Firestore.Company): Auth.Company => {
     return {
       icon: data.icon,
       cover: data.cover,
@@ -74,14 +73,6 @@ export const company = {
       createAt: data.createAt,
       updateAt: data.updateAt,
       lastLogin: data.lastLogin,
-
-      follows: list ? list.follows : data.follows,
-      posts: list ? list.posts : data.posts,
-      outputs: list ? list.outputs : data.outputs,
-      likes: list ? list.likes : data.likes,
-      entries: list ? list.entries : data.entries,
-      home: list ? list.home : data.home,
-
       name: data.profile.name,
       person: data.profile.person,
       position: data.profile.position,
@@ -104,12 +95,6 @@ export const company = {
     post.provider = data.provider;
     post.type = data.type;
     post.agree = data.agree;
-    post.posts = data.posts;
-    post.likes = data.likes;
-    post.outputs = data.outputs;
-    post.entries = data.entries;
-    post.follows = data.follows;
-    post.home = data.home;
     post.payment = data.payment;
     post.createAt = data.createAt;
     post.updateAt = data.updateAt;
@@ -168,7 +153,7 @@ export const company = {
 };
 
 export const person = {
-  main: (data: Firestore.Person, list: List["person"]): Auth.Person => {
+  main: (data: Firestore.Person): Auth.Person => {
     return {
       icon: data.icon,
       cover: data.cover,
@@ -179,14 +164,6 @@ export const person = {
       createAt: data.createAt,
       updateAt: data.updateAt,
       lastLogin: data.lastLogin,
-
-      follows: list.follows,
-      likes: list.likes,
-      entries: list.entries,
-      requests: list.requests,
-      histories: list.histories,
-      home: list.home,
-
       state: data.profile.state,
       nickName: data.profile.nickName,
       name: data.profile.name,

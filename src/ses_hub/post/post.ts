@@ -55,6 +55,7 @@ export const deletePost = functions
     if (context.auth?.uid === data.post.uid) {
       await deleteAlgolia(data);
       await updateFirestore({ context, data });
+      await updateCollectionGroup(data);
     }
   });
 
@@ -282,6 +283,35 @@ const updateFirestore = async ({
   }
 
   return;
+};
+
+const updateCollectionGroup = async (data: Data) => {
+  const collections = ["likes", "outputs", "entries", "histories"];
+
+  for await (const collection of collections) {
+    const querySnapshot = await db
+      .collectionGroup(collection)
+      .withConverter(converter<Firestore.Post>())
+      .where("objectID", "==", data.post.objectID)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "コレクションの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    const timestamp = Date.now();
+
+    querySnapshot.forEach(async (doc) => {
+      if (doc) {
+        await doc.ref
+          .set({ active: false, updateAt: timestamp }, { merge: true })
+          .catch(() => {});
+      }
+    });
+  }
 };
 
 const sendMail = async (

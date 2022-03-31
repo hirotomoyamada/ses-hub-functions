@@ -63,6 +63,7 @@ export const deleteUser = functions
       await db.collection("customers").doc(uid).delete();
 
       await updateFirestore(uid);
+      await updateCollectionGroup(uid);
       await deleteAlgolia(uid);
 
       child && parent && (await deleteChild({ child: uid, parent: parent }));
@@ -72,14 +73,21 @@ export const deleteUser = functions
   });
 
 const updateFirestore = async (uid: string) => {
-  const collections = ["posts", "likes", "outputs", "follows"];
+  const collections = [
+    "posts",
+    "likes",
+    "outputs",
+    "follows",
+    "entries",
+    "histories",
+  ];
 
   for await (const collection of collections) {
     const querySnapshot = await db
       .collection("companys")
       .doc(uid)
       .collection(collection)
-      .withConverter(converter<Firestore.Post>())
+      .withConverter(converter<Firestore.Post | Firestore.User>())
       .where("active", "==", true)
       .get()
       .catch(() => {
@@ -96,9 +104,56 @@ const updateFirestore = async (uid: string) => {
       if (doc) {
         await doc.ref
           .set(
-            collection !== "posts"
-              ? { active: false, updateAt: timestamp }
-              : { active: false, display: "private", deleteAt: timestamp },
+            collection === "posts"
+              ? { active: false, display: "private", deleteAt: timestamp }
+              : collection === "follows"
+              ? { active: false, home: false, updateAt: timestamp }
+              : collection === "entries" && doc.data().index === "persons"
+              ? { active: false, status: "disable", updateAt: timestamp }
+              : { active: false, updateAt: timestamp },
+            { merge: true }
+          )
+          .catch(() => {});
+      }
+    });
+  }
+};
+
+const updateCollectionGroup = async (uid: string) => {
+  const collections = [
+    "likes",
+    "outputs",
+    "follows",
+    "entries",
+    "histories",
+    "requests",
+  ];
+
+  for await (const collection of collections) {
+    const querySnapshot = await db
+      .collectionGroup(collection)
+      .withConverter(converter<Firestore.Post | Firestore.User>())
+      .where("uid", "==", uid)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "コレクションの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    const timestamp = Date.now();
+
+    querySnapshot.forEach(async (doc) => {
+      if (doc) {
+        await doc.ref
+          .set(
+            collection === "follows"
+              ? { active: false, home: false, updateAt: timestamp }
+              : collection === "requests"
+              ? { active: false, status: "disable", updateAt: timestamp }
+              : { active: false, updateAt: timestamp },
             { merge: true }
           )
           .catch(() => {});

@@ -318,9 +318,7 @@ const fetchCollections = async ({
             Object.assign(collections[key], {
               [index]: [objectID, ...collection[index]],
             });
-          }
-
-          if ("uid" in data) {
+          } else {
             const uid = data.uid;
 
             Object.assign(collections[key], {

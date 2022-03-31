@@ -290,7 +290,7 @@ const fetchCollections = async ({
           const objectID = data.objectID;
 
           Object.assign(collections, {
-            [key]: [objectID, ...collection],
+            [key]: [...collection, objectID],
           });
         } else {
           const uid = data.uid;
@@ -300,12 +300,12 @@ const fetchCollections = async ({
 
             if (home) {
               Object.assign(collections, {
-                [key]: [uid, ...collection],
+                [key]: [...collection, uid],
               });
             }
           } else {
             Object.assign(collections, {
-              [key]: [uid, ...collection],
+              [key]: [...collection, uid],
             });
           }
         }
@@ -317,13 +317,13 @@ const fetchCollections = async ({
             const objectID = data.objectID;
 
             Object.assign(collections[key], {
-              [index]: [objectID, ...collection[index]],
+              [index]: [...collection[index], objectID],
             });
           } else {
             const uid = data.uid;
 
             Object.assign(collections[key], {
-              [index]: [uid, ...collection[index]],
+              [index]: [...collection[index], uid],
             });
           }
         } else if ("status" in data) {
@@ -332,7 +332,7 @@ const fetchCollections = async ({
 
           if (status) {
             Object.assign(collections[key], {
-              [status]: [uid, ...collection[status]],
+              [status]: [...collection[status], uid],
             });
           }
         }

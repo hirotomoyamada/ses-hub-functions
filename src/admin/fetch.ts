@@ -272,6 +272,7 @@ const fetchCollections = async ({
       .doc(uid)
       .collection(key === "home" ? "follows" : key)
       .where("active", "==", true)
+      .orderBy("updateAt", "desc")
       .withConverter(converter<Firestore.Post | Firestore.User>())
       .get()
       .catch(() => {});

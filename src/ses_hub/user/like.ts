@@ -101,6 +101,7 @@ const updateFirestore = async ({
           uid: data.uid,
           active: true,
           createAt: timestamp,
+          updateAt: timestamp,
         })
         .catch(() => {
           throw new functions.https.HttpsError(
@@ -116,6 +117,7 @@ const updateFirestore = async ({
           uid: data.uid,
           active: true,
           createAt: timestamp,
+          updateAt: timestamp,
         })
         .catch(() => {
           throw new functions.https.HttpsError(

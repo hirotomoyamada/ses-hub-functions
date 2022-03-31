@@ -102,6 +102,7 @@ const updateFirestore = async ({
           objectID: data.objectID,
           active: true,
           createAt: timestamp,
+          updateAt: timestamp,
         })
         .catch(() => {
           throw new functions.https.HttpsError(

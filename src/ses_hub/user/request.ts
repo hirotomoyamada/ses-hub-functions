@@ -124,6 +124,7 @@ const updateFirestore = async (
           status: "hold",
           active: true,
           createAt: timestamp,
+          updateAt: timestamp,
         })
         .catch(() => {
           throw new functions.https.HttpsError(

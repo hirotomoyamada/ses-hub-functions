@@ -272,6 +272,7 @@ const updateFirestore = async ({
         display: post.display,
         active: true,
         createAt: timestamp,
+        updateAt: timestamp,
       })
       .catch(() => {
         throw new functions.https.HttpsError(
@@ -294,17 +295,15 @@ const updateCollectionGroup = async (data: Data) => {
       .withConverter(converter<Firestore.Post>())
       .where("objectID", "==", data.post.objectID)
       .get()
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "コレクションの取得に失敗しました",
-          "firebase"
-        );
-      });
+      .catch(() => {});
 
     const timestamp = Date.now();
 
-    querySnapshot.forEach(async (doc) => {
+    if (!querySnapshot) {
+      return;
+    }
+
+    querySnapshot?.forEach(async (doc) => {
       if (doc) {
         await doc.ref
           .set({ active: false, updateAt: timestamp }, { merge: true })

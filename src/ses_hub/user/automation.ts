@@ -135,15 +135,13 @@ const updateCollectionGroup = async (uid: string) => {
       .withConverter(converter<Firestore.Post | Firestore.User>())
       .where("uid", "==", uid)
       .get()
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "コレクションの取得に失敗しました",
-          "firebase"
-        );
-      });
+      .catch(() => {});
 
     const timestamp = Date.now();
+
+    if (!querySnapshot) {
+      return;
+    }
 
     querySnapshot.forEach(async (doc) => {
       if (doc) {

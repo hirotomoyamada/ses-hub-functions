@@ -1,8 +1,6 @@
-# Compiled JavaScript files
-libs/
+.env*
+.DS_Store
 
-# TypeScript v1 declaration files
-typings/
-
-# Node.js dependency directory
-node_modules/
+/libs
+/typings
+/node_modules

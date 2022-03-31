@@ -294,6 +294,7 @@ const updateCollectionGroup = async (data: Data) => {
       .collectionGroup(collection)
       .withConverter(converter<Firestore.Post>())
       .where("objectID", "==", data.post.objectID)
+      .orderBy("createAt", "desc")
       .get()
       .catch(() => {});
 

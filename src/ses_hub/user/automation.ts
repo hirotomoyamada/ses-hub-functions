@@ -134,6 +134,7 @@ const updateCollectionGroup = async (uid: string) => {
       .collectionGroup(collection)
       .withConverter(converter<Firestore.Post | Firestore.User>())
       .where("uid", "==", uid)
+      .orderBy("createAt", "desc")
       .get()
       .catch(() => {});
 

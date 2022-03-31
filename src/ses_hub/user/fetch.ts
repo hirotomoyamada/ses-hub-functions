@@ -30,6 +30,8 @@ export const fetchUser = functions
       data.index === "persons" &&
       (await fetchBests(user as Algolia.PersonItem, data));
 
+    user && "uid" in user && (await addHistory(context, data));
+
     return { user: user, bests: bests };
   });
 
@@ -270,6 +272,69 @@ const fetchBests = async (
   }
 
   return bests;
+};
+
+const addHistory = async (
+  context: functions.https.CallableContext,
+  data: Data
+): Promise<void> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
+
+  if (context.auth.uid === data.uid) {
+    return;
+  }
+
+  if (!data.uid) {
+    return;
+  }
+
+  const timestamp = Date.now();
+
+  const collection = db
+    .collection("companys")
+    .doc(context.auth.uid)
+    .collection("histories")
+    .withConverter(converter<Firestore.User>());
+
+  const querySnapshot = await collection
+    .where("index", "==", data.index)
+    .where("uid", "==", data.uid)
+    .orderBy("createAt", "desc")
+    .get()
+    .catch(() => {});
+
+  if (querySnapshot) {
+    const doc = querySnapshot.docs[0];
+    const lastHistory = doc?.data()?.createAt;
+
+    if (lastHistory && lastHistory + 60 * 3 * 1000 > timestamp) {
+      return;
+    }
+  }
+
+  await collection
+    .add({
+      index: data.index,
+      uid: data.uid,
+      active: true,
+      createAt: timestamp,
+      updateAt: timestamp,
+    })
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "データの追加に失敗しました",
+        "firebase"
+      );
+    });
+
+  return;
 };
 
 const checkDemo = (context: functions.https.CallableContext) =>

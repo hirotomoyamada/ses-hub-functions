@@ -47,6 +47,8 @@ export const fetchPost = functions
 
     const bests = post && (await fetchBests(context, data, post));
 
+    post && (await addHistory(context, data, post));
+
     return { post: post, bests: bests };
   });
 
@@ -435,6 +437,67 @@ const updateLimit = async (
         });
     }
   }
+
+  return;
+};
+
+const addHistory = async (
+  context: functions.https.CallableContext,
+  data: Data["post"],
+  post: Post
+): Promise<void> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
+
+  if (context.auth.uid === post.uid) {
+    return;
+  }
+
+  const timestamp = Date.now();
+
+  const collection = db
+    .collection("companys")
+    .doc(context.auth.uid)
+    .collection("histories")
+    .withConverter(converter<Firestore.Post>());
+
+  const querySnapshot = await collection
+    .where("index", "==", data.index)
+    .where("objectID", "==", post.objectID)
+    .orderBy("createAt", "desc")
+    .get()
+    .catch(() => {});
+
+  if (querySnapshot) {
+    const doc = querySnapshot.docs[0];
+    const lastHistory = doc?.data()?.createAt;
+
+    if (lastHistory && lastHistory + 60 * 3 * 1000 > timestamp) {
+      return;
+    }
+  }
+
+  await collection
+    .add({
+      index: data.index,
+      objectID: post.objectID,
+      uid: post.uid,
+      active: true,
+      createAt: timestamp,
+      updateAt: timestamp,
+    })
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "データの追加に失敗しました",
+        "firebase"
+      );
+    });
 
   return;
 };

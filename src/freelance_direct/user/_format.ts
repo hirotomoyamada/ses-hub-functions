@@ -61,16 +61,6 @@ export const createFirestore = ({
     icon: `icon${icon}`,
     cover: `cover${cover}`,
     profile: profile,
-    entries: [],
-    likes: [],
-    requests: {
-      enable: [],
-      hold: [],
-      disable: [],
-    },
-    follows: [],
-    home: [],
-    histories: [],
     createAt: timestamp,
     lastLogin: timestamp,
   };

@@ -86,16 +86,6 @@ export interface Person {
     working: number | null;
     resident: string | null;
   };
-  likes: string[];
-  entries: string[];
-  histories: string[];
-  follows: string[];
-  requests: {
-    enable: string[];
-    hold: string[];
-    disable: string[];
-  };
-  home: string[];
   resume: {
     key: string | null;
     url: string | null;

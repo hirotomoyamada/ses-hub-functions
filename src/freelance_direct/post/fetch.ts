@@ -26,7 +26,7 @@ export const fetchPost = functions
     const post = await fetchAlgolia(data, demo);
     const bests = await fetchBests(post);
 
-    !demo && (await addHistory(context, data));
+    !demo && (await addHistory(context, post));
 
     return { post: post, bests: bests };
   });
@@ -260,7 +260,7 @@ const fetchBests = async (
 
 const addHistory = async (
   context: functions.https.CallableContext,
-  data: string
+  post: Algolia.Matter
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -270,47 +270,46 @@ const addHistory = async (
     );
   }
 
-  const doc = await db
+  const timestamp = Date.now();
+
+  const collection = db
     .collection("persons")
-    .withConverter(converter<Firestore.Person>())
     .doc(context.auth.uid)
+    .collection("histories")
+    .withConverter(converter<Firestore.Post>());
+
+  const querySnapshot = await collection
+    .where("index", "==", "matters")
+    .where("objectID", "==", post.objectID)
+    .orderBy("createAt", "desc")
     .get()
+    .catch(() => {});
+
+  if (querySnapshot) {
+    const doc = querySnapshot.docs[0];
+    const lastHistory = doc?.data()?.createAt;
+
+    if (lastHistory && lastHistory + 60 * 3 * 1000 > timestamp) {
+      return;
+    }
+  }
+
+  await collection
+    .add({
+      index: "matters",
+      objectID: post.objectID,
+      uid: post.uid,
+      active: true,
+      createAt: timestamp,
+      updateAt: timestamp,
+    })
     .catch(() => {
       throw new functions.https.HttpsError(
         "data-loss",
-        "プロフィールの更新に失敗しました",
+        "データの追加に失敗しました",
         "firebase"
       );
     });
-
-  if (doc.exists) {
-    const histories = doc
-      .data()
-      ?.histories.filter((objectID) => objectID !== data);
-
-    if (!histories) {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "プロフィールの更新に失敗しました",
-        "firebase"
-      );
-    }
-
-    await doc.ref
-      .set(
-        {
-          histories: [data, ...histories].slice(0, 100),
-        },
-        { merge: true }
-      )
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "data-loss",
-          "プロフィールの更新に失敗しました",
-          "firebase"
-        );
-      });
-  }
 
   return;
 };

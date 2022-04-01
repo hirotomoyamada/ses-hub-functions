@@ -14,7 +14,9 @@ export const fetchUser = functions
 
     const demo = checkDemo(context);
     const user = await fetchAlgolia(data, demo);
+
     await fetchFirestore(data, user);
+    !demo && (await addHistory(context, data));
 
     return user;
   });
@@ -79,6 +81,61 @@ const fetchFirestore = async (
       user.type = doc.data()?.type;
     }
   }
+};
+
+const addHistory = async (
+  context: functions.https.CallableContext,
+  data: string
+): Promise<void> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
+
+  const timestamp = Date.now();
+
+  const collection = db
+    .collection("persons")
+    .doc(context.auth.uid)
+    .collection("histories")
+    .withConverter(converter<Firestore.User>());
+
+  const querySnapshot = await collection
+    .where("index", "==", "companys")
+    .where("uid", "==", data)
+    .orderBy("createAt", "desc")
+    .get()
+    .catch(() => {});
+
+  if (querySnapshot) {
+    const doc = querySnapshot.docs[0];
+    const lastHistory = doc?.data()?.createAt;
+
+    if (lastHistory && lastHistory + 60 * 3 * 1000 > timestamp) {
+      return;
+    }
+  }
+
+  await collection
+    .add({
+      index: "companys",
+      uid: data,
+      active: true,
+      createAt: timestamp,
+      updateAt: timestamp,
+    })
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "データの追加に失敗しました",
+        "firebase"
+      );
+    });
+
+  return;
 };
 
 const checkDemo = (context: functions.https.CallableContext): boolean =>

@@ -7,9 +7,9 @@ export const addLike = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: string, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
-    await updateFirestore({ context: context, data: data, add: true });
+    await updateFirestore({ context, data, add: true });
 
     return;
   });
@@ -18,9 +18,9 @@ export const removeLike = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
-    await updateFirestore({ context: context, data: data });
+    await updateFirestore({ context, data });
 
     return;
   });

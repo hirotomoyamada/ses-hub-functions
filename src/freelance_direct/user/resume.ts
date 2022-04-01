@@ -13,7 +13,7 @@ export const uploadResume = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
     if (!context.auth) {
       throw new functions.https.HttpsError(
@@ -65,7 +65,7 @@ export const deleteResume = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (_data: unknown, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
     if (!context.auth) {
       throw new functions.https.HttpsError(

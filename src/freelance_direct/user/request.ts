@@ -9,9 +9,9 @@ export const enableRequest = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: string, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
-    await updateUser({ context: context, data: data, enable: true });
+    await updateUser({ context, data, enable: true });
 
     return;
   });
@@ -20,9 +20,9 @@ export const disableRequest = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: string, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
-    await updateUser({ context: context, data: data });
+    await updateUser({ context, data });
 
     return;
   });

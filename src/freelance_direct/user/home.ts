@@ -7,10 +7,7 @@ export const updateHome = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: string[], context) => {
-    await userAuthenticated({
-      context: context,
-      demo: true,
-    });
+    await userAuthenticated({ context, demo: true });
 
     if (!context.auth) {
       throw new functions.https.HttpsError(

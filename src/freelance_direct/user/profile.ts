@@ -66,7 +66,7 @@ export const editProfile = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data["edit"], context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
     if (context.auth?.uid === data.uid) {
       await editFirestore(context, data);
@@ -80,7 +80,7 @@ export const changeState = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: string, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
     await editFirestore(context, data);
     await editAlgolia(context, data);

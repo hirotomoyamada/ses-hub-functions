@@ -8,7 +8,7 @@ export const enableAgree = functions
   .runWith(runtime)
   .https.onCall(async (_data: unknown, context) => {
     await userAuthenticated({
-      context: context,
+      context,
       demo: true,
       agree: true,
     });

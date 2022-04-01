@@ -10,7 +10,7 @@ export const fetchUser = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: string, context) => {
-    await userAuthenticated({ context: context });
+    await userAuthenticated({ context });
 
     const demo = checkDemo(context);
     const user = await fetchAlgolia(data, demo);

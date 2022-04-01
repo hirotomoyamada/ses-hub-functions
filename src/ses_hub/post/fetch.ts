@@ -265,22 +265,22 @@ const fetchQueryFirestore = async (
 
   for (let i = 0; i < posts.length; i++) {
     if (posts[i]) {
-      const doc = await db
+      const docRef = db
         .collection(
           data.index === "matters" || data.index === "resources"
             ? "companys"
             : data.index
         )
         .withConverter(converter<Firestore.Company | Firestore.Person>())
-        .doc((posts as Results[])[i].uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
-          );
-        });
+        .doc((posts as Results[])[i].uid);
+
+      const doc = await docRef.get().catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "ユーザーの取得に失敗しました",
+          "firebase"
+        );
+      });
 
       if (doc.exists) {
         switch (data.index) {
@@ -311,16 +311,20 @@ const fetchQueryFirestore = async (
               const data = doc.data() as Firestore.Person;
 
               if (data.profile.nickName) {
-                const enable = data.requests.enable;
-                const hold = data.requests.hold;
-                const disable = data.requests.disable;
+                const querySnapshot = await docRef
+                  .collection("requests")
+                  .withConverter(converter<Firestore.User>())
+                  .where("uid", "==", context.auth.uid)
+                  .get();
+
+                const status = querySnapshot.docs.length
+                  ? querySnapshot.docs[0].data().status
+                  : "none";
 
                 const request =
-                  (enable as string[]).indexOf(context.auth.uid) >= 0
+                  status === "enable"
                     ? "enable"
-                    : (hold as string[]).indexOf(context.auth.uid) >= 0
-                    ? "hold"
-                    : (disable as string[]).indexOf(context.auth.uid) >= 0
+                    : status && status !== "none"
                     ? "hold"
                     : "none";
 

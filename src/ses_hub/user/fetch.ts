@@ -126,25 +126,23 @@ const fetchFirestore = async (
     );
   }
 
-  if (data.uid) {
-    const doc = await db
+  if (data.uid && "uid" in user) {
+    const docRef = db
       .collection(data.index)
       .withConverter(converter<Firestore.Company | Firestore.Person>())
-      .doc(data.uid)
-      .get()
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "ユーザーの取得に失敗しました",
-          "notFound"
-        );
-      });
+      .doc(data.uid);
+
+    const doc = await docRef.get().catch(() => {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "ユーザーの取得に失敗しました",
+        "notFound"
+      );
+    });
 
     if (doc.exists) {
-      (user as Algolia.CompanyItem | Algolia.PersonItem).icon =
-        doc.data()?.icon;
-      (user as Algolia.CompanyItem | Algolia.PersonItem).cover =
-        doc.data()?.cover;
+      user.icon = doc.data()?.icon;
+      user.cover = doc.data()?.cover;
 
       if (data.index === "companys") {
         const data = doc.data() as Firestore.Company;
@@ -167,16 +165,21 @@ const fetchFirestore = async (
 
       if (data.index === "persons") {
         const data = doc.data() as Firestore.Person;
-        const enable = data.requests.enable;
-        const hold = data.requests.hold;
-        const disable = data.requests.disable;
+
+        const querySnapshot = await docRef
+          .collection("requests")
+          .withConverter(converter<Firestore.User>())
+          .where("uid", "==", context.auth.uid)
+          .get();
+
+        const status = querySnapshot.docs.length
+          ? querySnapshot.docs[0].data().status
+          : "none";
 
         const request =
-          (enable as string[]).indexOf(context.auth.uid) >= 0
+          status === "enable"
             ? "enable"
-            : (hold as string[]).indexOf(context.auth.uid) >= 0
-            ? "hold"
-            : (disable as string[]).indexOf(context.auth.uid) >= 0
+            : status && status !== "none"
             ? "hold"
             : "none";
 
@@ -195,13 +198,13 @@ const fetchFirestore = async (
     }
   }
 
-  if (data.uids) {
-    for (let i = 0; i < (user as Algolia.CompanyItem[]).length; i++) {
-      if ((user as Algolia.CompanyItem[])[i]) {
+  if (data.uids && user instanceof Array) {
+    for (let i = 0; i < user.length; i++) {
+      if (user[i]) {
         const doc = await db
           .collection(data.index)
           .withConverter(converter<Firestore.Company>())
-          .doc((user as Algolia.CompanyItem[])[i].uid)
+          .doc(user[i].uid)
           .get()
           .catch(() => {
             throw new functions.https.HttpsError(
@@ -212,9 +215,9 @@ const fetchFirestore = async (
           });
 
         if (doc.exists) {
-          (user as Algolia.CompanyItem[])[i].icon = doc.data()?.icon;
-          (user as Algolia.CompanyItem[])[i].cover = doc.data()?.cover;
-          (user as Algolia.CompanyItem[])[i].type = doc.data()?.type;
+          user[i].icon = doc.data()?.icon;
+          user[i].cover = doc.data()?.cover;
+          user[i].type = doc.data()?.type;
         }
       }
     }

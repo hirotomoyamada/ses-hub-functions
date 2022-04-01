@@ -167,14 +167,28 @@ const fetchFirestore = async (
       }
 
       if (arg.index === "companys") {
+        const collections = await fetchCollections({
+          index: arg.index,
+          uid: doc.id,
+        });
+
         fetch.company.supplementary(
           <Auth.Company>post,
           <Firestore.Company>data
         );
+
+        Object.assign(post, collections);
       }
 
       if (arg.index === "persons") {
+        const collections = await fetchCollections({
+          index: arg.index,
+          uid: doc.id,
+        });
+
         fetch.person.supplementary(<Auth.Person>post, <Firestore.Person>data);
+
+        Object.assign(post, collections);
       }
     }
   } else if ("uid" in arg) {

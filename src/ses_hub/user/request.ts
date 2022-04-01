@@ -23,11 +23,7 @@ export const addRequest = functions
 
     const { user, selectUser } = await updateFirestore(context, data);
 
-    await sendMail(
-      user as Firestore.Company,
-      selectUser as Firestore.Person,
-      data.body
-    );
+    await sendMail(user, selectUser, data.body);
 
     return;
   });
@@ -75,7 +71,10 @@ const sendMail = async (
 const updateFirestore = async (
   context: functions.https.CallableContext,
   data: Data
-) => {
+): Promise<{
+  user: Firestore.Company;
+  selectUser: Firestore.Person;
+}> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -152,5 +151,8 @@ const updateFirestore = async (
     Object.assign(person ? selectUser : user, doc.data());
   }
 
-  return { user, selectUser };
+  return {
+    user: user as Firestore.Company,
+    selectUser: selectUser as Firestore.Person,
+  };
 };

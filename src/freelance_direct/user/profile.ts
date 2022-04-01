@@ -8,46 +8,16 @@ import { userAuthenticated } from "./_userAuthenticated";
 
 export type Data = {
   create: {
-    name: string;
-    age: number;
-    sex: string;
-    position: string;
-    location: string;
-    handles: string[];
     file: string;
     type: string;
     agree: string;
     provider: string;
-    fetch: boolean;
-  };
+  } & Firestore.Person["profile"];
   edit: {
+    uid: string;
     icon: string;
     cover: string;
-    nickName: string;
-    position: string;
-    body: string | null;
-    age: number;
-    sex: string;
-    location: string;
-    period: {
-      year: number | null;
-      month: number | null;
-    };
-    costs: {
-      display: "public" | "private";
-      type: string;
-      min: number | null;
-      max: number | null;
-    };
-    handles: string[];
-    tools: string[] | [];
-    skills: string[] | [];
-    urls: string[] | [];
-    clothes: string | null;
-    working: number | null;
-    resident: string | null;
-    uid?: string;
-  };
+  } & Firestore.Person["profile"];
 };
 
 export const createProfile = functions

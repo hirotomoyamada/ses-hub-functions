@@ -54,6 +54,9 @@ export const deleteUser = functions
 
     await db.collection("persons").doc(uid).delete();
 
+    await updateFirestore(uid);
+    await updateCollectionGroup(uid);
+
     await index.deleteObject(uid);
 
     if (key) {
@@ -150,3 +153,74 @@ export const goBackUser = functions
       await send(userMail);
     }
   });
+
+const updateFirestore = async (uid: string) => {
+  const collections = ["likes", "follows", "entries", "histories", "requests"];
+
+  for await (const collection of collections) {
+    const querySnapshot = await db
+      .collection("persons")
+      .doc(uid)
+      .collection(collection)
+      .withConverter(converter<Firestore.Post | Firestore.User>())
+      .where("active", "==", true)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "コレクションの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    const timestamp = Date.now();
+
+    querySnapshot.forEach(async (doc) => {
+      if (doc) {
+        await doc.ref
+          .set(
+            collection === "follows"
+              ? { active: false, home: false, updateAt: timestamp }
+              : collection === "requests"
+              ? { active: false, status: "disable", updateAt: timestamp }
+              : { active: false, updateAt: timestamp },
+            { merge: true }
+          )
+          .catch(() => {});
+      }
+    });
+  }
+};
+
+const updateCollectionGroup = async (uid: string) => {
+  const collections = ["likes", "entries", "histories"];
+
+  for await (const collection of collections) {
+    const querySnapshot = await db
+      .collectionGroup(collection)
+      .withConverter(converter<Firestore.Post | Firestore.User>())
+      .where("uid", "==", uid)
+      .orderBy("createAt", "desc")
+      .get()
+      .catch(() => {});
+
+    const timestamp = Date.now();
+
+    if (!querySnapshot) {
+      return;
+    }
+
+    querySnapshot.forEach(async (doc) => {
+      if (doc) {
+        await doc.ref
+          .set(
+            collection === "entries"
+              ? { active: false, status: "disable", updateAt: timestamp }
+              : { active: false, updateAt: timestamp },
+            { merge: true }
+          )
+          .catch(() => {});
+      }
+    });
+  }
+};

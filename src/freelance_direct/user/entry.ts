@@ -3,10 +3,12 @@ import { converter, db, location, runtime } from "../../firebase";
 import * as Firestore from "../../types/firestore";
 import { userAuthenticated } from "./_userAuthenticated";
 
+type Data = { objectID: string; uid: string };
+
 export const addEntry = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data: string, context) => {
+  .https.onCall(async (data: Data, context) => {
     await userAuthenticated({
       context,
       demo: true,
@@ -22,42 +24,39 @@ export const addEntry = functions
 
     const timestamp = Date.now();
 
-    const doc = await db
+    const collection = db
       .collection("persons")
       .doc(context.auth.uid)
-      .withConverter(converter<Firestore.Person>())
+      .collection("entries")
+      .withConverter(converter<Firestore.Post>());
+
+    const querySnapshot = await collection
+      .where("objectID", "==", data.objectID)
       .get()
       .catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
-          "ユーザーの取得に失敗しました",
+          "コレクションの取得に失敗しました",
           "firebase"
         );
       });
 
-    if (doc.exists) {
-      const entries = doc.data()?.entries;
+    const doc = querySnapshot.docs[0];
 
-      if (entries && entries.indexOf(data) >= 0) {
-        throw new functions.https.HttpsError(
-          "cancelled",
-          "データが重複しているため、追加できません",
-          "firebase"
-        );
-      }
-
-      await doc.ref
-        .set(
-          {
-            entries: entries ? [data, ...entries] : [data],
-            updateAt: timestamp,
-          },
-          { merge: true }
-        )
+    if (!doc) {
+      await collection
+        .add({
+          index: "matters",
+          uid: data.uid,
+          objectID: data.objectID,
+          active: true,
+          createAt: timestamp,
+          updateAt: timestamp,
+        })
         .catch(() => {
           throw new functions.https.HttpsError(
             "data-loss",
-            "エントリーの追加に失敗しました",
+            "データの追加に失敗しました",
             "firebase"
           );
         });

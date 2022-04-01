@@ -72,6 +72,119 @@ export const deleteUser = functions
     return;
   });
 
+export const enableUser = functions
+  .region(location)
+  .runWith(runtime)
+  .firestore.document("companys/{uid}")
+  .onUpdate(async (change) => {
+    const profile: Firestore.Company["profile"] = change.after.data().profile;
+    const beforeStatus: string = change.before.data().status;
+    const afterStatus: string = change.after.data().status;
+    const url = `${functions.config().app.ses_hub.url}/login`;
+
+    const userMail = {
+      to: profile.email,
+      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
+      subject: "SES_HUB 承認完了のお知らせ",
+      text: body.enable.user(profile, url),
+    };
+
+    if (beforeStatus === "hold" && afterStatus === "enable") {
+      await send(userMail);
+    }
+  });
+
+export const declineUser = functions
+  .region(location)
+  .runWith(runtime)
+  .firestore.document("companys/{uid}")
+  .onUpdate(async (change) => {
+    const profile: Firestore.Company["profile"] = change.after.data().profile;
+    const beforeStatus: string = change.before.data().status;
+    const afterStatus: string = change.after.data().status;
+    const url: string = functions.config().app.ses_hub.url;
+
+    const userMail = {
+      to: profile.email,
+      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
+      subject: "SES_HUB 承認結果のお知らせ",
+      text: body.decline.user(profile, url),
+    };
+
+    if (beforeStatus === "hold" && afterStatus === "disable") {
+      await send(userMail);
+    }
+  });
+
+export const disableUser = functions
+  .region(location)
+  .runWith(runtime)
+  .firestore.document("companys/{uid}")
+  .onUpdate(async (change) => {
+    const profile: Firestore.Company["profile"] = change.after.data().profile;
+    const beforeStatus: string = change.before.data().status;
+    const afterStatus: string = change.after.data().status;
+    const url: string = functions.config().app.ses_hub.url;
+
+    const userMail = {
+      to: change.after.data().profile.email as string,
+      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
+      subject: "SES_HUB 利用停止のお知らせ",
+      text: body.disable.user(profile, url),
+    };
+
+    if (beforeStatus === "enable" && afterStatus === "disable") {
+      await send(userMail);
+
+      const posts: {
+        matters: string[];
+        resources: string[];
+      } = change.before.data().posts;
+
+      if (posts.matters.length) {
+        const index = algolia.initIndex("matters");
+        const matters = posts.matters.map((objectID) => ({
+          objectID: objectID,
+          display: "private",
+        }));
+
+        await index.partialUpdateObjects(matters);
+      }
+
+      if (posts.resources.length) {
+        const index = algolia.initIndex("resources");
+        const resources = posts.resources.map((objectID) => ({
+          objectID: objectID,
+          display: "private",
+        }));
+
+        await index.partialUpdateObjects(resources);
+      }
+    }
+  });
+
+export const goBackUser = functions
+  .region(location)
+  .runWith(runtime)
+  .firestore.document("companys/{uid}")
+  .onUpdate(async (change) => {
+    const profile: Firestore.Company["profile"] = change.after.data().profile;
+    const beforeStatus: string = change.before.data().status;
+    const afterStatus: string = change.after.data().status;
+    const url = `${functions.config().app.ses_hub.url}/login`;
+
+    const userMail = {
+      to: profile.email,
+      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
+      subject: "SES_HUB 利用再開のお知らせ",
+      text: body.goBack.user(profile, url),
+    };
+
+    if (beforeStatus === "disable" && afterStatus === "enable") {
+      await send(userMail);
+    }
+  });
+
 const updateFirestore = async (uid: string) => {
   const collections = [
     "posts",
@@ -222,116 +335,3 @@ const deleteChild = async ({
 
   return;
 };
-
-export const enableUser = functions
-  .region(location)
-  .runWith(runtime)
-  .firestore.document("companys/{uid}")
-  .onUpdate(async (change) => {
-    const profile: Firestore.Company["profile"] = change.after.data().profile;
-    const beforeStatus: string = change.before.data().status;
-    const afterStatus: string = change.after.data().status;
-    const url = `${functions.config().app.ses_hub.url}/login`;
-
-    const userMail = {
-      to: profile.email,
-      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-      subject: "SES_HUB 承認完了のお知らせ",
-      text: body.enable.user(profile, url),
-    };
-
-    if (beforeStatus === "hold" && afterStatus === "enable") {
-      await send(userMail);
-    }
-  });
-
-export const declineUser = functions
-  .region(location)
-  .runWith(runtime)
-  .firestore.document("companys/{uid}")
-  .onUpdate(async (change) => {
-    const profile: Firestore.Company["profile"] = change.after.data().profile;
-    const beforeStatus: string = change.before.data().status;
-    const afterStatus: string = change.after.data().status;
-    const url: string = functions.config().app.ses_hub.url;
-
-    const userMail = {
-      to: profile.email,
-      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-      subject: "SES_HUB 承認結果のお知らせ",
-      text: body.decline.user(profile, url),
-    };
-
-    if (beforeStatus === "hold" && afterStatus === "disable") {
-      await send(userMail);
-    }
-  });
-
-export const disableUser = functions
-  .region(location)
-  .runWith(runtime)
-  .firestore.document("companys/{uid}")
-  .onUpdate(async (change) => {
-    const profile: Firestore.Company["profile"] = change.after.data().profile;
-    const beforeStatus: string = change.before.data().status;
-    const afterStatus: string = change.after.data().status;
-    const url: string = functions.config().app.ses_hub.url;
-
-    const userMail = {
-      to: change.after.data().profile.email as string,
-      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-      subject: "SES_HUB 利用停止のお知らせ",
-      text: body.disable.user(profile, url),
-    };
-
-    if (beforeStatus === "enable" && afterStatus === "disable") {
-      await send(userMail);
-
-      const posts: {
-        matters: string[];
-        resources: string[];
-      } = change.before.data().posts;
-
-      if (posts.matters.length) {
-        const index = algolia.initIndex("matters");
-        const matters = posts.matters.map((objectID) => ({
-          objectID: objectID,
-          display: "private",
-        }));
-
-        await index.partialUpdateObjects(matters);
-      }
-
-      if (posts.resources.length) {
-        const index = algolia.initIndex("resources");
-        const resources = posts.resources.map((objectID) => ({
-          objectID: objectID,
-          display: "private",
-        }));
-
-        await index.partialUpdateObjects(resources);
-      }
-    }
-  });
-
-export const goBackUser = functions
-  .region(location)
-  .runWith(runtime)
-  .firestore.document("companys/{uid}")
-  .onUpdate(async (change) => {
-    const profile: Firestore.Company["profile"] = change.after.data().profile;
-    const beforeStatus: string = change.before.data().status;
-    const afterStatus: string = change.after.data().status;
-    const url = `${functions.config().app.ses_hub.url}/login`;
-
-    const userMail = {
-      to: profile.email,
-      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-      subject: "SES_HUB 利用再開のお知らせ",
-      text: body.goBack.user(profile, url),
-    };
-
-    if (beforeStatus === "disable" && afterStatus === "enable") {
-      await send(userMail);
-    }
-  });

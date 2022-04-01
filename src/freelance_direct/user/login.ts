@@ -16,11 +16,15 @@ export type Data = {
   emailVerified: boolean;
 };
 
+type Collections = {
+  [key: string]: string[] | { [key: string]: string[] };
+};
+
 export const login = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data, context) => {
-    await loginAuthenticated({ context: context, data: data });
+    await loginAuthenticated({ context, data });
 
     const user = await fetchUser(context, data);
     const freelanceDirect = await fetchData();
@@ -60,12 +64,19 @@ const fetchUser = async (
       await updateProvider(doc, data, timestamp);
       await loginAuthenticated({ doc: doc });
 
-      return fetch.login({ context: context, doc: doc, data: data });
+      const collections = await fetchCollections(context);
+
+      return {
+        ...fetch.login({ context, doc, data }),
+        ...collections,
+      };
     } else {
       await updateLogin(doc, timestamp);
-      await loginAuthenticated({ doc: doc });
+      await loginAuthenticated({ doc });
 
-      return fetch.login({ context: context, doc: doc });
+      const collections = await fetchCollections(context);
+
+      return { ...fetch.login({ context, doc }), ...collections };
     }
   } else {
     throw new functions.https.HttpsError(
@@ -74,6 +85,87 @@ const fetchUser = async (
       "profile"
     );
   }
+};
+
+const fetchCollections = async (
+  context: functions.https.CallableContext
+): Promise<Collections> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
+
+  const collections: Collections = {
+    follows: [],
+    home: [],
+    likes: [],
+    entries: [],
+    histories: [],
+    requests: { enable: [], hold: [], disable: [] },
+  };
+
+  for await (const key of Object.keys(collections)) {
+    const querySnapshot = await db
+      .collection("companys")
+      .doc(context.auth.uid)
+      .collection(key === "home" ? "follows" : key)
+      .where("active", "==", true)
+      .orderBy("updateAt", "desc")
+      .withConverter(converter<Firestore.Post | Firestore.User>())
+      .get()
+      .catch(() => {});
+
+    if (!querySnapshot) {
+      continue;
+    }
+
+    querySnapshot.forEach((doc) => {
+      const collection = collections[key];
+      const data = doc.data();
+
+      if (collection instanceof Array) {
+        if ("objectID" in data) {
+          const objectID = data.objectID;
+
+          Object.assign(collections, {
+            [key]: [...collection, objectID],
+          });
+        } else {
+          const uid = data.uid;
+
+          if ("home" in data) {
+            const home = data.home;
+
+            if (home) {
+              Object.assign(collections, {
+                [key]: [...collection, uid],
+              });
+            }
+          } else {
+            Object.assign(collections, {
+              [key]: [...collection, uid],
+            });
+          }
+        }
+      } else {
+        if ("status" in data) {
+          const status = data.status;
+          const uid = data.uid;
+
+          if (status) {
+            Object.assign(collections[key], {
+              [status]: [...collection[status], uid],
+            });
+          }
+        }
+      }
+    });
+  }
+
+  return collections;
 };
 
 const updateLogin = async (

@@ -14,7 +14,7 @@ export const changeEmail = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({ context: context, demo: true });
+    await userAuthenticated({ context, demo: true });
 
     await editFirestore(context, data);
     await editAlgolia(context, data);

@@ -24,7 +24,7 @@ export const extractPosts = functions
   .runWith(runtime)
   .https.onCall(async (data, context) => {
     const status = await userAuthenticated({
-      context: context,
+      context,
       index: data.index,
       type: data.type,
       canceled: true,

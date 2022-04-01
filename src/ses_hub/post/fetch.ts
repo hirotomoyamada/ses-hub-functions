@@ -37,7 +37,7 @@ export const fetchPost = functions
   .runWith(runtime)
   .https.onCall(async (data: Data["post"], context) => {
     const status = await userAuthenticated({
-      context: context,
+      context,
       canceled: true,
     });
 
@@ -57,7 +57,7 @@ export const fetchPosts = functions
   .runWith(runtime)
   .https.onCall(async (data: Data["posts"], context) => {
     await userAuthenticated({
-      context: context,
+      context,
       index: data.index,
     });
 

@@ -18,7 +18,7 @@ export const homePosts = functions
   .runWith(runtime)
   .https.onCall(async (data, context) => {
     const status = await userAuthenticated({
-      context: context,
+      context,
       canceled: true,
     });
 

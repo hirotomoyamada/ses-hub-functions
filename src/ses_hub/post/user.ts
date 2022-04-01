@@ -19,7 +19,7 @@ export const userPosts = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({ context: context });
+    await userAuthenticated({ context });
 
     const demo = checkDemo(context);
 

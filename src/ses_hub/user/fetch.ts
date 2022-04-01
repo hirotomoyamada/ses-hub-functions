@@ -18,7 +18,7 @@ export const fetchUser = functions
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
     const status = await userAuthenticated({
-      context: context,
+      context,
       index: data.index,
       canceled: true,
       fetch: true,

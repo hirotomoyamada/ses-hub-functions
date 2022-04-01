@@ -4,6 +4,7 @@ import * as Firestore from "../../types/firestore";
 import { send } from "../../sendgrid";
 import * as body from "../mail";
 import { userAuthenticated } from "./_userAuthenticated";
+import { PartiallyPartial } from "../../types/utils";
 
 export const enableRequest = functions
   .region(location)
@@ -11,7 +12,13 @@ export const enableRequest = functions
   .https.onCall(async (data: string, context) => {
     await userAuthenticated({ context, demo: true });
 
-    await updateUser({ context, data, enable: true });
+    const { user, selectUser } = await updateFirestore({
+      context,
+      data,
+      status: "enable",
+    });
+
+    await sendMail(context, user, selectUser);
 
     return;
   });
@@ -22,29 +29,34 @@ export const disableRequest = functions
   .https.onCall(async (data: string, context) => {
     await userAuthenticated({ context, demo: true });
 
-    await updateUser({ context, data });
+    await updateFirestore({ context, data, status: "disable" });
 
     return;
   });
 
 const sendMail = async (
   context: functions.https.CallableContext,
-  data: string,
-  nickName: string
+  user: Firestore.Person,
+  selectUser: Firestore.Company
 ): Promise<void> => {
-  const user = await fetchUser(data);
-
+  if (!user.profile.nickName) {
+    throw new functions.https.HttpsError(
+      "cancelled",
+      "ニックネームが登録されていないため、処理中止",
+      "firebase"
+    );
+  }
   const url = `${functions.config().app.ses_hub.url}/persons/${
     context.auth?.uid
   }`;
 
   const mail = {
-    to: user.profile.email,
+    to: selectUser.profile.email,
     from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-    subject: `【リクエスト】${nickName}さんが承認しました`,
+    subject: `【リクエスト】${user.profile.nickName}さんが承認しました`,
     text: body.request.user({
-      user: user.profile,
-      nickName: nickName,
+      user: selectUser.profile,
+      nickName: user.profile.nickName,
       url: url,
     }),
   };
@@ -52,120 +64,15 @@ const sendMail = async (
   await send(mail);
 };
 
-const fetchUser = async (uid: string): Promise<Firestore.Company> => {
-  const doc = await db
-    .collection("companys")
-    .withConverter(converter<Firestore.Company>())
-    .doc(uid)
-    .get()
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
-        "firebase"
-      );
-    });
-
-  if (
-    doc.data()?.payment.status === "canceled" ||
-    !doc.data()?.payment.option?.freelanceDirect
-  ) {
-    throw new functions.https.HttpsError(
-      "cancelled",
-      "オプション未加入のユーザーのため、処理中止",
-      "firebase"
-    );
-  }
-
-  const user = doc.data();
-
-  if (!user) {
-    throw new functions.https.HttpsError(
-      "not-found",
-      "ユーザーの取得に失敗しました",
-      "firebase"
-    );
-  }
-
-  return user;
-};
-
-const updateDoc = async ({
-  context,
-  doc,
-  data,
-  enable,
-}: {
-  context: functions.https.CallableContext;
-  doc: FirebaseFirestore.DocumentSnapshot<Firestore.Person>;
-  data: string;
-  enable?: boolean;
-}): Promise<void> => {
-  const timestamp = Date.now();
-
-  const nickName = doc.data()?.profile.nickName;
-  const requests = doc.data()?.requests;
-
-  if (!requests || !nickName) {
-    throw new functions.https.HttpsError(
-      "not-found",
-      "ユーザーの取得に失敗しました",
-      "firebase"
-    );
-  }
-
-  const disable = requests.disable.indexOf(data) < 0;
-
-  if (
-    (enable && requests.enable.indexOf(data) >= 0) ||
-    (!enable && requests.disable.indexOf(data) >= 0)
-  ) {
-    throw new functions.https.HttpsError(
-      "cancelled",
-      "データが重複しているため、追加できません",
-      "firebase"
-    );
-  }
-
-  await doc.ref
-    .set(
-      {
-        requests: enable
-          ? {
-              enable: [data, ...requests.enable],
-              hold: requests.hold.filter((uid) => uid !== data),
-              disable: requests.disable.filter((uid) => uid !== data),
-            }
-          : {
-              enable: requests.enable.filter((uid) => uid !== data),
-              hold: requests.hold?.filter((uid) => uid !== data),
-              disable: [data, ...requests.disable],
-            },
-        updateAt: timestamp,
-      },
-      { merge: true }
-    )
-    .then(async () => {
-      enable && disable && (await sendMail(context, data, nickName));
-    })
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "リクエストの追加に失敗しました",
-        "firebase"
-      );
-    });
-};
-
-const updateUser = async ({
+const updateFirestore = async ({
   context,
   data,
-  enable,
+  status,
 }: {
   context: functions.https.CallableContext;
   data: string;
-  enable?: boolean;
-}): Promise<void> => {
+  status: "enable" | "disable";
+}): Promise<{ user: Firestore.Person; selectUser: Firestore.Company }> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -174,12 +81,66 @@ const updateUser = async ({
     );
   }
 
-  const doc = await db
-    .collection("persons")
-    .withConverter(converter<Firestore.Person>())
-    .doc(context.auth.uid)
-    .get()
-    .catch(() => {
+  const user: PartiallyPartial<Firestore.Person, "uid"> = {
+    uid: context.auth.uid,
+  };
+  const selectUser: PartiallyPartial<Firestore.Company, "uid"> = {
+    uid: data,
+  };
+
+  const timestamp = Date.now();
+
+  for await (const index of ["persons", "companys"]) {
+    const person = index === "persons";
+
+    const collection = db
+      .collection(index)
+      .doc(person ? user.uid : selectUser.uid)
+      .withConverter(converter<Firestore.Company | Firestore.Person>());
+
+    const subCollection = collection
+      .collection(person ? "requests" : "entries")
+      .withConverter(converter<Firestore.User>());
+
+    const querySnapshot = await subCollection
+      .where("uid", "==", person ? selectUser.uid : user.uid)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "コレクションの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    if (querySnapshot.docs[0]) {
+      const doc = querySnapshot.docs[0];
+
+      await doc.ref
+        .set(
+          {
+            uid: person ? user.uid : selectUser.uid,
+            status: status,
+            updateAt: timestamp,
+          },
+          { merge: true }
+        )
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "data-loss",
+            "データの追加に失敗しました",
+            "firebase"
+          );
+        });
+    } else {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "リクエストが存在していません",
+        "firebase"
+      );
+    }
+
+    const doc = await collection.get().catch(() => {
       throw new functions.https.HttpsError(
         "not-found",
         "データの取得に失敗しました",
@@ -187,14 +148,28 @@ const updateUser = async ({
       );
     });
 
-  if (doc.exists) {
-    await updateDoc({
-      context: context,
-      doc: doc,
-      data: data,
-      enable: enable,
-    });
+    if (!person) {
+      const data = doc.data();
+
+      if (
+        data &&
+        "payment" in data &&
+        (data.payment.status === "canceled" ||
+          !data.payment.option?.freelanceDirect)
+      ) {
+        throw new functions.https.HttpsError(
+          "cancelled",
+          "相手がオプション未加入のユーザーのためリクエストが承認できません",
+          "firebase"
+        );
+      }
+    }
+
+    Object.assign(person ? user : selectUser, doc.data());
   }
 
-  return;
+  return {
+    user: user as Firestore.Person,
+    selectUser: selectUser as Firestore.Company,
+  };
 };

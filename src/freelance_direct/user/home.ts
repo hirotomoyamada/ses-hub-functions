@@ -17,31 +17,39 @@ export const updateHome = functions
       );
     }
 
-    const timestamp = Date.now();
-
-    const doc = await db
+    const collection = db
       .collection("persons")
-      .withConverter(converter<Firestore.Person>())
       .doc(context.auth.uid)
-      .get();
+      .collection("follows")
+      .withConverter(converter<Firestore.User>());
 
-    if (doc.exists) {
-      await doc.ref
-        .set(
-          {
-            home: data,
-            updateAt: timestamp,
-          },
-          { merge: true }
-        )
-        .catch(() => {
+    const querySnapshot = await collection.get().catch(() => {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "コレクションの取得に失敗しました",
+        "firebase"
+      );
+    });
+
+    querySnapshot.forEach(async (doc) => {
+      if (data.slice(0, 15).indexOf(doc.id) >= 0) {
+        await doc.ref.set({ home: true }, { merge: true }).catch(() => {
           throw new functions.https.HttpsError(
             "data-loss",
-            "ホームの追加に失敗しました",
+            "データの追加に失敗しました",
             "firebase"
           );
         });
-    }
+      } else {
+        await doc.ref.set({ home: false }, { merge: true }).catch(() => {
+          throw new functions.https.HttpsError(
+            "data-loss",
+            "データの削除に失敗しました",
+            "firebase"
+          );
+        });
+      }
+    });
 
     return;
   });

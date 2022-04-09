@@ -44,8 +44,18 @@ export interface Company {
     end?: number | null;
     price?: string | null;
   };
+  setting: {
+    activity?: {
+      active: string[];
+      order: string[];
+      layout: "line" | "number" | "none";
+      color: {
+        self: string;
+        others: string;
+      };
+    };
+  };
   createAt: number;
-
   updateAt?: number;
   lastLogin?: number;
   application?: boolean;

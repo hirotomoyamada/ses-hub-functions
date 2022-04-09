@@ -36,7 +36,7 @@ export const login = functions
 const fetchUser = async (
   context: functions.https.CallableContext,
   data: Data
-) => {
+): Promise<Partial<Firestore.Company | Collections>> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",

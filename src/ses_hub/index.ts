@@ -22,6 +22,7 @@ export { createProfile, editProfile } from "./user/profile";
 export { createChild } from "./user/child";
 export { changeEmail } from "./user/email";
 export { addProvider } from "./user/provider";
+export { updateSetting } from "./user/setting";
 export { applicationType } from "./user/application";
 export { fetchUser } from "./user/fetch";
 export { addLike, removeLike } from "./user/like";

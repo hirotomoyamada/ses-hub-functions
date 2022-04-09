@@ -52,6 +52,8 @@ export const createFirestore = ({
     // ================================
   };
 
+  const setting = {};
+
   return {
     provider: [data.provider],
     status: "hold",
@@ -61,6 +63,7 @@ export const createFirestore = ({
     cover: `cover${cover}`,
     profile: profile,
     payment: payment,
+    setting: setting,
     createAt: timestamp,
     lastLogin: timestamp,
   };
@@ -135,6 +138,8 @@ export const createChildFirestore = ({
         price: parent.payment?.price ? parent.payment?.price : null,
       };
 
+  const setting = {};
+
   return {
     provider: ["password"],
     status: "enable",
@@ -144,6 +149,7 @@ export const createChildFirestore = ({
     cover: `cover${cover}`,
     profile: profile,
     payment: payment,
+    setting: setting,
     createAt: timestamp,
     lastLogin: timestamp,
   };

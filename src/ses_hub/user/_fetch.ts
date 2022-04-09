@@ -13,7 +13,7 @@ export const login = ({
   context: functions.https.CallableContext;
   doc: FirebaseFirestore.DocumentSnapshot<Firestore.Company>;
   data?: Data;
-}) => {
+}): Partial<Firestore.Company> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -34,6 +34,7 @@ export const login = ({
     application: doc.data()?.application,
     agree: doc.data()?.agree,
     payment: doc.data()?.payment,
+    setting: doc.data()?.setting,
     createAt: doc.data()?.createAt,
     updateAt: doc.data()?.updateAt,
   };

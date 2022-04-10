@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../firebase";
+import { converter, db, location, runtime } from "../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
-import { send } from "../sendgrid";
+import { send } from "../_sendgrid";
 import * as Firestore from "../types/firestore";
 
 type Data = {

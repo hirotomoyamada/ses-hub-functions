@@ -1,6 +1,6 @@
 import * as firestore from "@google-cloud/firestore";
 import * as functions from "firebase-functions";
-import { location, runtime, timeZone } from "../firebase";
+import { location, runtime, timeZone } from "../_firebase";
 const client = new firestore.v1.FirestoreAdminClient();
 
 type i = "companys" | "persons" | "customers";

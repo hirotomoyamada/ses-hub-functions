@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
-import { converter, db, location, runtime, storage } from "../../firebase";
-import { algolia } from "../../algolia";
+import { converter, db, location, runtime, storage } from "../../_firebase";
+import { algolia } from "../../_algolia";
 import * as format from "./_format";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";

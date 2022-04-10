@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
-import { algolia } from "../algolia";
-import { converter, db, location, runtime } from "../firebase";
-import { send } from "../sendgrid";
+import { algolia } from "../_algolia";
+import { converter, db, location, runtime } from "../_firebase";
+import { send } from "../_sendgrid";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as body from "./mail";
 import * as format from "./_format";

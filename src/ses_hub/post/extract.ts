@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
-import { algolia } from "../../algolia";
-import { converter, db, location, runtime } from "../../firebase";
+import { algolia } from "../../_algolia";
+import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
@@ -30,9 +30,7 @@ export const extractPosts = functions
       canceled: true,
     });
 
-    const demo = checkDemo(context);
-
-    const { posts, hit } = await fetchAlgolia(context, data, status, demo);
+    const { posts, hit } = await fetchAlgolia(context, data, status);
 
     posts?.length && (await fetchFirestore(context, data, posts));
 
@@ -42,8 +40,7 @@ export const extractPosts = functions
 const fetchAlgolia = async (
   context: functions.https.CallableContext,
   data: Data,
-  status: boolean,
-  demo: boolean
+  status: boolean
 ): Promise<{
   posts: Results[];
   hit: Algolia.Hit;
@@ -187,6 +184,3 @@ const fetchFirestore = async (
     }
   }
 };
-
-const checkDemo = (context: functions.https.CallableContext): boolean =>
-  context.auth?.uid === functions.config().demo.ses_hub.uid;

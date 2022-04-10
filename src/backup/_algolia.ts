@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
-import { storage, location, runtime, timeZone } from "../firebase";
-import { algolia } from "../algolia";
+import { storage, location, runtime, timeZone } from "../_firebase";
+import { algolia } from "../_algolia";
 
 type i = "matters" | "resources" | "companys" | "persons";
 

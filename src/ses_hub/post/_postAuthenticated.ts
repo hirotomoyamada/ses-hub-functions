@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { converter, db } from "../../firebase";
+import { converter, db } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 
 interface PostAuthenticated {
@@ -28,28 +28,28 @@ export const postAuthenticated = async ({
   if (context.auth.uid === functions.config().demo.ses_hub.uid) {
     throw new functions.https.HttpsError(
       "cancelled",
-      "デモのアカウントのため、実行できません",
+      "デモのアカウントのため、実行できません"
     );
   }
 
   if (doc.data()?.status !== "enable") {
     throw new functions.https.HttpsError(
       "cancelled",
-      "無効なアカウントのため、実行できません",
+      "無効なアカウントのため、実行できません"
     );
   }
 
   if (doc.data()?.agree !== "enable") {
     throw new functions.https.HttpsError(
       "cancelled",
-      "利用規約の同意が無いアカウントため、実行できません",
+      "利用規約の同意が無いアカウントため、実行できません"
     );
   }
 
   if (doc.data()?.payment.status === "canceled" && canceled) {
     throw new functions.https.HttpsError(
       "cancelled",
-      "無料のアカウントのため、実行できません",
+      "無料のアカウントのため、実行できません"
     );
   }
 };

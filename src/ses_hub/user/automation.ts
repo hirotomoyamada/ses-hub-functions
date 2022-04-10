@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../../firebase";
-import { algolia } from "../../algolia";
-import { send } from "../../sendgrid";
+import { converter, db, location, runtime } from "../../_firebase";
+import { algolia } from "../../_algolia";
+import { send } from "../../_sendgrid";
 import * as body from "../mail";
 import * as Firestore from "../../types/firestore";
 
@@ -254,7 +254,7 @@ const updateCollectionGroup = async (uid: string) => {
     const timestamp = Date.now();
 
     if (!querySnapshot) {
-      return;
+      continue;
     }
 
     querySnapshot.forEach(async (doc) => {

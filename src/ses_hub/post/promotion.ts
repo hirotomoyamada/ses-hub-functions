@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
-import { location, runtime } from "../../firebase";
-import { algolia } from "../../algolia";
+import { location, runtime } from "../../_firebase";
+import { algolia } from "../../_algolia";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import { Hit } from "@algolia/client-search";

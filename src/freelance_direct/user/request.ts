@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
-import { db, location, runtime, converter } from "../../firebase";
+import { db, location, runtime, converter } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
-import { send } from "../../sendgrid";
+import { send } from "../../_sendgrid";
 import * as body from "../mail";
 import { userAuthenticated } from "./_userAuthenticated";
 import { PartiallyPartial } from "../../types/utils";

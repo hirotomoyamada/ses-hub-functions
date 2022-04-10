@@ -1,15 +1,15 @@
 import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../../firebase";
-import { algolia } from "../../algolia";
+import { converter, db, location, runtime } from "../../_firebase";
+import { algolia } from "../../_algolia";
 import { postAuthenticated } from "./_postAuthenticated";
 import * as format from "./_format";
 import * as Firestore from "../../types/firestore";
-import { send } from "../../sendgrid";
+import { send } from "../../_sendgrid";
 import * as body from "../mail";
 import * as Algolia from "../../types/algolia";
 import { NestedPartial } from "../../types/utils";
-import { tweet } from "../../twitter";
-import { shortUrl } from "../../bitly";
+import { tweet } from "../../_twitter";
+import { shortUrl } from "../../_bitly";
 
 export type Data = {
   index: "matters" | "resources";
@@ -293,6 +293,7 @@ const updateCollectionGroup = async (data: Data) => {
     const querySnapshot = await db
       .collectionGroup(collection)
       .withConverter(converter<Firestore.Post>())
+      .where("index", "==", data.index)
       .where("objectID", "==", data.post.objectID)
       .orderBy("createAt", "desc")
       .get()

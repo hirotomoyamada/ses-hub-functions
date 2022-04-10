@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../../firebase";
+import { converter, db, location, runtime } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 
 export const disableNotice = functions

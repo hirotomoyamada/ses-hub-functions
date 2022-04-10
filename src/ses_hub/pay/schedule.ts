@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { converter, db, location, runtime, timeZone } from "../../firebase";
+import { converter, db, location, runtime, timeZone } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 
 export const updateNotice = functions

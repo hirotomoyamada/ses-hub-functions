@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { db, location, runtime, converter } from "../../firebase";
+import { db, location, runtime, converter } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
 

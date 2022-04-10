@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { converter, db } from "../../firebase";
+import { converter, db } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 
 interface UserAuthenticated {
@@ -88,7 +88,7 @@ export const userAuthenticated = async ({
   } else {
     throw new functions.https.HttpsError(
       "unauthenticated",
-      "認証されていないユーザーではログインできません",
+      "認証されていないユーザーではログインできません"
     );
   }
 };

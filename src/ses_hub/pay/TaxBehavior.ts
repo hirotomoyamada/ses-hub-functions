@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
-import { location, runtime } from "../../firebase";
-import { stripe } from "../../stripe";
+import { location, runtime } from "../../_firebase";
+import { stripe } from "../../_stripe";
 
 export const updateTaxBehavior = functions
   .region(location)

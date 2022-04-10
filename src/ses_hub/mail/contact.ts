@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
-import { location, runtime } from "../../firebase";
-import { send } from "../../sendgrid";
+import { location, runtime } from "../../_firebase";
+import { send } from "../../_sendgrid";
 import * as body from "./_promotion";
 
 export type Data = {

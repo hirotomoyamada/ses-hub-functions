@@ -1,11 +1,23 @@
 import { company, lastName, firstName, email, urls } from "./_dummy";
 
-export const today = {
-  start: new Date().setHours(0, 0, 0, 0),
-  end: new Date().setHours(23, 59, 59, 999),
+export type Today = {
+  start: () => number;
+  end: () => number;
 };
 
-export const dummy = {
+export const today: Today = {
+  start: (): number => new Date().setHours(0, 0, 0, 0),
+  end: (): number => new Date().setHours(23, 59, 59, 999),
+};
+
+export type Dummy = {
+  name: () => string;
+  person: () => string;
+  email: () => string;
+  urls: (i: number) => string[];
+};
+
+export const dummy: Dummy = {
   name: (): string => company[Math.floor(Math.random() * company.length)],
   person: (): string =>
     `${lastName[Math.floor(Math.random() * lastName.length)]}${

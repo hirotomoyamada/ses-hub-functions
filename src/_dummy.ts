@@ -1,17 +1,4 @@
-export const dummy = {
-  name: (): string => company[Math.floor(Math.random() * company.length)],
-  person: (): string =>
-    `${lastName[Math.floor(Math.random() * lastName.length)]}${
-      firstName[Math.floor(Math.random() * firstName.length)]
-    }`,
-  email: (): string => email[Math.floor(Math.random() * email.length)],
-  urls: (i: number): string[] =>
-    [...Array(Math.floor(Math.random() * (i ? i : 1) + 1))].map(
-      () => [...urls].splice(Math.floor(Math.random() * [...urls].length), 1)[0]
-    ),
-};
-
-const company = [
+export const company = [
   "株式会社div",
   "株式会社bar",
   "株式会社fuga",
@@ -19,7 +6,7 @@ const company = [
   "株式会社span",
 ];
 
-const lastName = [
+export const lastName = [
   "佐藤",
   "鈴木",
   "高橋",
@@ -42,7 +29,7 @@ const lastName = [
   "清水",
 ];
 
-const firstName = [
+export const firstName = [
   "太郎",
   "次郎",
   "翔太",
@@ -77,7 +64,7 @@ const firstName = [
   "風香",
 ];
 
-const email = [
+export const email = [
   "miseruwakeganai@gmail.com",
   "dameyo-damedame@dame.co.jp",
   "watasi-ha-yamada@yamada.com",
@@ -85,7 +72,7 @@ const email = [
   "oreoreoreoreore-sagi@gmail.com",
 ];
 
-const urls = [
+export const urls = [
   "https://dummy.com",
   "https://zettai-misenasen.co.jp",
   "https://mireru-wakega-nai.net",

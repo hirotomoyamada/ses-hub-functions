@@ -36,4 +36,5 @@ export { fetchPost, fetchPosts } from "./post/fetch";
 export { userPosts } from "./post/user";
 export { extractPosts } from "./post/extract";
 export { homePosts } from "./post/home";
+export { fetchPostActivity } from "./post/activity";
 export { createPost, editPost, deletePost, sendPost } from "./post/post";

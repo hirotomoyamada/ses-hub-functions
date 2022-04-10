@@ -1,5 +1,5 @@
 import * as functions from "firebase-functions";
-import { dummy } from "../../_dummy";
+import { dummy } from "../../_utils";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
 import { Hit } from "@algolia/client-search";

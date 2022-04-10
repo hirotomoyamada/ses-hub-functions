@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
-import { dummy } from "../../_dummy";
+import { dummy } from "../../_utils";
 
 type Data = {
   post: { index: "matters" | "resources"; objectID: string };

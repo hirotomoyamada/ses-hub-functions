@@ -1,4 +1,4 @@
-import { dummy } from "../../_dummy";
+import { dummy } from "../../_utils";
 import * as Algolia from "../../types/algolia";
 import { Hit } from "@algolia/client-search";
 

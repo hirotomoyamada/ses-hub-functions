@@ -75,9 +75,9 @@ export const fetchPostActivity = functions
     };
 
     if (!demo) {
-      for await (const key of Object.keys(activity)) {
+      for (const key of Object.keys(activity)) {
         if (key === "total" || key === "today") {
-          for await (const collection of Object.keys(activity[key])) {
+          for (const collection of Object.keys(activity[key])) {
             const querySnapshot = await fetchCollectionGroup(
               collection,
               data,

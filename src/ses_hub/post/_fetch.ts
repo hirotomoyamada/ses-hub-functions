@@ -138,6 +138,8 @@ export const other = {
   company: (hit: Algolia.Company, demo: boolean): Algolia.CompanyItem => {
     return {
       uid: hit.objectID,
+      type: undefined,
+      status: undefined,
       profile: {
         name: !demo ? hit.name : dummy.name(),
         person: !demo
@@ -154,6 +156,7 @@ export const other = {
   person: (hit: Algolia.Person): Algolia.PersonItem => {
     return {
       uid: hit.objectID,
+      request: undefined,
       profile: {
         state: hit.state,
         nickName: hit.nickName,

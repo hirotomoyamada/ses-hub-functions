@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
-import { algolia } from "../../_algolia";
+import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
 import { dummy } from "../../_utils";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
@@ -24,13 +24,13 @@ export const fetchUser = functions
       fetch: true,
     });
 
-    const demo = checkDemo(context);
-    const user = await fetchProfile(context, data, demo, status);
+    const user = await fetchProfile(context, data, status);
     const bests =
       data.index === "persons" &&
-      (await fetchBests(user as Algolia.PersonItem, data));
+      "request" in user &&
+      (await fetchBests(context, user, data));
 
-    user && "uid" in user && (await addHistory(context, data));
+    if (user && "uid" in user) await addHistory(context, data);
 
     return { user: user, bests: bests };
   });
@@ -38,14 +38,22 @@ export const fetchUser = functions
 const fetchProfile = async (
   context: functions.https.CallableContext,
   data: Data,
-  demo: boolean,
   status: boolean
 ): Promise<
-  Algolia.CompanyItem | Algolia.PersonItem | Algolia.CompanyItem[] | undefined
+  Algolia.CompanyItem | Algolia.PersonItem | Algolia.CompanyItem[]
 > => {
+  const demo = checkDemo(context);
+
   const user = await fetchAlgolia(data, demo, status);
 
-  user && (await fetchFirestore(context, status, data, user));
+  if (!user)
+    throw new functions.https.HttpsError(
+      "not-found",
+      "ユーザーの取得に失敗しました",
+      "notFound"
+    );
+
+  if (user) await fetchFirestore(context, status, data, user);
 
   return user;
 };
@@ -60,17 +68,8 @@ const fetchAlgolia = async (
   const index = algolia.initIndex(data.index);
 
   if (data.uid) {
-    const user = await index
+    const hit = await index
       .getObject<Algolia.Company | Algolia.Person>(data.uid)
-      .then((hit) => {
-        return hit && data.index === "companys"
-          ? status
-            ? fetch.company.active(<Algolia.Company>hit, demo)
-            : fetch.company.canceled(<Algolia.Company>hit, demo)
-          : hit &&
-              data.index === "persons" &&
-              fetch.person(<Algolia.Person>hit, demo);
-      })
       .catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
@@ -78,6 +77,32 @@ const fetchAlgolia = async (
           "notFound"
         );
       });
+
+    const user = (() => {
+      switch (data.index) {
+        case "companys": {
+          if (hit)
+            if (status) {
+              return fetch.company.active(<Algolia.Company>hit, demo);
+            } else {
+              return fetch.company.canceled(<Algolia.Company>hit, demo);
+            }
+
+          return;
+        }
+        case "persons": {
+          if (hit) return fetch.person(<Algolia.Person>hit, demo);
+
+          return;
+        }
+        default:
+          throw new functions.https.HttpsError(
+            "not-found",
+            "プロフィールの取得に失敗しました",
+            "notFound"
+          );
+      }
+    })();
 
     if (!user) {
       throw new functions.https.HttpsError(
@@ -91,13 +116,9 @@ const fetchAlgolia = async (
   }
 
   if (data.uids) {
-    const user = await index
+    const { results } = await index
       .getObjects<Algolia.Company>(data.uids)
-      .then(({ results }) => {
-        return results.map(
-          (hit) => hit && fetch.company.active(hit)
-        ) as Algolia.CompanyItem[];
-      })
+
       .catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
@@ -105,6 +126,14 @@ const fetchAlgolia = async (
           "notFound"
         );
       });
+
+    const user = results
+      .map((hit) => {
+        if (hit) return fetch.company.active(hit);
+
+        return;
+      })
+      ?.filter((post): post is Algolia.CompanyItem => post !== undefined);
 
     return user;
   }
@@ -127,25 +156,26 @@ const fetchFirestore = async (
   }
 
   if (data.uid && "uid" in user) {
-    const docRef = db
+    const doc = await db
       .collection(data.index)
       .withConverter(converter<Firestore.Company | Firestore.Person>())
-      .doc(data.uid);
-
-    const doc = await docRef.get().catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
-        "notFound"
-      );
-    });
+      .doc(data.uid)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "ユーザーの取得に失敗しました",
+          "notFound"
+        );
+      });
 
     if (doc.exists) {
-      user.icon = doc.data()?.icon;
-      user.cover = doc.data()?.cover;
-
       if (data.index === "companys") {
+        if (!("type" in user)) return;
         const data = doc.data() as Firestore.Company;
+
+        user.icon = data?.icon;
+        user.cover = data?.cover;
 
         if (data.type !== "individual" && data.payment.status === "canceled") {
           throw new functions.https.HttpsError(
@@ -156,105 +186,46 @@ const fetchFirestore = async (
         }
 
         if (!status) {
-          (user as Algolia.CompanyItem).profile.email = undefined;
+          user.profile.email = undefined;
         }
 
-        (user as Algolia.CompanyItem).status = data.payment.status;
-        (user as Algolia.CompanyItem).type = data.type;
+        user.status = data?.payment.status;
+        user.type = data?.type;
       }
 
       if (data.index === "persons") {
+        if (!("request" in user)) return;
         const data = doc.data() as Firestore.Person;
 
-        const querySnapshot = await docRef
-          .collection("requests")
-          .withConverter(converter<Firestore.User>())
-          .where("uid", "==", context.auth.uid)
-          .get();
+        user.icon = data?.icon;
+        user.cover = data?.cover;
 
-        const status = querySnapshot.docs.length
-          ? querySnapshot.docs[0].data().status
-          : "none";
+        const { likes, requests } = await fetchActivity.persons(context, user);
 
-        const request =
-          status === "enable"
-            ? "enable"
-            : status && status !== "none"
-            ? "hold"
-            : "none";
+        if (requests !== "enable") {
+          user.profile.name = dummy.person();
+          user.profile.email = dummy.email();
+          user.profile.urls = dummy.urls(3);
 
-        if (request !== "enable") {
-          (user as Algolia.PersonItem).profile.name = dummy.person();
-          (user as Algolia.PersonItem).profile.email = dummy.email();
-          (user as Algolia.PersonItem).profile.urls = dummy.urls(3);
-
-          (user as Algolia.PersonItem).resume = undefined;
+          user.resume = undefined;
         } else {
-          (user as Algolia.PersonItem).resume = data.resume.url || undefined;
+          user.resume = data.resume.url || undefined;
         }
 
-        (user as Algolia.PersonItem).request = request;
+        user.request = requests;
+        user.likes = likes;
       }
     }
   }
 
   if (data.uids && user instanceof Array) {
-    for (let i = 0; i < user.length; i++) {
-      if (user[i]) {
-        const doc = await db
-          .collection(data.index)
-          .withConverter(converter<Firestore.Company>())
-          .doc(user[i].uid)
-          .get()
-          .catch(() => {
-            throw new functions.https.HttpsError(
-              "not-found",
-              "ユーザーの取得に失敗しました",
-              "firebase"
-            );
-          });
+    for (const child of user) {
+      if (!child) continue;
 
-        if (doc.exists) {
-          user[i].icon = doc.data()?.icon;
-          user[i].cover = doc.data()?.cover;
-          user[i].type = doc.data()?.type;
-        }
-      }
-    }
-  }
-};
-
-const fetchBests = async (
-  user: Algolia.PersonItem,
-  data: Data
-): Promise<(Algolia.PersonItem | undefined)[]> => {
-  const index = algolia.initIndex("persons");
-
-  const { hits } = await index
-    .search<Algolia.Person>("", {
-      queryLanguages: ["ja", "en"],
-      similarQuery: user.profile.handles?.join(" "),
-      filters: "status:enable",
-      hitsPerPage: 100,
-    })
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "algolia"
-      );
-    });
-
-  const bests = hits?.map((hit) =>
-    hit.objectID !== user.uid ? fetch.best(hit) : undefined
-  );
-
-  for (let i = 0; i < bests?.length; i++) {
-    if (bests[i]) {
       const doc = await db
         .collection(data.index)
-        .withConverter(converter<Firestore.Person>())
-        .doc((bests[i] as Algolia.PersonItem).uid)
+        .withConverter(converter<Firestore.Company>())
+        .doc(child.uid)
         .get()
         .catch(() => {
           throw new functions.https.HttpsError(
@@ -265,16 +236,136 @@ const fetchBests = async (
         });
 
       if (doc.exists) {
-        if (doc.data()?.profile.nickName) {
-          (bests[i] as Algolia.PersonItem).icon = doc.data()?.icon;
-        } else {
-          bests[i] = undefined;
-        }
+        const data = doc.data();
+
+        child.icon = data?.icon;
+        child.cover = data?.cover;
+        child.type = data?.type;
+      }
+    }
+  }
+};
+
+const fetchBests = async (
+  context: functions.https.CallableContext,
+  user: Algolia.PersonItem,
+  data: Data
+): Promise<(Algolia.PersonItem | undefined)[]> => {
+  const index = algolia.initIndex("persons");
+
+  const options: (RequestOptions & SearchOptions) | undefined = {
+    queryLanguages: ["ja", "en"],
+    similarQuery: user.profile.handles?.join(" "),
+    filters: "status:enable",
+    hitsPerPage: 100,
+  };
+
+  const { hits } = await index.search<Algolia.Person>("", options).catch(() => {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "投稿の取得に失敗しました",
+      "algolia"
+    );
+  });
+
+  const posts = hits?.map((hit) =>
+    hit.objectID !== user.uid ? fetch.best(hit) : undefined
+  );
+
+  for (const [i, post] of posts.entries()) {
+    if (!post) continue;
+
+    const doc = await db
+      .collection(data.index)
+      .withConverter(converter<Firestore.Person>())
+      .doc(post.uid)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "ユーザーの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    if (doc.exists) {
+      const data = doc.data();
+
+      if (data?.profile.nickName) {
+        const { likes, requests } = await fetchActivity.persons(context, post);
+
+        post.icon = data?.icon;
+        post.request = requests;
+        post.likes = likes;
+      } else {
+        posts[i] = undefined;
       }
     }
   }
 
-  return bests;
+  return posts;
+};
+
+const fetchActivity = {
+  companys: async (
+    context: functions.https.CallableContext,
+    post: Algolia.Matter | Algolia.Resource
+  ): Promise<{ follows: number; followers: number }> => {
+    const demo = checkDemo(context);
+
+    type Collections = { follows: number; followers: number };
+
+    const collections: Collections = {
+      follows: !demo ? 0 : dummy.num(99, 999),
+      followers: !demo ? 0 : dummy.num(99, 999),
+    };
+
+    return { ...collections };
+  },
+  persons: async (
+    context: functions.https.CallableContext,
+    post: Algolia.PersonItem
+  ): Promise<{ likes: number; requests: string }> => {
+    const demo = checkDemo(context);
+
+    const collections = {
+      likes: !demo ? 0 : dummy.num(99, 999),
+      requests: "none",
+    };
+
+    if (!demo)
+      for (const collection of Object.keys(collections)) {
+        if (collection === "likes") {
+          const querySnapshot = await db
+            .collectionGroup(collection)
+            .withConverter(converter<Firestore.Post>())
+            .where("index", "==", "persons")
+            .where("uid", "==", post.uid)
+            .where("active", "==", true)
+            .orderBy("createAt", "desc")
+            .get();
+
+          collections.likes = querySnapshot.docs.length;
+        } else {
+          const querySnapshot = await db
+            .collection("persons")
+            .withConverter(converter<Firestore.User>())
+            .doc(post.uid)
+            .collection(collection)
+            .withConverter(converter<Firestore.User>())
+            .where("uid", "==", context.auth?.uid)
+            .get();
+
+          const status =
+            querySnapshot.docs.length && querySnapshot.docs[0].data().status;
+
+          collections.requests =
+            status === "enable" ? "enable" : status ? "hold" : "none";
+        }
+      }
+
+    return { ...collections };
+  },
 };
 
 const addHistory = async (

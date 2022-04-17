@@ -5,6 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
+import { dummy } from "../../_utils";
 
 type Data = {
   index: "matters" | "resources" | "persons";
@@ -12,12 +13,6 @@ type Data = {
   objectIDs: string[];
   page?: number;
 };
-
-type Results =
-  | Algolia.Matter
-  | Algolia.Resource
-  | Algolia.PersonItem
-  | undefined;
 
 export const extractPosts = functions
   .region(location)
@@ -32,7 +27,7 @@ export const extractPosts = functions
 
     const { posts, hit } = await fetchAlgolia(context, data, status);
 
-    posts?.length && (await fetchFirestore(context, data, posts));
+    if (posts?.length) await fetchFirestore(context, data.index, posts);
 
     return { index: data.index, type: data.type, posts: posts, hit: hit };
   });
@@ -42,7 +37,7 @@ const fetchAlgolia = async (
   data: Data,
   status: boolean
 ): Promise<{
-  posts: Results[];
+  posts: Algolia.Matter[] | Algolia.Resource[] | Algolia.PersonItem[];
   hit: Algolia.Hit;
 }> => {
   const index = algolia.initIndex(data.index);
@@ -57,13 +52,13 @@ const fetchAlgolia = async (
     currentPage: data.page ? data.page : 0,
   };
 
+  const query = objectIDs.slice(
+    hit.currentPage * hitsPerPage,
+    hitsPerPage * (hit.currentPage + 1)
+  );
+
   const { results } = await index
-    .getObjects<Algolia.Matter | Algolia.Resource | Algolia.Person>(
-      objectIDs.slice(
-        hit.currentPage * hitsPerPage,
-        hitsPerPage * (hit.currentPage + 1)
-      )
-    )
+    .getObjects<Algolia.Matter | Algolia.Resource | Algolia.Person>(query)
     .catch(() => {
       throw new functions.https.HttpsError(
         "not-found",
@@ -72,35 +67,72 @@ const fetchAlgolia = async (
       );
     });
 
-  const posts = results
-    ?.map((hit) =>
-      hit && data.index === "matters" && hit.uid === context.auth?.uid
-        ? fetch.auth.matter(<Algolia.Matter>hit)
-        : hit &&
-          data.index === "matters" &&
-          (hit as Algolia.Matter).display === "public" &&
-          status
-        ? fetch.other.matter(<Algolia.Matter>hit)
-        : hit && data.index === "resources" && hit.uid === context.auth?.uid
-        ? fetch.auth.resource(<Algolia.Resource>hit)
-        : hit &&
-          data.index === "resources" &&
-          (hit as Algolia.Resource).display === "public" &&
-          status
-        ? fetch.auth.resource(<Algolia.Resource>hit)
-        : hit && data.index === "persons" && hit.status === "enable" && status
-        ? fetch.other.person(<Algolia.Person>hit)
-        : undefined
-    )
-    ?.filter((post) => post) as Results[];
+  const posts = (() => {
+    switch (data.index) {
+      case "matters":
+        return results
+          .map((hit) => {
+            if (hit) {
+              if (hit.uid === context.auth?.uid)
+                return fetch.auth.matter(<Algolia.Matter>hit);
+
+              if ((hit as Algolia.Matter).display === "public")
+                return fetch.other.matter(<Algolia.Matter>hit);
+            }
+
+            return;
+          })
+          ?.filter((post): post is Algolia.Matter => post !== undefined);
+
+      case "resources":
+        return results
+          .map((hit) => {
+            if (hit) {
+              if (hit.uid === context.auth?.uid)
+                return fetch.auth.resource(<Algolia.Resource>hit);
+
+              if ((hit as Algolia.Resource).display === "public")
+                return fetch.other.resource(<Algolia.Resource>hit);
+            }
+
+            return;
+          })
+          ?.filter((post): post is Algolia.Resource => post !== undefined);
+
+      case "persons":
+        return results
+          .map((hit) => {
+            if (hit)
+              if (
+                (hit as Algolia.Person).nickName &&
+                hit.status === "enable" &&
+                status
+              )
+                return fetch.other.person(<Algolia.Person>hit);
+
+            return;
+          })
+          ?.filter((post): post is Algolia.PersonItem => post !== undefined);
+
+      default:
+        throw new functions.https.HttpsError(
+          "not-found",
+          "投稿の取得に失敗しました",
+          "algolia"
+        );
+    }
+  })();
 
   return { posts, hit };
 };
 
 const fetchFirestore = async (
   context: functions.https.CallableContext,
-  data: Data,
-  posts: Results[]
+  index: Data["index"],
+  posts:
+    | (Algolia.Matter | undefined)[]
+    | (Algolia.Resource | undefined)[]
+    | Algolia.PersonItem[]
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
@@ -110,22 +142,17 @@ const fetchFirestore = async (
     );
   }
 
-  for (let i = 0; i < posts.length; i++) {
-    if (posts[i]) {
-      const docRef = db
-        .collection(
-          data.index === "matters" || data.index === "resources"
-            ? "companys"
-            : data.index
-        )
-        .withConverter(converter<Firestore.Company | Firestore.Person>())
-        .doc(
-          (posts as (Algolia.Matter | Algolia.Resource | Algolia.PersonItem)[])[
-            i
-          ].uid
-        );
+  for (const [i, post] of posts.entries()) {
+    if (!post) continue;
 
-      const doc = await docRef.get().catch(() => {
+    const doc = await db
+      .collection(
+        index === "matters" || index === "resources" ? "companys" : index
+      )
+      .withConverter(converter<Firestore.Company | Firestore.Person>())
+      .doc(post.uid)
+      .get()
+      .catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
           "ユーザーの取得に失敗しました",
@@ -133,54 +160,136 @@ const fetchFirestore = async (
         );
       });
 
-      if (doc.exists) {
-        switch (data.index) {
-          case "matters":
-          case "resources":
-            {
-              const data = doc.data() as Firestore.Company;
+    if (doc.exists) {
+      switch (index) {
+        case "matters":
+        case "resources":
+          {
+            if (!("objectID" in post)) return;
+            const data = doc.data() as Firestore.Company;
 
-              if (
-                data.type !== "individual" &&
-                data.payment.status === "canceled"
-              ) {
-                posts[i] = undefined;
-              }
+            if (
+              data.type !== "individual" &&
+              data.payment.status === "canceled"
+            ) {
+              posts[i] = undefined;
+            } else {
+              const { likes, outputs, entries } = await fetchActivity.post(
+                context,
+                index,
+                post
+              );
+
+              post.likes = likes;
+              post.outputs = outputs;
+              post.entries = entries;
             }
-            break;
-          case "persons":
-            {
-              const data = doc.data() as Firestore.Person;
+          }
+          break;
 
-              if (data.profile.nickName) {
-                const querySnapshot = await docRef
-                  .collection("requests")
-                  .withConverter(converter<Firestore.User>())
-                  .where("uid", "==", context.auth.uid)
-                  .get();
+        case "persons":
+          {
+            if (!("request" in post)) return;
+            const data = doc.data() as Firestore.Person;
 
-                const status = querySnapshot.docs.length
-                  ? querySnapshot.docs[0].data().status
-                  : "none";
+            const { likes, requests } = await fetchActivity.user(
+              context,
+              index,
+              post
+            );
 
-                const request =
-                  status === "enable"
-                    ? "enable"
-                    : status && status !== "none"
-                    ? "hold"
-                    : "none";
+            post.icon = data.icon;
+            post.request = requests;
+            post.likes = likes;
+          }
+          break;
 
-                (posts as Algolia.PersonItem[])[i].icon = data.icon;
-                (posts as Algolia.PersonItem[])[i].request = request;
-              } else {
-                posts[i] = undefined;
-              }
-            }
-            break;
-          default:
-            return;
-        }
+        default:
+          return;
       }
     }
   }
 };
+
+const fetchActivity = {
+  post: async (
+    context: functions.https.CallableContext,
+    index: "matters" | "resources",
+    post: Algolia.Matter | Algolia.Resource
+  ): Promise<{ likes: number; outputs: number; entries: number }> => {
+    const demo = checkDemo(context);
+
+    type Collections = { likes: number; outputs: number; entries: number };
+
+    const collections: Collections = {
+      likes: !demo ? 0 : dummy.num(99, 999),
+      outputs: !demo ? 0 : dummy.num(99, 999),
+      entries: !demo ? 0 : dummy.num(99, 999),
+    };
+
+    if (!demo)
+      for (const collection of Object.keys(collections)) {
+        const querySnapshot = await db
+          .collectionGroup(collection)
+          .withConverter(converter<Firestore.Post>())
+          .where("index", "==", index)
+          .where("objectID", "==", post.objectID)
+          .where("active", "==", true)
+          .orderBy("createAt", "desc")
+          .get();
+
+        collections[collection as keyof Collections] =
+          querySnapshot.docs.length;
+      }
+
+    return { ...collections };
+  },
+  user: async (
+    context: functions.https.CallableContext,
+    index: "persons",
+    post: Algolia.PersonItem
+  ): Promise<{ likes: number; requests: string }> => {
+    const demo = checkDemo(context);
+
+    const collections = {
+      likes: !demo ? 0 : dummy.num(99, 999),
+      requests: "none",
+    };
+
+    if (!demo)
+      for (const collection of Object.keys(collections)) {
+        if (collection === "likes") {
+          const querySnapshot = await db
+            .collectionGroup(collection)
+            .withConverter(converter<Firestore.Post>())
+            .where("index", "==", index)
+            .where("uid", "==", post.uid)
+            .where("active", "==", true)
+            .orderBy("createAt", "desc")
+            .get();
+
+          collections.likes = querySnapshot.docs.length;
+        } else {
+          const querySnapshot = await db
+            .collection(index)
+            .withConverter(converter<Firestore.User>())
+            .doc(post.uid)
+            .collection(collection)
+            .withConverter(converter<Firestore.User>())
+            .where("uid", "==", context.auth?.uid)
+            .get();
+
+          const status =
+            querySnapshot.docs.length && querySnapshot.docs[0].data().status;
+
+          collections.requests =
+            status === "enable" ? "enable" : status ? "hold" : "none";
+        }
+      }
+
+    return { ...collections };
+  },
+};
+
+const checkDemo = (context: functions.https.CallableContext): boolean =>
+  context.auth?.uid === functions.config().demo.ses_hub.uid;

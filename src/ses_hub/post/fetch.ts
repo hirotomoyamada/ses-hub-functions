@@ -86,6 +86,7 @@ const fetchAlgolia = {
           if (hit.display === "public") {
             return fetch.other.matter(hit as Algolia.Matter);
           }
+
         case "resources":
           if (hit.uid === context.auth?.uid) {
             return fetch.auth.resource(hit as Algolia.Resource);
@@ -94,6 +95,7 @@ const fetchAlgolia = {
           if (hit.display === "public") {
             return fetch.other.resource(hit as Algolia.Resource);
           }
+
         default:
           throw new functions.https.HttpsError(
             "not-found",
@@ -143,70 +145,77 @@ const fetchAlgolia = {
             filters: "display:public",
             page: hit.currentPage,
           };
+
         case "companys":
           return {
             filters: "status:enable AND (plan:enable OR type:individual)",
             page: hit.currentPage,
           };
+
         case "persons":
           return {
             filters: "status:enable",
             page: hit.currentPage,
           };
+
         default:
           return;
       }
     })();
 
-    const result = await index.search<Posts>(query, options).catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "algolia"
-      );
-    });
+    const { hits, nbHits, nbPages } = await index
+      .search<Posts>(query, options)
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "投稿の取得に失敗しました",
+          "algolia"
+        );
+      });
 
-    hit.posts = result?.nbHits;
-    hit.pages = result?.nbPages;
+    hit.posts = nbHits;
+    hit.pages = nbPages;
 
     const posts = (() => {
       switch (data.index) {
         case "matters":
-          return result?.hits?.map((hit) => {
+          return hits.map((hit) => {
             if (hit.uid === context.auth?.uid) {
               return fetch.auth.matter(<Algolia.Matter>hit);
             } else {
               return fetch.other.matter(<Algolia.Matter>hit);
             }
           });
+
         case "resources":
-          return result?.hits?.map((hit) => {
+          return hits.map((hit) => {
             if (hit.uid === context.auth?.uid) {
               return fetch.auth.resource(<Algolia.Resource>hit);
             } else {
               return fetch.other.resource(<Algolia.Resource>hit);
             }
           });
+
         case "companys":
-          return result?.hits
-            ?.map((hit) => {
-              if ((hit as Algolia.Company).person) {
+          return hits
+            .map((hit) => {
+              if ((hit as Algolia.Company).person)
                 return fetch.other.company(<Algolia.Company>hit, demo);
-              }
 
               return;
             })
             ?.filter((post): post is Algolia.CompanyItem => post !== undefined);
+
         case "persons":
-          return result?.hits
-            ?.map((hit) => {
-              if ((hit as Algolia.Person).nickName) {
+          return hits
+            .map((hit) => {
+              if ((hit as Algolia.Person).nickName)
                 return fetch.other.person(<Algolia.Person>hit);
-              }
 
               return;
             })
             ?.filter((post): post is Algolia.PersonItem => post !== undefined);
+
         default:
           throw new functions.https.HttpsError(
             "not-found",
@@ -226,20 +235,20 @@ const fetchAlgolia = {
   ): Promise<Algolia.Matter[] | Algolia.Resource[]> => {
     const index = algolia.initIndex(data.index);
 
-    const { hits } = await index
-      .search<Post>("", {
-        queryLanguages: ["ja", "en"],
-        similarQuery: post?.handles?.join(" "),
-        filters: "display:public",
-        hitsPerPage: 100,
-      })
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "投稿の取得に失敗しました",
-          "algolia"
-        );
-      });
+    const options: (RequestOptions & SearchOptions) | undefined = {
+      queryLanguages: ["ja", "en"],
+      similarQuery: post?.handles?.join(" "),
+      filters: "display:public",
+      hitsPerPage: 100,
+    };
+
+    const { hits } = await index.search<Post>("", options).catch(() => {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "投稿の取得に失敗しました",
+        "algolia"
+      );
+    });
 
     const bests = (() => {
       switch (data.index) {
@@ -256,6 +265,7 @@ const fetchAlgolia = {
               return;
             })
             ?.filter((post): post is Algolia.Matter => post !== undefined);
+
         case "resources":
           return hits
             ?.map((hit) => {
@@ -269,6 +279,7 @@ const fetchAlgolia = {
               return;
             })
             ?.filter((post): post is Algolia.Resource => post !== undefined);
+
         default:
           throw new functions.https.HttpsError(
             "not-found",
@@ -277,6 +288,8 @@ const fetchAlgolia = {
           );
       }
     })();
+
+    if (bests.length) await fetchFirestore.search(context, data.index, bests);
 
     return bests;
   },
@@ -362,7 +375,7 @@ const fetchFirestore = {
     }
 
     for (const [i, post] of posts.entries()) {
-      if (!post) return;
+      if (!post) continue;
 
       const doc = await db
         .collection(
@@ -405,6 +418,7 @@ const fetchFirestore = {
               }
             }
             break;
+
           case "companys":
             {
               if (!("type" in post)) return;
@@ -415,6 +429,7 @@ const fetchFirestore = {
               post.status = data.payment.status;
             }
             break;
+
           case "persons":
             {
               if (!("request" in post)) return;
@@ -431,13 +446,12 @@ const fetchFirestore = {
               post.likes = likes;
             }
             break;
+
           default:
             return;
         }
       }
     }
-
-    return;
   },
 };
 

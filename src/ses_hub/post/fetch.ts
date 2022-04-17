@@ -37,7 +37,7 @@ export const fetchPost = functions
 
     const post = await fetchAlgolia.post(context, data, status);
 
-    const bests = await fetchAlgolia.bests(context, data, post);
+    const bests = await fetchAlgolia.bests(context, data, post, status);
 
     await addHistory(context, data, post);
 
@@ -48,14 +48,15 @@ export const fetchPosts = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data["posts"], context) => {
-    await userAuthenticated({
+    const status = await userAuthenticated({
       context,
       index: data.index,
     });
 
     const { posts, hit } = await fetchAlgolia.search(context, data);
 
-    if (posts.length) await fetchFirestore.search(context, data.index, posts);
+    if (posts.length)
+      await fetchFirestore.search(context, data.index, posts, status);
 
     return { index: data.index, posts: posts, hit: hit };
   });
@@ -231,7 +232,8 @@ const fetchAlgolia = {
   bests: async (
     context: functions.https.CallableContext,
     data: Data["post"],
-    post: Algolia.Matter | Algolia.Resource
+    post: Algolia.Matter | Algolia.Resource,
+    status: boolean
   ): Promise<Algolia.Matter[] | Algolia.Resource[]> => {
     const index = algolia.initIndex(data.index);
 
@@ -289,7 +291,8 @@ const fetchAlgolia = {
       }
     })();
 
-    if (bests.length) await fetchFirestore.search(context, data.index, bests);
+    if (bests.length)
+      await fetchFirestore.search(context, data.index, bests, status);
 
     return bests;
   },
@@ -364,8 +367,11 @@ const fetchFirestore = {
       | (Algolia.Matter | undefined)[]
       | (Algolia.Resource | undefined)[]
       | Algolia.CompanyItem[]
-      | Algolia.PersonItem[]
+      | Algolia.PersonItem[],
+    status: boolean
   ): Promise<void> => {
+    const demo = checkDemo(context);
+
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
@@ -411,6 +417,24 @@ const fetchFirestore = {
                   index,
                   post
                 );
+
+                post.user = {
+                  uid: doc.id,
+                  icon: data?.icon,
+                  type: data?.type,
+                  status: data?.payment.status,
+                  profile: {
+                    name: !demo ? data?.profile.name : dummy.name(),
+                    person: !demo
+                      ? data?.profile.person
+                        ? data?.profile.person
+                        : "名無しさん"
+                      : dummy.person(),
+                    body: data?.profile.body,
+                    email: !demo ? data?.profile.email : undefined,
+                    social: !demo && status ? data?.profile.social : undefined,
+                  },
+                };
 
                 post.likes = likes;
                 post.outputs = outputs;

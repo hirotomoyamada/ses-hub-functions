@@ -26,7 +26,8 @@ export const homePosts = functions
 
     const { posts, hit } = await fetchAlgolia(context, data, status);
 
-    if (posts?.length) await fetchFiretore(context, data.index, posts, demo);
+    if (posts?.length)
+      await fetchFiretore(context, data.index, posts, demo, status);
 
     return { index: data.index, posts: posts, hit: hit };
   });
@@ -109,7 +110,8 @@ const fetchFiretore = async (
   context: functions.https.CallableContext,
   index: Data["index"],
   posts: (Algolia.Matter | undefined)[] | (Algolia.Resource | undefined)[],
-  demo: boolean
+  demo: boolean,
+  status: boolean
 ): Promise<void> => {
   for (const [i, post] of posts.entries()) {
     if (!post) continue;
@@ -147,6 +149,23 @@ const fetchFiretore = async (
           },
         };
 
+        post.user = {
+          uid: doc.id,
+          icon: data?.icon,
+          type: data?.type,
+          status: data?.payment.status,
+          profile: {
+            name: !demo ? data?.profile.name : dummy.name(),
+            person: !demo
+              ? data?.profile.person
+                ? data?.profile.person
+                : "名無しさん"
+              : dummy.person(),
+            body: data?.profile.body,
+            email: !demo ? data?.profile.email : undefined,
+            social: !demo && status ? data?.profile.social : undefined,
+          },
+        };
         post.likes = likes;
         post.outputs = outputs;
         post.entries = entries;

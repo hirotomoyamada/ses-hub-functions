@@ -27,7 +27,7 @@ export const extractPosts = functions
 
     const { posts, hit } = await fetchAlgolia(context, data, status);
 
-    if (posts?.length) await fetchFirestore(context, data.index, posts);
+    if (posts?.length) await fetchFirestore(context, data.index, posts, status);
 
     return { index: data.index, type: data.type, posts: posts, hit: hit };
   });
@@ -132,8 +132,11 @@ const fetchFirestore = async (
   posts:
     | (Algolia.Matter | undefined)[]
     | (Algolia.Resource | undefined)[]
-    | Algolia.PersonItem[]
+    | Algolia.PersonItem[],
+  status: boolean
 ): Promise<void> => {
+  const demo = checkDemo(context);
+
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -180,6 +183,23 @@ const fetchFirestore = async (
                 post
               );
 
+              post.user = {
+                uid: doc.id,
+                icon: data?.icon,
+                type: data?.type,
+                status: data?.payment.status,
+                profile: {
+                  name: !demo ? data?.profile.name : dummy.name(),
+                  person: !demo
+                    ? data?.profile.person
+                      ? data?.profile.person
+                      : "名無しさん"
+                    : dummy.person(),
+                  body: data?.profile.body,
+                  email: !demo ? data?.profile.email : undefined,
+                  social: !demo && status ? data?.profile.social : undefined,
+                },
+              };
               post.likes = likes;
               post.outputs = outputs;
               post.entries = entries;

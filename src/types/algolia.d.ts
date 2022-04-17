@@ -52,6 +52,9 @@ export interface Matter {
   updateAt?: number;
   approval?: string | null;
   user?: NestedPartial<Firestore.Company>;
+  likes?: number;
+  outputs?: number;
+  entries?: number;
 }
 
 export type MatterPromotion = Pick<
@@ -109,6 +112,9 @@ export interface Resource {
   createAt: number;
   updateAt?: number;
   user?: NestedPartial<Firestore.Company>;
+  likes?: number;
+  outputs?: number;
+  entries?: number;
 }
 
 export type ResourcePromotion = Pick<
@@ -205,7 +211,8 @@ export interface PersonItem {
   icon?: string;
   cover?: string;
   profile: Partial<Person>;
-  resume?: string | null;
+  resume?: string;
   request?: string;
+  likes?: number;
   createAt: number;
 }

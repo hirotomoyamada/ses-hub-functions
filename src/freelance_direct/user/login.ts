@@ -107,7 +107,7 @@ const fetchCollections = async (
     requests: { enable: [], hold: [], disable: [] },
   };
 
-  for await (const key of Object.keys(collections)) {
+  for (const key of Object.keys(collections)) {
     const querySnapshot = await db
       .collection("companys")
       .doc(context.auth.uid)

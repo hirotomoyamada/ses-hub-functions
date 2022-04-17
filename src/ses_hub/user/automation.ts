@@ -195,7 +195,7 @@ const updateFirestore = async (uid: string) => {
     "histories",
   ];
 
-  for await (const collection of collections) {
+  for (const collection of collections) {
     const querySnapshot = await db
       .collection("companys")
       .doc(uid)
@@ -242,7 +242,7 @@ const updateCollectionGroup = async (uid: string) => {
     "requests",
   ];
 
-  for await (const collection of collections) {
+  for (const collection of collections) {
     const querySnapshot = await db
       .collectionGroup(collection)
       .withConverter(converter<Firestore.Post | Firestore.User>())
@@ -275,7 +275,7 @@ const updateCollectionGroup = async (uid: string) => {
 };
 
 const deleteAlgolia = async (uid: string) => {
-  for await (const i of ["companys", "matters", "resources"]) {
+  for (const i of ["companys", "matters", "resources"]) {
     const index = algolia.initIndex(i);
 
     if (i === "companys") {

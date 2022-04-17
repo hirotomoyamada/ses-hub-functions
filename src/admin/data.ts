@@ -13,7 +13,7 @@ export const editData = functions
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated(context);
 
-    for await (const type of Object.keys(data)) {
+    for (const type of Object.keys(data)) {
       if (type !== "index") {
         const doc = await db
           .collection(data.index === "companys" ? "seshub" : "freelanceDirect")

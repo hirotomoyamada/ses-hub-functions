@@ -157,7 +157,7 @@ export const goBackUser = functions
 const updateFirestore = async (uid: string) => {
   const collections = ["likes", "follows", "entries", "histories", "requests"];
 
-  for await (const collection of collections) {
+  for (const collection of collections) {
     const querySnapshot = await db
       .collection("persons")
       .doc(uid)
@@ -195,7 +195,7 @@ const updateFirestore = async (uid: string) => {
 const updateCollectionGroup = async (uid: string) => {
   const collections = ["likes", "entries", "histories"];
 
-  for await (const collection of collections) {
+  for (const collection of collections) {
     const querySnapshot = await db
       .collectionGroup(collection)
       .withConverter(converter<Firestore.Post | Firestore.User>())

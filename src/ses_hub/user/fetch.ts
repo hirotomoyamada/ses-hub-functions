@@ -188,9 +188,9 @@ const fetchFirestore = async (
           (user as Algolia.PersonItem).profile.email = dummy.email();
           (user as Algolia.PersonItem).profile.urls = dummy.urls(3);
 
-          (user as Algolia.PersonItem).resume = null;
+          (user as Algolia.PersonItem).resume = undefined;
         } else {
-          (user as Algolia.PersonItem).resume = data.resume.url;
+          (user as Algolia.PersonItem).resume = data.resume.url || undefined;
         }
 
         (user as Algolia.PersonItem).request = request;

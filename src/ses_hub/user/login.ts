@@ -17,7 +17,7 @@ export type Data = {
 };
 
 type Collections = {
-  [key: string]: string[] | { [key: string]: string[] };
+  [key: string]: string[] | number | { [key: string]: string[] };
 };
 
 export const login = functions
@@ -97,6 +97,7 @@ const fetchCollections = async (
   const collections: Collections = {
     posts: { matters: [], resources: [] },
     follows: [],
+    followers: 0,
     home: [],
     likes: { matters: [], resources: [], persons: [] },
     outputs: { matters: [], resources: [] },
@@ -104,60 +105,72 @@ const fetchCollections = async (
   };
 
   for (const key of Object.keys(collections)) {
-    const querySnapshot = await db
-      .collection("companys")
-      .doc(context.auth.uid)
-      .collection(key === "home" ? "follows" : key)
-      .where("active", "==", true)
-      .orderBy("updateAt", "desc")
-      .withConverter(converter<Firestore.Post | Firestore.User>())
-      .get()
-      .catch(() => {});
+    if (key !== "followers") {
+      const querySnapshot = await db
+        .collection("companys")
+        .doc(context.auth.uid)
+        .collection(key === "home" ? "follows" : key)
+        .where("active", "==", true)
+        .orderBy("updateAt", "desc")
+        .withConverter(converter<Firestore.Post | Firestore.User>())
+        .get()
+        .catch(() => {});
 
-    if (!querySnapshot) {
-      continue;
-    }
+      if (!querySnapshot) {
+        continue;
+      }
 
-    querySnapshot.forEach((doc) => {
-      const collection = collections[key];
-      const data = doc.data();
+      querySnapshot.forEach((doc) => {
+        const collection = collections[key];
+        const data = doc.data();
 
-      if (collection instanceof Array) {
-        if ("uid" in data) {
-          const uid = data.uid;
+        if (collection instanceof Array) {
+          if ("uid" in data) {
+            const uid = data.uid;
 
-          if ("home" in data) {
-            const home = data.home;
+            if ("home" in data) {
+              const home = data.home;
 
-            if (home) {
+              if (home) {
+                Object.assign(collections, {
+                  [key]: [...collection, uid],
+                });
+              }
+            } else {
               Object.assign(collections, {
                 [key]: [...collection, uid],
               });
             }
+          }
+        } else if (typeof collection !== "number") {
+          const index = data.index;
+
+          if ("objectID" in data) {
+            const objectID = data.objectID;
+
+            Object.assign(collections[key], {
+              [index]: [...collection[index], objectID],
+            });
           } else {
-            Object.assign(collections, {
-              [key]: [...collection, uid],
+            const uid = data.uid;
+
+            Object.assign(collections[key], {
+              [index]: [...collection[index], uid],
             });
           }
         }
-      } else {
-        const index = data.index;
+      });
+    } else {
+      const { docs } = await db
+        .collectionGroup("follows")
+        .withConverter(converter<Firestore.User>())
+        .where("uid", "==", context.auth.uid)
+        .where("active", "==", true)
+        .orderBy("updateAt", "desc")
+        .get();
 
-        if ("objectID" in data) {
-          const objectID = data.objectID;
-
-          Object.assign(collections[key], {
-            [index]: [...collection[index], objectID],
-          });
-        } else {
-          const uid = data.uid;
-
-          Object.assign(collections[key], {
-            [index]: [...collection[index], uid],
-          });
-        }
-      }
-    });
+      collections.followers = docs.length;
+    }
   }
 
   return collections;

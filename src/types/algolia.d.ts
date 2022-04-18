@@ -169,6 +169,9 @@ export interface CompanyItem {
   status?: string;
   profile: Partial<Company>;
   createAt: number;
+  follows?: number;
+  followers?: number;
+  followed?: boolean;
 }
 
 export interface Person {

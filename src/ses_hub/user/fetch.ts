@@ -343,7 +343,7 @@ const fetchActivity = {
               .collection("follows")
               .withConverter(converter<Firestore.User>())
               .where("active", "==", true)
-              .orderBy("createAt", "desc")
+              .orderBy("updateAt", "desc")
               .get();
 
             collections.follows = docs.length;
@@ -358,7 +358,7 @@ const fetchActivity = {
               .withConverter(converter<Firestore.User>())
               .where("uid", "==", post.uid)
               .where("active", "==", true)
-              .orderBy("createAt", "desc")
+              .orderBy("updateAt", "desc")
               .get();
 
             collections.followers = docs.length;

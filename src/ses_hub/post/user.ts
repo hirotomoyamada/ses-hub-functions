@@ -224,7 +224,7 @@ const fetchActivity = async (
 
   if (!demo)
     for (const collection of Object.keys(collections)) {
-      const querySnapshot = await db
+      const { docs } = await db
         .collectionGroup(collection)
         .withConverter(converter<Firestore.Post>())
         .where("index", "==", index)
@@ -233,7 +233,7 @@ const fetchActivity = async (
         .orderBy("createAt", "desc")
         .get();
 
-      collections[collection as keyof Collections] = querySnapshot.docs.length;
+      collections[collection as keyof Collections] = docs.length;
     }
 
   return { ...collections };

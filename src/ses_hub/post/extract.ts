@@ -249,7 +249,7 @@ const fetchActivity = {
 
     if (!demo)
       for (const collection of Object.keys(collections)) {
-        const querySnapshot = await db
+        const { docs } = await db
           .collectionGroup(collection)
           .withConverter(converter<Firestore.Post>())
           .where("index", "==", index)
@@ -258,8 +258,7 @@ const fetchActivity = {
           .orderBy("createAt", "desc")
           .get();
 
-        collections[collection as keyof Collections] =
-          querySnapshot.docs.length;
+        collections[collection as keyof Collections] = docs.length;
       }
 
     return { ...collections };
@@ -279,7 +278,7 @@ const fetchActivity = {
     if (!demo)
       for (const collection of Object.keys(collections)) {
         if (collection === "likes") {
-          const querySnapshot = await db
+          const { docs } = await db
             .collectionGroup(collection)
             .withConverter(converter<Firestore.Post>())
             .where("index", "==", index)
@@ -288,9 +287,9 @@ const fetchActivity = {
             .orderBy("createAt", "desc")
             .get();
 
-          collections.likes = querySnapshot.docs.length;
+          collections.likes = docs.length;
         } else {
-          const querySnapshot = await db
+          const { docs } = await db
             .collection(index)
             .withConverter(converter<Firestore.User>())
             .doc(post.uid)
@@ -299,8 +298,7 @@ const fetchActivity = {
             .where("uid", "==", context.auth?.uid)
             .get();
 
-          const status =
-            querySnapshot.docs.length && querySnapshot.docs[0].data().status;
+          const status = docs.length && docs[0].data().status;
 
           collections.requests =
             status === "enable" ? "enable" : status ? "hold" : "none";

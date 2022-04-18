@@ -411,7 +411,7 @@ const fetchTo = async (
   index: string,
   post: Algolia.Matter | Algolia.Resource
 ) => {
-  const querySnapshot = await db
+  const { docs } = await db
     .collection(index)
     .withConverter(converter<Firestore.Company>())
     .where("status", "==", "enable")
@@ -424,8 +424,8 @@ const fetchTo = async (
       );
     });
 
-  const to = querySnapshot?.docs
-    ?.map((doc) => verified(doc, post) && doc.data().profile.email)
+  const to = docs
+    .map((doc) => verified(doc, post) && doc.data().profile.email)
     ?.filter((email) => email) as string[];
 
   return to;

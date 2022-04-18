@@ -185,12 +185,20 @@ const fetchFirestore = async (
           );
         }
 
+        const { follows, followers, followed } = await fetchActivity.companys(
+          context,
+          user
+        );
+
         if (!status) {
           user.profile.email = undefined;
         }
 
         user.status = data?.payment.status;
         user.type = data?.type;
+        user.follows = follows;
+        user.followers = followers;
+        user.followed = followed;
       }
 
       if (data.index === "persons") {
@@ -309,16 +317,56 @@ const fetchBests = async (
 const fetchActivity = {
   companys: async (
     context: functions.https.CallableContext,
-    post: Algolia.Matter | Algolia.Resource
-  ): Promise<{ follows: number; followers: number }> => {
+    post: Algolia.CompanyItem
+  ): Promise<{ follows: number; followers: number; followed: boolean }> => {
     const demo = checkDemo(context);
 
-    type Collections = { follows: number; followers: number };
+    type Collections = {
+      follows: number;
+      followers: number;
+      followed: boolean;
+    };
 
     const collections: Collections = {
       follows: !demo ? 0 : dummy.num(99, 999),
       followers: !demo ? 0 : dummy.num(99, 999),
+      followed: false,
     };
+
+    if (!demo)
+      for (const collection of Object.keys(collections)) {
+        switch (collection) {
+          case "follows": {
+            const { docs } = await db
+              .collection("companys")
+              .doc(post.uid)
+              .collection("follows")
+              .withConverter(converter<Firestore.User>())
+              .where("active", "==", true)
+              .orderBy("createAt", "desc")
+              .get();
+
+            collections.follows = docs.length;
+
+            docs.forEach((doc) => {
+              if (doc.id === context.auth?.uid) collections.followed = true;
+            });
+          }
+          case "followers": {
+            const { docs } = await db
+              .collectionGroup("follows")
+              .withConverter(converter<Firestore.User>())
+              .where("uid", "==", post.uid)
+              .where("active", "==", true)
+              .orderBy("createAt", "desc")
+              .get();
+
+            collections.followers = docs.length;
+          }
+          default:
+            continue;
+        }
+      }
 
     return { ...collections };
   },
@@ -336,7 +384,7 @@ const fetchActivity = {
     if (!demo)
       for (const collection of Object.keys(collections)) {
         if (collection === "likes") {
-          const querySnapshot = await db
+          const { docs } = await db
             .collectionGroup(collection)
             .withConverter(converter<Firestore.Post>())
             .where("index", "==", "persons")
@@ -345,9 +393,9 @@ const fetchActivity = {
             .orderBy("createAt", "desc")
             .get();
 
-          collections.likes = querySnapshot.docs.length;
+          collections.likes = docs.length;
         } else {
-          const querySnapshot = await db
+          const { docs } = await db
             .collection("persons")
             .withConverter(converter<Firestore.User>())
             .doc(post.uid)
@@ -356,8 +404,7 @@ const fetchActivity = {
             .where("uid", "==", context.auth?.uid)
             .get();
 
-          const status =
-            querySnapshot.docs.length && querySnapshot.docs[0].data().status;
+          const status = docs.length && docs[0].data().status;
 
           collections.requests =
             status === "enable" ? "enable" : status ? "hold" : "none";

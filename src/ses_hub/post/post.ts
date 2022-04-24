@@ -265,15 +265,14 @@ const updateFirestore = async ({
     }
 
     await collection
-      .add({
-        index: data.index,
-        uid: post.uid,
-        objectID: post.objectID,
-        display: post.display,
-        active: true,
-        createAt: timestamp,
-        updateAt: timestamp,
-      })
+      .add(
+        Object.assign({
+          index: data.index,
+          active: true,
+          ...post,
+          updateAt: timestamp,
+        })
+      )
       .catch(() => {
         throw new functions.https.HttpsError(
           "data-loss",

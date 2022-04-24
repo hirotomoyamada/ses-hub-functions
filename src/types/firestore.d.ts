@@ -1,4 +1,6 @@
+import { NestedPartial } from "./utils";
 import { Timestamp } from "firebase/firestore";
+import { Matter, Resource } from "./algolia";
 
 export interface Company {
   uid?: string;
@@ -105,7 +107,7 @@ export interface Person {
   lastLogin?: number;
 }
 
-export interface Post {
+export interface Post extends NestedPartial<Matter>, NestedPartial<Resource> {
   index: "matters" | "resources";
   objectID: string;
   uid: string;

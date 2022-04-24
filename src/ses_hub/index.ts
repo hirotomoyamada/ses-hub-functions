@@ -31,6 +31,7 @@ export { addFollow, removeFollow } from "./user/follow";
 export { updateHome } from "./user/home";
 export { addEntry } from "./user/entry";
 export { addRequest } from "./user/request";
+export { fetchUserActivity } from "./user/activity";
 export { promotionPosts } from "./post/promotion";
 export { fetchPost, fetchPosts } from "./post/fetch";
 export { userPosts } from "./post/user";

@@ -15,12 +15,11 @@ export const loginAuthenticated = async ({
   doc,
 }: LoginAuthenticated): Promise<void> => {
   if (!doc) {
-    if (!context?.auth) {
+    if (!context?.auth)
       throw new functions.https.HttpsError(
         "unauthenticated",
         "認証されていないユーザーではログインできません"
       );
-    }
 
     const doc = await db
       .collection("persons")
@@ -28,32 +27,38 @@ export const loginAuthenticated = async ({
       .doc(context.auth.uid)
       .get();
 
-    if (doc.exists) {
+    if (doc.exists)
       throw new functions.https.HttpsError(
         "unauthenticated",
         "このアカウントでは利用できません"
       );
-    }
 
-    if (!data?.emailVerified) {
+    if (!data?.emailVerified)
       throw new functions.https.HttpsError(
         "invalid-argument",
         "メールアドレスが認証されていません"
       );
-    }
   } else {
-    if (doc.data()?.status === "hold") {
+    const data = doc.data();
+
+    if (!data)
+      throw new functions.https.HttpsError(
+        "cancelled",
+        "無効なアカウントのため、実行できません"
+      );
+
+    const { status } = data;
+
+    if (status === "hold")
       throw new functions.https.HttpsError(
         "permission-denied",
         "承認されていません"
       );
-    }
 
-    if (doc.data()?.status === "disable") {
+    if (status === "disable")
       throw new functions.https.HttpsError(
         "unauthenticated",
         "プロバイダーの更新に失敗しました"
       );
-    }
   }
 };

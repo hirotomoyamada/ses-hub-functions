@@ -25,31 +25,40 @@ export const postAuthenticated = async ({
     .doc(context.auth.uid)
     .get();
 
-  if (context.auth.uid === functions.config().demo.ses_hub.uid) {
+  const data = doc.data();
+
+  if (!data)
+    throw new functions.https.HttpsError(
+      "cancelled",
+      "無効なアカウントのため、実行できません"
+    );
+
+  const { status, agree, payment } = data;
+  const { ses_hub } = functions.config().demo;
+
+  if (context.auth.uid === ses_hub.uid) {
     throw new functions.https.HttpsError(
       "cancelled",
       "デモのアカウントのため、実行できません"
     );
   }
 
-  if (doc.data()?.status !== "enable") {
+  if (status !== "enable")
     throw new functions.https.HttpsError(
       "cancelled",
       "無効なアカウントのため、実行できません"
     );
-  }
 
-  if (doc.data()?.agree !== "enable") {
+  if (agree !== "enable")
     throw new functions.https.HttpsError(
       "cancelled",
       "利用規約の同意が無いアカウントため、実行できません"
     );
-  }
 
-  if (doc.data()?.payment.status === "canceled" && canceled) {
-    throw new functions.https.HttpsError(
-      "cancelled",
-      "無料のアカウントのため、実行できません"
-    );
-  }
+  if (canceled)
+    if (payment.status === "canceled")
+      throw new functions.https.HttpsError(
+        "cancelled",
+        "無料のアカウントのため、実行できません"
+      );
 };

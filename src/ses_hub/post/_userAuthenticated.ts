@@ -15,13 +15,12 @@ export const userAuthenticated = async ({
   type,
   canceled,
 }: UserAuthenticated): Promise<boolean> => {
-  if (!context.auth) {
+  if (!context.auth)
     throw new functions.https.HttpsError(
       "unauthenticated",
       "認証されていないユーザーではログインできません",
       "auth"
     );
-  }
 
   const doc = await db
     .collection("companys")
@@ -29,38 +28,37 @@ export const userAuthenticated = async ({
     .doc(context.auth.uid)
     .get();
 
-  if (doc.data()?.status !== "enable") {
+  const data = doc.data();
+
+  if (!data)
     throw new functions.https.HttpsError(
       "cancelled",
       "無効なアカウントのため、実行できません"
     );
-  }
 
-  if (doc.data()?.agree !== "enable") {
+  const { status, agree, payment } = data;
+
+  if (status !== "enable")
+    throw new functions.https.HttpsError(
+      "cancelled",
+      "無効なアカウントのため、実行できません"
+    );
+
+  if (agree !== "enable")
     throw new functions.https.HttpsError(
       "cancelled",
       "利用規約の同意が無いアカウントため、実行できません"
     );
-  }
 
-  if (
-    index === "persons" &&
-    (doc.data()?.payment.status === "canceled" ||
-      !doc.data()?.payment.option?.freelanceDirect)
-  ) {
-    throw new functions.https.HttpsError(
-      "cancelled",
-      "オプション未加入のアカウントのため、実行できません"
-    );
-  }
+  if (index === "persons")
+    if (payment.status === "canceled" || !payment.option?.freelanceDirect)
+      throw new functions.https.HttpsError(
+        "cancelled",
+        "オプション未加入のアカウントのため、実行できません"
+      );
 
-  if (
-    canceled &&
-    type !== "entries" &&
-    doc.data()?.payment.status === "canceled"
-  ) {
-    return false;
-  }
+  if (canceled)
+    if (type !== "entries" && payment.status === "canceled") return false;
 
   return true;
 };

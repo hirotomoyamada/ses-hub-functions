@@ -15,7 +15,9 @@ export type Time = (t: "day" | "week" | "month") => {
 };
 
 export const time: Time = (t = "day") => {
-  const end = new Date().setHours(23, 59, 59, 999);
+  const timeZone = 60 * 60 * 9 * 1000;
+
+  const end = new Date().setHours(23, 59, 59, 999) - timeZone;
 
   switch (t) {
     case "month": {
@@ -35,7 +37,7 @@ export const time: Time = (t = "day") => {
         );
       }
 
-      const start = timestamp.getTime();
+      const start = timestamp.getTime() - timeZone;
 
       return { start, end };
     }

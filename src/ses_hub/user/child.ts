@@ -5,6 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as format from "./_format";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
+import { log } from "../../_utils";
 
 export type Parent = Partial<Firestore.Company>;
 export type Child = Partial<Firestore.Company>;
@@ -26,6 +27,13 @@ export const createChild = functions
     const user = await createFirestore(context, parent);
 
     await createAlgolia(context, parent);
+
+    await log({
+      doc: data,
+      run: "createChild",
+      code: 200,
+      uid: context.auth?.uid,
+    });
 
     return user;
   });

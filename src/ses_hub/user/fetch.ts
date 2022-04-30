@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
-import { dummy } from "../../_utils";
+import { dummy, log } from "../../_utils";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
@@ -31,6 +31,14 @@ export const fetchUser = functions
       (await fetchBests(context, user, data));
 
     if (user && "uid" in user) await addHistory(context, data);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchUser",
+      index: data.index,
+      code: 200,
+      uid: data.uid || data.uids,
+    });
 
     return { user: user, bests: bests };
   });

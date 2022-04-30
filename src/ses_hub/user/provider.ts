@@ -4,6 +4,7 @@ import { algolia } from "../../_algolia";
 import { stripe } from "../../_stripe";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export type Data = {
   provider: string;
@@ -20,6 +21,11 @@ export const addProvider = functions
     data.email && addAlgolia(context, data);
     data.email && addStripe(context, data);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "addProvider",
+      code: 200,
+    });
     return;
   });
 

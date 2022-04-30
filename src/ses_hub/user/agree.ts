@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const enableAgree = functions
   .region(location)
@@ -15,6 +16,12 @@ export const enableAgree = functions
 
     await updateFiresotre(context);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "enableAgree",
+      code: 200,
+    });
+
     return;
   });
 
@@ -22,7 +29,7 @@ export const disableAgree = functions
   .region(location)
   .runWith(runtime)
   .firestore.document("seshub/agree")
-  .onUpdate(async (change, _context) => {
+  .onUpdate(async (change, context) => {
     const beforeStatus: string = change.before.data().status;
     const afterStatus: string = change.after.data().status;
 
@@ -30,6 +37,12 @@ export const disableAgree = functions
       await updateFiresotre();
       await updateData();
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "disableAgree",
+      code: 200,
+    });
 
     return;
   });

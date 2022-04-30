@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
 import { converter, db, location, runtime } from "../../_firebase";
-import { dummy } from "../../_utils";
+import { dummy, log } from "../../_utils";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
@@ -28,6 +28,14 @@ export const homePosts = functions
 
     if (posts?.length)
       await fetchFiretore(context, data.index, posts, demo, status);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "homePosts",
+      index: data.index,
+      code: 200,
+      objectID: posts.map((post) => post.objectID),
+    });
 
     return { index: data.index, posts: posts, hit: hit };
   });

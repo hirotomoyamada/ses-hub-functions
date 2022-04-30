@@ -4,6 +4,7 @@ import { algolia } from "../../_algolia";
 import { loginAuthenticated } from "./_loginAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export type Data = {
   providerData: {
@@ -29,6 +30,12 @@ export const login = functions
     const user = await fetchUser(context, data);
     const seshub = await fetchData();
     const demo = checkDemo(context);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "login",
+      code: 200,
+    });
 
     return { user, data: seshub, demo };
   });

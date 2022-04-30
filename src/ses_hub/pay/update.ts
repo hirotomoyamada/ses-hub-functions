@@ -3,6 +3,7 @@ import { algolia } from "../../_algolia";
 import { db, location, runtime, converter } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Status = "active" | "trialing" | "canceled";
 
@@ -52,6 +53,12 @@ export const updatePlan = functions
 
     remove && deletePlan(context);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "updatePlan",
+      code: 200,
+    });
+
     return;
   });
 
@@ -86,6 +93,12 @@ export const updateOption = functions
     await updateAlgolia(context, children, type);
 
     remove && (await deleteOption(context));
+
+    await log({
+      doc: context.auth?.uid,
+      run: "updateOption",
+      code: 200,
+    });
 
     return;
   });

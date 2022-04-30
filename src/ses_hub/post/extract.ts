@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
-import { dummy } from "../../_utils";
+import { dummy, log } from "../../_utils";
 
 type Data = {
   index: "matters" | "resources" | "persons";
@@ -28,6 +28,16 @@ export const extractPosts = functions
     const { posts, hit } = await fetchAlgolia(context, data, status);
 
     if (posts?.length) await fetchFirestore(context, data.index, posts, status);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "extractPosts",
+      index: data.index,
+      code: 200,
+      objectID: posts.map(
+        (post) => ("objectID" in post && post.objectID) || post.uid
+      ),
+    });
 
     return { index: data.index, type: data.type, posts: posts, hit: hit };
   });

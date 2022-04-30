@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Data = {
   index: "matters" | "resources";
@@ -18,6 +19,14 @@ export const addOutput = functions
 
     await updateFirestore({ context, data });
 
+    await log({
+      doc: context.auth?.uid,
+      run: "addOutput",
+      index: data.index,
+      code: 200,
+      objectID: data.objectID || data.objectIDs,
+    });
+
     return;
   });
 
@@ -29,6 +38,13 @@ export const removeOutput = functions
 
     await updateFirestore({ context, data });
 
+    await log({
+      doc: context.auth?.uid,
+      run: "removeOutput",
+      index: data.index,
+      code: 200,
+      objectID: data.objectID || data.objectIDs,
+    });
     return;
   });
 

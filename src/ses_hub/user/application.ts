@@ -4,6 +4,7 @@ import { send } from "../../_sendgrid";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
 import * as body from "../mail";
+import { log } from "../../_utils";
 
 export const applicationType = functions
   .region(location)
@@ -77,6 +78,12 @@ export const applicationType = functions
           );
         });
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "applicationType",
+      code: 200,
+    });
 
     return;
   });

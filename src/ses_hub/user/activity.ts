@@ -1,7 +1,7 @@
 import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
-import { dummy, time as calcTime } from "../../_utils";
+import { dummy, log, time as calcTime } from "../../_utils";
 import { userAuthenticated } from "./_userAuthenticated";
 
 type Data = {
@@ -95,6 +95,13 @@ export const fetchUserActivity = functions
         activities.push(activity);
       }
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchUserActivity",
+      code: 200,
+      uid: data.uid,
+    });
 
     return activities;
   });

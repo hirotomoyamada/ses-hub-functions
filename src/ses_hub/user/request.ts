@@ -5,6 +5,7 @@ import { send } from "../../_sendgrid";
 import * as body from "../mail";
 import * as Firestore from "../../types/firestore";
 import { PartiallyPartial } from "../../types/utils";
+import { log } from "../../_utils";
 
 type Data = {
   uid: string;
@@ -25,6 +26,13 @@ export const addRequest = functions
 
     await sendMail(user, selectUser, data.body);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "addRequest",
+      index: "persons",
+      code: 200,
+      uid: data.uid,
+    });
     return;
   });
 

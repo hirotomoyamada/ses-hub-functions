@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Products = {
   [T in string]: {
@@ -27,6 +28,12 @@ export const fetchProducts = functions
     await fetchPrices(products);
 
     await verificationActive(products, context);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchProducts",
+      code: 200,
+    });
 
     return { products: products, tax: tax };
   });

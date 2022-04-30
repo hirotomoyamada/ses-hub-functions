@@ -3,6 +3,7 @@ import { algolia } from "../../_algolia";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const createPlan = functions
   .region(location)
@@ -41,6 +42,12 @@ export const createPlan = functions
 
     await updateAlgolia(context, children);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "createPlan",
+      code: 200,
+    });
+
     return;
   });
 
@@ -63,6 +70,12 @@ export const createOption = functions
 
     await updateFirestore({ context, type, children });
     await updateAlgolia(context, children, type);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "createOption",
+      code: 200,
+    });
 
     return;
   });

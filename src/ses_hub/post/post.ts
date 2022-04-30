@@ -10,6 +10,7 @@ import * as Algolia from "../../types/algolia";
 import { NestedPartial } from "../../types/utils";
 import { tweet } from "../../_twitter";
 import { shortUrl } from "../../_bitly";
+import { log } from "../../_utils";
 
 export type Data = {
   index: "matters" | "resources";
@@ -31,6 +32,14 @@ export const createPost = functions
 
     await updateFirestore({ context, data, post });
 
+    await log({
+      doc: context.auth?.uid,
+      run: "createPost",
+      index: data.index,
+      code: 200,
+      objectID: post.objectID,
+    });
+
     return { index: data.index, post: post };
   });
 
@@ -44,6 +53,14 @@ export const editPost = functions
       await editAlgolia(context, data);
       await updateFirestore({ context, data, edit: true });
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "editPost",
+      index: data.index,
+      code: 200,
+      objectID: data.post.objectID,
+    });
   });
 
 export const deletePost = functions
@@ -57,6 +74,14 @@ export const deletePost = functions
       await updateFirestore({ context, data });
       await updateCollectionGroup(data);
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "deletePost",
+      index: data.index,
+      code: 200,
+      objectID: data.post.objectID,
+    });
   });
 
 export const sendPost = functions
@@ -90,6 +115,14 @@ export const sendPost = functions
         await sendTweet(index, data, post);
       }
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "sendPost",
+      index: data.index,
+      code: 200,
+      objectID: data.post.objectID,
+    });
 
     return;
   });

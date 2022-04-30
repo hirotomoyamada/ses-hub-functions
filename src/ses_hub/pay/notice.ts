@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const disableNotice = functions
   .region(location)
@@ -45,6 +46,12 @@ export const disableNotice = functions
           );
         });
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "disableNotice",
+      code: 200,
+    });
 
     return;
   });

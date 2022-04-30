@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
-import { dummy, time } from "../../_utils";
+import { dummy, log, time } from "../../_utils";
 import { postAuthenticated } from "./_postAuthenticated";
 
 type Data = {
@@ -142,6 +142,14 @@ export const fetchPostActivity = functions
         activity.log.sort((a, b) => b.createAt - a.createAt);
       }
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchPostActivity",
+      index: data.index,
+      code: 200,
+      objectID: data.post.objectID,
+    });
 
     return activity;
   });

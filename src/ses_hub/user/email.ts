@@ -4,6 +4,7 @@ import { algolia } from "../../_algolia";
 import { stripe } from "../../_stripe";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Data = {
   email: string;
@@ -19,6 +20,13 @@ export const changeEmail = functions
     await editFirestore(context, data);
     await editAlgolia(context, data);
     await editStripe(context, data);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "changeEmail",
+      code: 200,
+      uid: data.uid || context.auth?.uid,
+    });
 
     return;
   });
@@ -40,7 +48,7 @@ const editFirestore = async (
   const doc = await db
     .collection("companys")
     .withConverter(converter<Firestore.Company>())
-    .doc(!data.uid ? context.auth.uid : data.uid)
+    .doc(data.uid || context.auth.uid)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
@@ -91,7 +99,7 @@ const editAlgolia = async (
   await index
     .partialUpdateObject(
       {
-        objectID: !data.uid ? context.auth.uid : data.uid,
+        objectID: data.uid || context.auth.uid,
         email: data.email,
         updateAt: timestamp,
       },
@@ -123,7 +131,7 @@ const editStripe = async (
   const doc = await db
     .collection("customers")
     .withConverter(converter<Firestore.Customer>())
-    .doc(!data.uid ? context.auth.uid : data.uid)
+    .doc(data.uid || context.auth.uid)
     .get();
 
   const stripeId = doc.exists && doc.data()?.stripeId;

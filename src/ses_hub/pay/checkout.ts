@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Data = {
   productId: string;
@@ -32,6 +33,12 @@ export const createCheckout = functions
       success_url: data.url.success,
       cancel_url: data.url.cancel,
     };
+
+    await log({
+      doc: context.auth?.uid,
+      run: "createCheckout",
+      code: 200,
+    });
 
     const checkouts = await addCheckouts(context, session);
 

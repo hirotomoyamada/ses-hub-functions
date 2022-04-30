@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
-import { dummy } from "../../_utils";
+import { dummy, log } from "../../_utils";
 
 type Data = {
   index: "matters" | "resources" | "companys";
@@ -29,6 +29,16 @@ export const userPosts = functions
       : await fetchFollows(data, demo);
 
     if (posts.length) await fetchFirestore(context, data.index, posts);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "userPosts",
+      index: data.index,
+      code: 200,
+      objectID: posts.map(
+        (post) => ("objectID" in post && post.objectID) || post.uid
+      ),
+    });
 
     return { index: data.index, posts: posts, hit: hit };
   });

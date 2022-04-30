@@ -4,6 +4,7 @@ import { algolia } from "../../_algolia";
 import { send } from "../../_sendgrid";
 import * as body from "../mail";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const createUser = functions
   .region(location)
@@ -40,6 +41,12 @@ export const createUser = functions
 
     await send(adminMail);
     await send(userMail);
+
+    await log({
+      doc: snapshot.id,
+      run: "createUser",
+      code: 200,
+    });
   });
 
 export const deleteUser = functions
@@ -69,6 +76,12 @@ export const deleteUser = functions
       child && parent && (await deleteChild({ child: uid, parent: parent }));
     }
 
+    await log({
+      doc: snapshot.uid,
+      run: "deleteUser",
+      code: 200,
+    });
+
     return;
   });
 
@@ -92,6 +105,12 @@ export const enableUser = functions
     if (beforeStatus === "hold" && afterStatus === "enable") {
       await send(userMail);
     }
+
+    await log({
+      doc: change.before.id,
+      run: "enableUser",
+      code: 200,
+    });
   });
 
 export const declineUser = functions
@@ -114,6 +133,12 @@ export const declineUser = functions
     if (beforeStatus === "hold" && afterStatus === "disable") {
       await send(userMail);
     }
+
+    await log({
+      doc: change.before.id,
+      run: "declineUser",
+      code: 200,
+    });
   });
 
 export const disableUser = functions
@@ -161,6 +186,12 @@ export const disableUser = functions
         await index.partialUpdateObjects(resources);
       }
     }
+
+    await log({
+      doc: change.before.id,
+      run: "disableUser",
+      code: 200,
+    });
   });
 
 export const goBackUser = functions
@@ -183,6 +214,12 @@ export const goBackUser = functions
     if (beforeStatus === "disable" && afterStatus === "enable") {
       await send(userMail);
     }
+
+    await log({
+      doc: change.before.id,
+      run: "goBackUser",
+      code: 200,
+    });
   });
 
 const updateFirestore = async (uid: string) => {

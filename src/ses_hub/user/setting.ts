@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { db, location, runtime, converter } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Data = {
   type: "activity";
@@ -62,6 +63,12 @@ export const updateSetting = functions
         "firebase"
       );
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "updateSetting",
+      code: 200,
+    });
 
     return;
   });

@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
-import { dummy } from "../../_utils";
+import { dummy, log } from "../../_utils";
 
 type Data = {
   post: { index: "matters" | "resources"; objectID: string };
@@ -41,6 +41,14 @@ export const fetchPost = functions
 
     await addHistory(context, data, post);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchPost",
+      index: data.index,
+      code: 200,
+      objectID: data.objectID,
+    });
+
     return { post: post, bests: bests };
   });
 
@@ -57,6 +65,16 @@ export const fetchPosts = functions
 
     if (posts.length)
       await fetchFirestore.search(context, data.index, posts, status);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchPosts",
+      index: data.index,
+      code: 200,
+      objectID: posts.map(
+        (post) => ("objectID" in post && post.objectID) || post.uid
+      ),
+    });
 
     return { index: data.index, posts: posts, hit: hit };
   });

@@ -40,7 +40,7 @@ export const userAuthenticated = async ({
         "無効なアカウントのため、実行できません"
       );
 
-    const { status, agree, type, payment } = data;
+    const { status, agree: currentAgree, type, payment } = data;
     const { ses_hub } = functions.config().demo;
 
     if (status !== "enable")
@@ -49,7 +49,7 @@ export const userAuthenticated = async ({
         "無効なアカウントのため、実行できません"
       );
 
-    if (agree !== "enable" && !agree)
+    if (currentAgree !== "enable" && !agree)
       throw new functions.https.HttpsError(
         "cancelled",
         "利用規約の同意が無いアカウントため、実行できません"

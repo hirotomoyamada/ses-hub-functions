@@ -128,6 +128,16 @@ export interface User {
   updateAt?: number;
 }
 
+export interface Log {
+  index?: "matters" | "resources" | "companys" | "persons";
+  run: string;
+  code: number;
+  objectID?: string | string[];
+  uid?: string | string[];
+  message?: string;
+  createAt: number;
+}
+
 export interface Data {
   agree: {
     body: string;

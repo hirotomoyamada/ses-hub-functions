@@ -34,7 +34,9 @@ export const homePosts = functions
       run: "homePosts",
       index: data.index,
       code: 200,
-      objectID: posts.map((post) => post.objectID),
+      objectID: posts
+        ?.map((post) => (post ? post.objectID : undefined))
+        ?.filter((post): post is string => post !== undefined),
     });
 
     return { index: data.index, posts: posts, hit: hit };

@@ -71,9 +71,11 @@ export const fetchPosts = functions
       run: "fetchPosts",
       index: data.index,
       code: 200,
-      objectID: posts.map(
-        (post) => ("objectID" in post && post.objectID) || post.uid
-      ),
+      objectID: posts
+        ?.map((post) =>
+          post ? ("objectID" in post && post.objectID) || post.uid : undefined
+        )
+        ?.filter((post): post is string => post !== undefined),
     });
 
     return { index: data.index, posts: posts, hit: hit };
@@ -378,6 +380,7 @@ const fetchFirestore = {
       post.entries = entries;
     }
   },
+
   search: async (
     context: functions.https.CallableContext,
     index: Data["posts"]["index"],
@@ -529,6 +532,7 @@ const fetchActivity = {
 
     return { ...collections };
   },
+
   user: async (
     context: functions.https.CallableContext,
     index: "persons",

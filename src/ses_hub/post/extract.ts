@@ -34,9 +34,11 @@ export const extractPosts = functions
       run: "extractPosts",
       index: data.index,
       code: 200,
-      objectID: posts.map(
-        (post) => ("objectID" in post && post.objectID) || post.uid
-      ),
+      objectID: posts
+        ?.map((post) =>
+          post ? ("objectID" in post && post.objectID) || post.uid : undefined
+        )
+        ?.filter((post): post is string => post !== undefined),
     });
 
     return { index: data.index, type: data.type, posts: posts, hit: hit };

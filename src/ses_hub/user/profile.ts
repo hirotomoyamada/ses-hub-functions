@@ -77,15 +77,15 @@ export const editProfile = functions
       await editFirestore(context, data);
       await editAlgolia(context, data);
 
+      await log({
+        doc: context.auth?.uid,
+        run: "editProfile",
+        code: 200,
+        uid: data.uid,
+      });
+
       return;
     }
-
-    await log({
-      doc: context.auth?.uid,
-      run: "editProfile",
-      code: 200,
-      uid: data.uid,
-    });
   });
 
 const fetchStripe = async (

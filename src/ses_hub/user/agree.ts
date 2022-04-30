@@ -36,13 +36,13 @@ export const disableAgree = functions
     if (beforeStatus === "disable" && afterStatus === "enable") {
       await updateFiresotre();
       await updateData();
-    }
 
-    await log({
-      doc: context.auth?.uid,
-      run: "disableAgree",
-      code: 200,
-    });
+      await log({
+        doc: context.auth?.uid,
+        run: "disableAgree",
+        code: 200,
+      });
+    }
 
     return;
   });

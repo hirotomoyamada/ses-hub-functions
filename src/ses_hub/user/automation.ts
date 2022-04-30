@@ -95,22 +95,26 @@ export const enableUser = functions
     const afterStatus: string = change.after.data().status;
     const url = `${functions.config().app.ses_hub.url}/login`;
 
-    const userMail = {
-      to: profile.email,
-      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-      subject: "SES_HUB 承認完了のお知らせ",
-      text: body.enable.user(profile, url),
-    };
-
-    if (beforeStatus === "hold" && afterStatus === "enable") {
-      await send(userMail);
+    if (beforeStatus !== "hold") {
+      return;
     }
 
-    await log({
-      doc: change.before.id,
-      run: "enableUser",
-      code: 200,
-    });
+    if (beforeStatus === "hold" && afterStatus === "enable") {
+      const userMail = {
+        to: profile.email,
+        from: `SES_HUB <${functions.config().admin.ses_hub}>`,
+        subject: "SES_HUB 承認完了のお知らせ",
+        text: body.enable.user(profile, url),
+      };
+
+      await send(userMail);
+
+      await log({
+        doc: change.before.id,
+        run: "enableUser",
+        code: 200,
+      });
+    }
   });
 
 export const declineUser = functions
@@ -123,22 +127,22 @@ export const declineUser = functions
     const afterStatus: string = change.after.data().status;
     const url: string = functions.config().app.ses_hub.url;
 
-    const userMail = {
-      to: profile.email,
-      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-      subject: "SES_HUB 承認結果のお知らせ",
-      text: body.decline.user(profile, url),
-    };
-
     if (beforeStatus === "hold" && afterStatus === "disable") {
-      await send(userMail);
-    }
+      const userMail = {
+        to: profile.email,
+        from: `SES_HUB <${functions.config().admin.ses_hub}>`,
+        subject: "SES_HUB 承認結果のお知らせ",
+        text: body.decline.user(profile, url),
+      };
 
-    await log({
-      doc: change.before.id,
-      run: "declineUser",
-      code: 200,
-    });
+      await send(userMail);
+
+      await log({
+        doc: change.before.id,
+        run: "declineUser",
+        code: 200,
+      });
+    }
   });
 
 export const disableUser = functions
@@ -185,13 +189,13 @@ export const disableUser = functions
 
         await index.partialUpdateObjects(resources);
       }
-    }
 
-    await log({
-      doc: change.before.id,
-      run: "disableUser",
-      code: 200,
-    });
+      await log({
+        doc: change.before.id,
+        run: "disableUser",
+        code: 200,
+      });
+    }
   });
 
 export const goBackUser = functions
@@ -204,22 +208,22 @@ export const goBackUser = functions
     const afterStatus: string = change.after.data().status;
     const url = `${functions.config().app.ses_hub.url}/login`;
 
-    const userMail = {
-      to: profile.email,
-      from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-      subject: "SES_HUB 利用再開のお知らせ",
-      text: body.goBack.user(profile, url),
-    };
-
     if (beforeStatus === "disable" && afterStatus === "enable") {
-      await send(userMail);
-    }
+      const userMail = {
+        to: profile.email,
+        from: `SES_HUB <${functions.config().admin.ses_hub}>`,
+        subject: "SES_HUB 利用再開のお知らせ",
+        text: body.goBack.user(profile, url),
+      };
 
-    await log({
-      doc: change.before.id,
-      run: "goBackUser",
-      code: 200,
-    });
+      await send(userMail);
+
+      await log({
+        doc: change.before.id,
+        run: "goBackUser",
+        code: 200,
+      });
+    }
   });
 
 const updateFirestore = async (uid: string) => {

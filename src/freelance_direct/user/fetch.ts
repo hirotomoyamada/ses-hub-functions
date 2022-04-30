@@ -5,6 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const fetchUser = functions
   .region(location)
@@ -17,6 +18,13 @@ export const fetchUser = functions
 
     await fetchFirestore(data, user);
     !demo && (await addHistory(context, data));
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchUser",
+      code: 200,
+      uid: data,
+    });
 
     return user;
   });

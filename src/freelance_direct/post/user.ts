@@ -1,10 +1,11 @@
 import * as functions from "firebase-functions";
-import { algolia } from "../../_algolia";
+import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
+import { log } from "../../_utils";
 
 type Data = {
   uid: string;
@@ -17,23 +18,35 @@ export const userPosts = functions
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated(context);
 
-    await checkUser(data);
+    await checkUser(data.uid);
 
     const { posts, hit } = await fetchAlgolia(data);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "homePosts",
+      index: "matters",
+      code: 200,
+      objectID: posts
+        ?.map((post) => (post ? post.objectID : undefined))
+        ?.filter((post): post is string => post !== undefined),
+    });
 
     return { posts: posts, hit: hit };
   });
 
-const checkUser = async (data: Data): Promise<void> => {
+const checkUser = async (uid: Data["uid"]): Promise<void> => {
   const doc = await db
     .collection("companys")
     .withConverter(converter<Firestore.Company>())
-    .doc(data.uid)
+    .doc(uid)
     .get();
 
+  const data = doc.data();
+
   if (
-    doc.data()?.payment.status === "canceled" ||
-    !doc.data()?.payment.option?.freelanceDirect
+    data?.payment.status === "canceled" ||
+    !data?.payment.option?.freelanceDirect
   ) {
     throw new functions.https.HttpsError(
       "cancelled",
@@ -55,11 +68,13 @@ const fetchAlgolia = async (
     currentPage: data.page ? data.page : 0,
   };
 
+  const options: (RequestOptions & SearchOptions) | undefined = {
+    filters: "display:public",
+    page: hit.currentPage,
+  };
+
   const result = await index
-    .search<Algolia.Matter>(data.uid, {
-      filters: "display:public",
-      page: hit.currentPage,
-    })
+    .search<Algolia.Matter>(data.uid, options)
     .catch(() => {
       throw new functions.https.HttpsError(
         "not-found",
@@ -71,7 +86,9 @@ const fetchAlgolia = async (
   hit.posts = result?.nbHits;
   hit.pages = result?.nbPages;
 
-  const posts = result?.hits.map((hit) => hit && fetch.matter(hit));
+  const posts = result?.hits
+    .map((hit) => hit && fetch.matter(hit))
+    ?.filter((post) => post);
 
   return { posts, hit };
 };

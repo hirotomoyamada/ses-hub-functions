@@ -5,6 +5,7 @@ import { send } from "../../_sendgrid";
 import * as body from "../mail";
 import { userAuthenticated } from "./_userAuthenticated";
 import { PartiallyPartial } from "../../types/utils";
+import { log } from "../../_utils";
 
 export const enableRequest = functions
   .region(location)
@@ -20,6 +21,13 @@ export const enableRequest = functions
 
     await sendMail(context, user, selectUser);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "enableRequest",
+      code: 200,
+      uid: data,
+    });
+
     return;
   });
 
@@ -30,6 +38,13 @@ export const disableRequest = functions
     await userAuthenticated({ context, demo: true });
 
     await updateFirestore({ context, data, status: "disable" });
+
+    await log({
+      doc: context.auth?.uid,
+      run: "disableRequest",
+      code: 200,
+      uid: data,
+    });
 
     return;
   });

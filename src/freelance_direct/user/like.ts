@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { db, location, runtime, converter } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 import { userAuthenticated } from "./_userAuthenticated";
+import { log } from "../../_utils";
 
 type Data = { objectID: string; uid: string };
 
@@ -13,16 +14,30 @@ export const addLike = functions
 
     await updateFirestore({ context, data });
 
+    await log({
+      doc: context.auth?.uid,
+      run: "addLike",
+      code: 200,
+      objectID: data.objectID,
+    });
+
     return;
   });
 
 export const removeLike = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data, context) => {
+  .https.onCall(async (data: Data, context) => {
     await userAuthenticated({ context, demo: true });
 
     await updateFirestore({ context, data });
+
+    await log({
+      doc: context.auth?.uid,
+      run: "removeLike",
+      code: 200,
+      objectID: data.objectID,
+    });
 
     return;
   });

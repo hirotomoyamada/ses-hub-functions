@@ -5,6 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Data = {
   index: "matters" | "companys" | "enable" | "hold" | "disable";
@@ -26,7 +27,19 @@ export const extractPosts = functions
 
     const { posts, hit } = await fetchAlgolia(data, demo);
 
-    posts.length && (await fetchFirestore(data, posts));
+    if (posts.length) await fetchFirestore(data, posts);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchPosts",
+      index: data.type !== "requests" ? "matters" : "companys",
+      code: 200,
+      objectID: posts
+        ?.map((post) =>
+          post ? ("objectID" in post && post.objectID) || post.uid : undefined
+        )
+        ?.filter((post): post is string => post !== undefined),
+    });
 
     return { index: data.index, type: data.type, posts: posts, hit: hit };
   });
@@ -68,67 +81,97 @@ const fetchAlgolia = async (
     });
 
   const posts = results
-    ?.map((hit) =>
-      hit &&
-      data.index === "matters" &&
-      (hit as Algolia.Matter).display === "public"
-        ? fetch.matter(<Algolia.Matter>hit)
-        : hit &&
-          data.type === "requests" &&
-          hit.status === "enable" &&
-          fetch.company.item(<Algolia.Company>hit, demo)
-    )
-    ?.filter((post) => post) as Results[];
+    ?.map((hit) => {
+      switch (data.index) {
+        case "matters": {
+          if (hit && (hit as Algolia.Matter).display === "public")
+            return fetch.matter(<Algolia.Matter>hit);
+        }
+
+        case "companys":
+        case "enable":
+        case "hold":
+        case "disable": {
+          if (
+            hit &&
+            data.type === "requests" &&
+            (hit as Algolia.Company).status === "enable"
+          )
+            return fetch.company.item(<Algolia.Company>hit, demo);
+        }
+
+        default:
+          return;
+      }
+    })
+    ?.filter((post): post is Results => post !== undefined);
 
   return { posts, hit };
 };
 
 const fetchFirestore = async (data: Data, posts: Results[]): Promise<void> => {
-  for (let i = 0; i < posts.length; i++) {
-    if (posts[i]) {
-      const doc = await db
-        .collection("companys")
-        .withConverter(converter<Firestore.Company>())
-        .doc(posts[i].uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
-          );
-        });
+  for (const post of posts) {
+    if (!post) continue;
 
-      if (doc.exists) {
-        if (data.index === "matters") {
-          if (
-            !doc.data()?.payment.option &&
-            !doc.data()?.payment.option?.freelanceDirect
-          ) {
-            (posts as Algolia.Matter[])[i].costs.display = "private";
-            (posts as Algolia.Matter[])[i].costs.type = "応談";
-            (posts as Algolia.Matter[])[i].costs.min = 0;
-            (posts as Algolia.Matter[])[i].costs.max = 0;
+    const doc = await db
+      .collection("companys")
+      .withConverter(converter<Firestore.Company>())
+      .doc(post.uid)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "ユーザーの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    if (doc.exists) {
+      switch (data.index) {
+        case "matters": {
+          if (!("objectID" in post)) return;
+
+          const data = doc.data();
+
+          if (!data?.payment.option && !data?.payment.option?.freelanceDirect) {
+            post.costs.display = "private";
+            post.costs.type = "応談";
+            post.costs.min = 0;
+            post.costs.max = 0;
           }
+
+          break;
         }
 
-        if (data.type === "requests") {
+        case "companys":
+        case "enable":
+        case "hold":
+        case "disable": {
+          if (!("profile" in post)) return;
+
+          const data = doc.data();
+
           if (
-            doc.data()?.payment.status === "canceled" ||
-            !doc.data()?.payment.option?.freelanceDirect
+            data?.payment.status === "canceled" ||
+            !data?.payment.option?.freelanceDirect
           ) {
-            (posts as Algolia.CompanyItem[])[i].icon = "none";
-            (posts as Algolia.CompanyItem[])[i].type = "none";
-            (posts as Algolia.CompanyItem[])[i].profile = {
+            post.icon = "none";
+            post.type = "none";
+            post.profile = {
               name: undefined,
               person: "存在しないユーザー",
               body: undefined,
             };
           } else {
-            (posts as Algolia.CompanyItem[])[i].icon = doc.data()?.icon;
-            (posts as Algolia.CompanyItem[])[i].type = doc.data()?.type;
+            post.icon = data?.icon;
+            post.type = data?.type;
           }
+
+          break;
         }
+
+        default:
+          break;
       }
     }
   }

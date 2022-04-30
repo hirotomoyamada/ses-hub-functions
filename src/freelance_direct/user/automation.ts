@@ -4,6 +4,7 @@ import { algolia } from "../../_algolia";
 import { send } from "../../_sendgrid";
 import * as body from "../mail";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const createUser = functions
   .region(location)
@@ -30,6 +31,12 @@ export const createUser = functions
 
     await send(adminMail);
     await send(userMail);
+
+    await log({
+      doc: snapshot.id,
+      run: "createUser",
+      code: 200,
+    });
   });
 
 export const deleteUser = functions
@@ -63,6 +70,12 @@ export const deleteUser = functions
       await path.delete();
     }
 
+    await log({
+      doc: snapshot.uid,
+      run: "deleteUser",
+      code: 200,
+    });
+
     return;
   });
 
@@ -76,15 +89,21 @@ export const enableUser = functions
     const afterStatus: string = change.after.data().status;
     const url = `${functions.config().app.freelance_direct.url}/login`;
 
-    const userMail = {
-      to: change.after.data().profile.email,
-      from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
-      subject: "Freelance Direct 承認完了のお知らせ",
-      text: body.enable.user(profile, url),
-    };
-
     if (beforeStatus === "hold" && afterStatus === "enable") {
+      const userMail = {
+        to: change.after.data().profile.email,
+        from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
+        subject: "Freelance Direct 承認完了のお知らせ",
+        text: body.enable.user(profile, url),
+      };
+
       await send(userMail);
+
+      await log({
+        doc: change.before.id,
+        run: "enableUser",
+        code: 200,
+      });
     }
   });
 
@@ -98,15 +117,21 @@ export const declineUser = functions
     const afterStatus: string = change.after.data().status;
     const url: string = functions.config().app.freelance_direct.url;
 
-    const userMail = {
-      to: profile.email,
-      from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
-      subject: "Freelance Direct 承認結果のお知らせ",
-      text: body.decline.user(profile, url),
-    };
-
     if (beforeStatus === "hold" && afterStatus === "disable") {
+      const userMail = {
+        to: profile.email,
+        from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
+        subject: "Freelance Direct 承認結果のお知らせ",
+        text: body.decline.user(profile, url),
+      };
+
       await send(userMail);
+
+      await log({
+        doc: change.before.id,
+        run: "declineUser",
+        code: 200,
+      });
     }
   });
 
@@ -120,15 +145,21 @@ export const disableUser = functions
     const afterStatus: string = change.after.data().status;
     const url: string = functions.config().app.freelance_direct.url;
 
-    const userMail = {
-      to: profile.email,
-      from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
-      subject: "Freelance Direct 利用停止のお知らせ",
-      text: body.disable.user(profile, url),
-    };
-
     if (beforeStatus === "enable" && afterStatus === "disable") {
+      const userMail = {
+        to: profile.email,
+        from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
+        subject: "Freelance Direct 利用停止のお知らせ",
+        text: body.disable.user(profile, url),
+      };
+
       await send(userMail);
+
+      await log({
+        doc: change.before.id,
+        run: "disableUser",
+        code: 200,
+      });
     }
   });
 
@@ -142,15 +173,21 @@ export const goBackUser = functions
     const afterStatus: string = change.after.data().status;
     const url: string = `${functions.config().app.freelance_direct.url}/login`;
 
-    const userMail = {
-      to: profile.email,
-      from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
-      subject: "Freelance Direct 利用再開のお知らせ",
-      text: body.goBack.user(profile, url),
-    };
-
     if (beforeStatus === "disable" && afterStatus === "enable") {
+      const userMail = {
+        to: profile.email,
+        from: `Freelance Direct <${functions.config().admin.freelance_direct}>`,
+        subject: "Freelance Direct 利用再開のお知らせ",
+        text: body.goBack.user(profile, url),
+      };
+
       await send(userMail);
+
+      await log({
+        doc: change.before.id,
+        run: "goBackUser",
+        code: 200,
+      });
     }
   });
 

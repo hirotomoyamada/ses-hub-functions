@@ -3,6 +3,7 @@ import { algolia } from "../../_algolia";
 import { db, location, runtime, converter } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 import { userAuthenticated } from "./_userAuthenticated";
+import { log } from "../../_utils";
 
 export type Data = {
   provider: string;
@@ -17,6 +18,12 @@ export const addProvider = functions
 
     await addFirestore(context, data);
     data.email && addAlgolia(context, data);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "addProvider",
+      code: 200,
+    });
 
     return;
   });

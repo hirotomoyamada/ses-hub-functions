@@ -1,10 +1,11 @@
 import * as functions from "firebase-functions";
-import { algolia } from "../../_algolia";
+import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Data = {
   index: "matters" | "companys";
@@ -23,10 +24,18 @@ export const fetchPost = functions
     await userAuthenticated(context);
     const demo = checkDemo(context);
 
-    const post = await fetchAlgolia(data, demo);
-    const bests = await fetchBests(post);
+    const post = await fetchAlgolia.post(data, demo);
+    const bests = await fetchAlgolia.bests(post);
 
-    !demo && (await addHistory(context, post));
+    if (!demo) await addHistory(context, post);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchPost",
+      index: "matters",
+      code: 200,
+      objectID: post.objectID,
+    });
 
     return { post: post, bests: bests };
   });
@@ -38,123 +47,189 @@ export const fetchPosts = functions
     await userAuthenticated(context);
     const demo = checkDemo(context);
 
-    const { posts, hit } = await fetchSearchAlgolia(data, demo);
+    const { posts, hit } = await fetchAlgolia.search(data, demo);
 
-    await fetchQueryFirestore(data, posts);
+    await fetchFirestore.search(data.index, posts);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "homePosts",
+      index: data.index,
+      code: 200,
+      objectID: posts
+        ?.map((post) =>
+          post ? ("objectID" in post && post.objectID) || post.uid : undefined
+        )
+        ?.filter((post): post is string => post !== undefined),
+    });
 
     return { index: data.index, posts: posts, hit: hit };
   });
 
-const fetchAlgolia = async (
-  data: string,
-  demo: boolean
-): Promise<Algolia.Matter> => {
-  const index = algolia.initIndex("matters");
+const fetchAlgolia = {
+  post: async (data: string, demo: boolean): Promise<Algolia.Matter> => {
+    const index = algolia.initIndex("matters");
 
-  const hit = await index.getObject<Algolia.Matter>(data).catch(() => {
-    throw new functions.https.HttpsError(
-      "not-found",
-      "投稿の取得に失敗しました",
-      "notFound"
-    );
-  });
-
-  const post = hit.display === "public" && fetch.matter(hit);
-
-  if (!post) {
-    throw new functions.https.HttpsError(
-      "not-found",
-      "投稿の取得に失敗しました",
-      "notFound"
-    );
-  }
-
-  await fetchFirestore({ demo: demo, post: post });
-
-  return post;
-};
-
-const fetchSearchAlgolia = async (
-  data: Data,
-  demo: boolean
-): Promise<{
-  posts: Result[];
-  hit: Algolia.Hit;
-}> => {
-  const index = algolia.initIndex(
-    !data.target || data.target === "createAt"
-      ? data.index
-      : `${data.index}_${data.target}_${data.type}`
-  );
-
-  const hit: Algolia.Hit = {
-    currentPage: data.page ? data.page : 0,
-  };
-
-  const result = await index
-    .search<Algolia.Matter | Algolia.Company>(
-      data.value ? data.value : "",
-      data.index === "matters"
-        ? {
-            filters: "display:public",
-            page: hit.currentPage,
-          }
-        : data.index === "companys"
-        ? {
-            filters: "status:enable AND plan:enable AND freelanceDirect:enable",
-            page: hit.currentPage,
-          }
-        : {}
-    )
-    .catch(() => {
+    const hit = await index.getObject<Algolia.Matter>(data).catch(() => {
       throw new functions.https.HttpsError(
         "not-found",
         "投稿の取得に失敗しました",
-        "algolia"
-      );
-    });
-
-  hit.posts = result?.nbHits;
-  hit.pages = result?.nbPages;
-
-  const posts = result?.hits
-    ?.map((hit) =>
-      data.index === "matters"
-        ? fetch.matter(<Algolia.Matter>hit)
-        : data.index === "companys" &&
-          (hit as Algolia.Company).person &&
-          fetch.company.item(<Algolia.Company>hit, demo)
-    )
-    ?.filter((post) => post) as Result[];
-
-  return { posts, hit };
-};
-
-const fetchFirestore = async ({
-  demo,
-  post,
-}: {
-  demo?: boolean;
-  post: Algolia.Matter;
-}): Promise<void> => {
-  const doc = await db
-    .collection("companys")
-    .withConverter(converter<Firestore.Company>())
-    .doc(post.uid)
-    .get()
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
         "notFound"
       );
     });
 
-  if (doc.exists) {
-    if (post) {
+    const post = hit.display === "public" && fetch.matter(hit);
+
+    if (!post) {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "投稿の取得に失敗しました",
+        "notFound"
+      );
+    }
+
+    await fetchFirestore.post({ demo, post });
+
+    return post;
+  },
+
+  search: async (
+    data: Data,
+    demo: boolean
+  ): Promise<{
+    posts: Result[];
+    hit: Algolia.Hit;
+  }> => {
+    const index = algolia.initIndex(
+      !data.target || data.target === "createAt"
+        ? data.index
+        : `${data.index}_${data.target}_${data.type}`
+    );
+
+    const hit: Algolia.Hit = {
+      currentPage: data.page ? data.page : 0,
+    };
+
+    const value = data.value ? data.value : "";
+
+    const options: (RequestOptions & SearchOptions) | undefined = (() => {
+      switch (data.index) {
+        case "matters":
+          return {
+            filters: "display:public",
+            page: hit.currentPage,
+          };
+
+        case "matters":
+          return {
+            filters: "status:enable AND plan:enable AND freelanceDirect:enable",
+            page: hit.currentPage,
+          };
+
+        default:
+          return {};
+      }
+    })();
+
+    const result = await index
+      .search<Algolia.Matter | Algolia.Company>(value, options)
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "投稿の取得に失敗しました",
+          "algolia"
+        );
+      });
+
+    hit.posts = result?.nbHits;
+    hit.pages = result?.nbPages;
+
+    const posts = result?.hits
+      ?.map((hit) => {
+        switch (data.index) {
+          case "matters": {
+            return fetch.matter(<Algolia.Matter>hit);
+          }
+
+          case "companys": {
+            if ((hit as Algolia.Company).person)
+              return fetch.company.item(<Algolia.Company>hit, demo);
+          }
+
+          default:
+            return;
+        }
+      })
+      ?.filter((post): post is Result => post !== undefined);
+
+    return { posts, hit };
+  },
+
+  bests: async (post: Algolia.Matter): Promise<Algolia.Matter[] | void> => {
+    const index = algolia.initIndex("matters");
+
+    const options: (RequestOptions & SearchOptions) | undefined = {
+      queryLanguages: ["ja", "en"],
+      similarQuery: post?.handles?.join(" "),
+      filters: "display:public",
+      hitsPerPage: 100,
+    };
+
+    const { hits } = await index
+      .search<Algolia.Matter>("", options)
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "投稿の取得に失敗しました",
+          "algolia"
+        );
+      });
+
+    const bests = hits
+      ?.map((hit) => hit.objectID !== post.objectID && fetch.matter(hit))
+      ?.filter((post) => post) as Algolia.Matter[];
+
+    if (bests.length) {
+      for (const post of bests) {
+        post && (await fetchFirestore.post({ post }));
+      }
+
+      return bests;
+    }
+
+    return;
+  },
+};
+
+const fetchFirestore = {
+  post: async ({
+    demo,
+    post,
+  }: {
+    demo?: boolean;
+    post: Algolia.Matter;
+  }): Promise<void> => {
+    const doc = await db
+      .collection("companys")
+      .withConverter(converter<Firestore.Company>())
+      .doc(post.uid)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "ユーザーの取得に失敗しました",
+          "notFound"
+        );
+      });
+
+    if (doc.exists) {
+      if (!post) return;
+
+      const data = doc.data();
+
       if (
-        doc.data()?.payment.status === "canceled" ||
-        !doc.data()?.payment.option?.freelanceDirect
+        data?.payment.status === "canceled" ||
+        !data?.payment.option?.freelanceDirect
       ) {
         post.uid = "";
         post.costs.display = "private";
@@ -166,17 +241,17 @@ const fetchFirestore = async ({
         post.user = fetch.company.supplementary(doc, demo);
       }
     }
-  }
 
-  return;
-};
+    return;
+  },
 
-const fetchQueryFirestore = async (data: Data, posts: Result[]) => {
-  for (let i = 0; i < posts.length; i++) {
-    if (posts[i]) {
+  search: async (index: Data["index"], posts: Result[]) => {
+    for (const post of posts) {
+      if (!post) continue;
+
       const doc = await db
         .collection("companys")
-        .doc(posts[i].uid)
+        .doc(post.uid)
         .get()
         .catch(() => {
           throw new functions.https.HttpsError(
@@ -187,75 +262,56 @@ const fetchQueryFirestore = async (data: Data, posts: Result[]) => {
         });
 
       if (doc.exists) {
-        if (
-          data.index === "matters" &&
-          (doc.data()?.payment.status === "canceled" ||
-            !doc.data()?.payment.option?.freelanceDirect)
-        ) {
-          (posts as Algolia.Matter[])[i].costs.display = "private";
-          (posts as Algolia.Matter[])[i].costs.type = "応談";
-          (posts as Algolia.Matter[])[i].costs.min = 0;
-          (posts as Algolia.Matter[])[i].costs.max = 0;
-        }
+        const data = doc.data();
 
-        if (data.index === "companys") {
-          if (
-            doc.data()?.payment.status === "canceled" ||
-            !doc.data()?.payment.option?.freelanceDirect
-          ) {
-            (posts as Algolia.CompanyItem[])[i].icon = "none";
-            (posts as Algolia.CompanyItem[])[i].status = "none";
-            (posts as Algolia.CompanyItem[])[i].type = "individual";
-            (posts as Algolia.CompanyItem[])[i].profile = {
-              name: undefined,
-              person: "存在しないユーザー",
-              body: undefined,
-            };
-          } else {
-            (posts as Algolia.CompanyItem[])[i].icon = doc.data()?.icon;
-            (posts as Algolia.CompanyItem[])[i].type = doc.data()?.type;
+        switch (index) {
+          case "matters": {
+            if (!("objectID" in post)) return;
+
+            if (
+              data?.payment.status === "canceled" ||
+              !data?.payment.option?.freelanceDirect
+            ) {
+              post.costs.display = "private";
+              post.costs.type = "応談";
+              post.costs.min = 0;
+              post.costs.max = 0;
+            }
+
+            break;
           }
+
+          case "matters": {
+            if (!("profile" in post)) return;
+
+            if (
+              data?.payment.status === "canceled" ||
+              !data?.payment.option?.freelanceDirect
+            ) {
+              post.icon = "none";
+              post.status = "none";
+              post.type = "individual";
+              post.profile = {
+                name: undefined,
+                person: "存在しないユーザー",
+                body: undefined,
+              };
+            } else {
+              post.icon = data?.icon;
+              post.type = data?.type;
+            }
+
+            break;
+          }
+
+          default:
+            break;
         }
       }
     }
-  }
 
-  return;
-};
-
-const fetchBests = async (
-  post: Algolia.Matter
-): Promise<Algolia.Matter[] | void> => {
-  const index = algolia.initIndex("matters");
-
-  const { hits } = await index
-    .search<Algolia.Matter>("", {
-      queryLanguages: ["ja", "en"],
-      similarQuery: post?.handles?.join(" "),
-      filters: "display:public",
-      hitsPerPage: 100,
-    })
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "algolia"
-      );
-    });
-
-  const bests = hits
-    ?.map((hit) => hit.objectID !== post.objectID && fetch.matter(hit))
-    ?.filter((post) => post) as Algolia.Matter[];
-
-  if (bests.length) {
-    for (const post of bests) {
-      post && (await fetchFirestore({ post: post }));
-    }
-
-    return bests;
-  }
-
-  return;
+    return;
+  },
 };
 
 const addHistory = async (

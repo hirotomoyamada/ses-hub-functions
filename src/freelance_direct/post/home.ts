@@ -1,10 +1,11 @@
 import * as functions from "firebase-functions";
-import { algolia } from "../../_algolia";
+import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 type Data = { index: "matters" | "companys"; follows: string[]; page?: number };
 
@@ -19,7 +20,19 @@ export const homePosts = functions
 
     const { posts, hit } = await fetchAlgolia(context, data, demo);
 
-    posts.length && (await fetchFirestore(data, posts, demo));
+    posts.length && (await fetchFirestore(data.index, posts, demo));
+
+    await log({
+      doc: context.auth?.uid,
+      run: "fetchPosts",
+      index: data.index,
+      code: 200,
+      objectID: posts
+        ?.map((post) =>
+          post ? ("objectID" in post && post.objectID) || post.uid : undefined
+        )
+        ?.filter((post): post is string => post !== undefined),
+    });
 
     return { index: data.index, posts: posts, hit: hit };
   });
@@ -59,14 +72,16 @@ const fetchAlgolia = async (
           currentPage: data.page ? data.page : 0,
         };
 
+  const options: (RequestOptions & SearchOptions) | undefined = {
+    queryLanguages: ["ja", "en"],
+    similarQuery: value,
+    filters: "display:public",
+    page: hit.currentPage,
+  };
+
   if (data.index === "matters") {
     const results = await index
-      .search<Algolia.Matter>("", {
-        queryLanguages: ["ja", "en"],
-        similarQuery: value,
-        filters: "display:public",
-        page: hit.currentPage,
-      })
+      .search<Algolia.Matter>("", options)
       .catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
@@ -108,55 +123,67 @@ const fetchAlgolia = async (
 };
 
 const fetchFirestore = async (
-  data: Data,
+  index: Data["index"],
   posts: Posts[],
   demo: boolean
 ): Promise<void> => {
-  for (let i = 0; i < posts.length; i++) {
-    if (posts[i]) {
-      const doc = await db
-        .collection("companys")
-        .withConverter(converter<Firestore.Company>())
-        .doc(posts[i].uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
-          );
-        });
+  for (const post of posts) {
+    if (!post) continue;
 
-      if (doc.exists) {
-        if (data.index === "matters") {
+    const doc = await db
+      .collection("companys")
+      .withConverter(converter<Firestore.Company>())
+      .doc(post.uid)
+      .get()
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "ユーザーの取得に失敗しました",
+          "firebase"
+        );
+      });
+
+    if (doc.exists) {
+      const data = doc.data();
+
+      switch (index) {
+        case "matters": {
+          if (!("objectID" in post)) return;
+
           if (
-            doc.data()?.payment.status === "canceled" ||
-            !doc.data()?.payment.option?.freelanceDirect
+            data?.payment.status === "canceled" ||
+            !data?.payment.option?.freelanceDirect
           ) {
-            (posts as Algolia.Matter[])[i].user = fetch.company.none();
+            post.user = fetch.company.none();
           } else {
-            (posts as Algolia.Matter[])[i].user = fetch.company.supplementary(
-              doc,
-              demo
-            );
+            post.user = fetch.company.supplementary(doc, demo);
           }
-        } else {
+
+          break;
+        }
+        case "companys": {
+          if (!("profile" in post)) return;
+
           if (
-            doc.data()?.payment.status === "canceled" ||
-            !doc.data()?.payment.option?.freelanceDirect
+            data?.payment.status === "canceled" ||
+            !data?.payment.option?.freelanceDirect
           ) {
-            (posts as Algolia.CompanyItem[])[i].icon = "none";
-            (posts as Algolia.CompanyItem[])[i].type = "none";
-            (posts as Algolia.CompanyItem[])[i].profile = {
+            post.icon = "none";
+            post.type = "none";
+            post.profile = {
               name: undefined,
               person: "存在しないユーザー",
               body: undefined,
             };
           } else {
-            (posts as Algolia.CompanyItem[])[i].icon = doc.data()?.icon;
-            (posts as Algolia.CompanyItem[])[i].type = doc.data()?.type;
+            post.icon = data?.icon;
+            post.type = data?.type;
           }
+
+          break;
         }
+        default:
+          break;
       }
     }
   }

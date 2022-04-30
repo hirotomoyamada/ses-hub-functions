@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 import { userAuthenticated } from "./_userAuthenticated";
+import { log } from "../../_utils";
 
 type Data = { objectID: string; uid: string };
 
@@ -61,6 +62,14 @@ export const addEntry = functions
           );
         });
     }
+
+    await log({
+      doc: context.auth?.uid,
+      run: "addEntry",
+      index: "matters",
+      code: 200,
+      objectID: data.objectID,
+    });
 
     return;
   });

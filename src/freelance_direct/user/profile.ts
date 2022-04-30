@@ -5,6 +5,7 @@ import * as format from "./_format";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
 import { userAuthenticated } from "./_userAuthenticated";
+import { log } from "../../_utils";
 
 export type Data = {
   create: {
@@ -29,6 +30,12 @@ export const createProfile = functions
     await createFirestore(context, data, file);
     await createAlgolia(context, data);
 
+    await log({
+      doc: context.auth?.uid,
+      run: "createProfile",
+      code: 200,
+    });
+
     return { displayName: data.name };
   });
 
@@ -42,6 +49,12 @@ export const editProfile = functions
       await editFirestore(context, data);
       await editAlgolia(context, data);
 
+      await log({
+        doc: context.auth?.uid,
+        run: "editProfile",
+        code: 200,
+      });
+
       return;
     }
   });
@@ -54,6 +67,12 @@ export const changeState = functions
 
     await editFirestore(context, data);
     await editAlgolia(context, data);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "changeState",
+      code: 200,
+    });
 
     return;
   });

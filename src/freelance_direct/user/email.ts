@@ -3,6 +3,7 @@ import { algolia } from "../../_algolia";
 import { db, location, runtime, converter } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 import { userAuthenticated } from "./_userAuthenticated";
+import { log } from "../../_utils";
 
 export const changeEmail = functions
   .region(location)
@@ -12,6 +13,12 @@ export const changeEmail = functions
 
     await editFirestore(context, data);
     await editAlgolia(context, data);
+
+    await log({
+      doc: context.auth?.uid,
+      run: "changeEmail",
+      code: 200,
+    });
 
     return;
   });

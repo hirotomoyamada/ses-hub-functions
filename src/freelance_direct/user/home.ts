@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { db, location, runtime, converter } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const updateHome = functions
   .region(location)
@@ -49,6 +50,13 @@ export const updateHome = functions
           );
         });
       }
+    });
+
+    await log({
+      doc: context.auth?.uid,
+      run: "updateHome",
+      code: 200,
+      uid: data,
     });
 
     return;

@@ -2,6 +2,8 @@ import * as functions from "firebase-functions";
 import { db, location, runtime, storage, converter } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
+
 const timestamp = Date.now();
 
 type Data = {
@@ -55,6 +57,12 @@ export const uploadResume = functions
     if (doc.exists) {
       const url = await uploadFile(data.file, doc, context.auth.uid);
 
+      await log({
+        doc: context.auth?.uid,
+        run: "uploadResume",
+        code: 200,
+      });
+
       return url;
     }
 
@@ -88,7 +96,15 @@ export const deleteResume = functions
         );
       });
 
-    doc.exists && (await deleteFile(doc));
+    if (doc.exists) {
+      await deleteFile(doc);
+
+      await log({
+        doc: context.auth?.uid,
+        run: "deleteResume",
+        code: 200,
+      });
+    }
 
     return;
   });

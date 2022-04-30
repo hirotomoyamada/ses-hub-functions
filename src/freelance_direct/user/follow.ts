@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import { converter, db, location, runtime } from "../../_firebase";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../../types/firestore";
+import { log } from "../../_utils";
 
 export const addFollow = functions
   .region(location)
@@ -10,6 +11,13 @@ export const addFollow = functions
     await userAuthenticated({ context, demo: true });
 
     await updateFirestore({ context, data });
+
+    await log({
+      doc: context.auth?.uid,
+      run: "addFollow",
+      code: 200,
+      uid: data,
+    });
 
     return;
   });
@@ -24,6 +32,13 @@ export const removeFollow = functions
     });
 
     await updateFirestore({ context, data });
+
+    await log({
+      doc: context.auth?.uid,
+      run: "removeFollow",
+      code: 200,
+      uid: data,
+    });
 
     return;
   });

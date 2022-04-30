@@ -1,3 +1,4 @@
+import * as functions from "firebase-functions";
 import {
   company,
   lastNickName,
@@ -7,7 +8,78 @@ import {
   email,
   urls,
 } from "./_dummy";
+import { db, converter } from "./_firebase";
+import * as Firestore from "./types/firestore";
 import { randomBytes } from "crypto";
+
+export type Log = ({
+  doc,
+  index,
+  run,
+  code,
+  objectID,
+  uid,
+  message,
+}: { doc?: string } & Omit<Firestore.Log, "createAt">) => Promise<void>;
+
+export const log: Log = async ({
+  doc,
+  index,
+  run,
+  code,
+  objectID,
+  uid,
+  message,
+}) => {
+  if (!doc) return;
+
+  const timestamp = Date.now();
+
+  const collection = db
+    .collection("companys")
+    .doc(doc)
+    .collection("log")
+    .withConverter(converter<Firestore.Log>());
+
+  if (run === "login") {
+    const querySnapshot = await collection
+      .where("run", "==", "login")
+      .orderBy("createAt", "desc")
+      .get()
+      .catch(() => {});
+
+    if (querySnapshot) {
+      const doc = querySnapshot.docs[0];
+      const lastLog = doc?.data()?.createAt;
+
+      if (lastLog && lastLog + 60 * 60 * 1 * 1000 > timestamp) {
+        return;
+      }
+    }
+  }
+
+  await collection
+    .add({
+      ...{
+        run: run,
+        code: code,
+        createAt: timestamp,
+      },
+      ...(index ? { index: index } : {}),
+      ...(uid ? { uid: uid } : {}),
+      ...(objectID ? { objectID: objectID } : {}),
+      ...(message ? { message: message } : {}),
+    })
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "データの追加に失敗しました",
+        "firebase"
+      );
+    });
+
+  return;
+};
 
 export type Time = (t: "day" | "week" | "month") => {
   start: number;

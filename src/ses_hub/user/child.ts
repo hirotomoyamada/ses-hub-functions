@@ -29,7 +29,10 @@ export const createChild = functions
     await createAlgolia(context, parent);
 
     await log({
-      doc: data,
+      auth: {
+        collection: "companys",
+        doc: data,
+      },
       run: "createChild",
       code: 200,
       uid: context.auth?.uid,

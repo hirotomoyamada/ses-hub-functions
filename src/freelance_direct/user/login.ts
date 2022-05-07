@@ -32,7 +32,7 @@ export const login = functions
     const demo = checkDemo(context);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "login",
       code: 200,
     });

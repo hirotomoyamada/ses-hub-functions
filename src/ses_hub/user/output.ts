@@ -20,7 +20,7 @@ export const addOutput = functions
     await updateFirestore({ context, data });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "addOutput",
       index: data.index,
       code: 200,
@@ -39,7 +39,7 @@ export const removeOutput = functions
     await updateFirestore({ context, data });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "removeOutput",
       index: data.index,
       code: 200,

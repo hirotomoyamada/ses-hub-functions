@@ -80,7 +80,7 @@ export const applicationType = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "applicationType",
       code: 200,
     });

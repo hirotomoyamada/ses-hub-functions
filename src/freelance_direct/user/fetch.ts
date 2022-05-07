@@ -20,7 +20,7 @@ export const fetchUser = functions
     !demo && (await addHistory(context, data));
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "fetchUser",
       code: 200,
       uid: data,

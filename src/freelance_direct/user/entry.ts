@@ -64,7 +64,7 @@ export const addEntry = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "addEntry",
       index: "matters",
       code: 200,

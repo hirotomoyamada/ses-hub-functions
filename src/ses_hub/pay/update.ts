@@ -54,7 +54,7 @@ export const updatePlan = functions
     remove && deletePlan(context);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "updatePlan",
       code: 200,
     });
@@ -95,7 +95,7 @@ export const updateOption = functions
     remove && (await deleteOption(context));
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "updateOption",
       code: 200,
     });

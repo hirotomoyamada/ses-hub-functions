@@ -33,7 +33,7 @@ export const fetchUser = functions
     if (user && "uid" in user) await addHistory(context, data);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "fetchUser",
       index: data.index,
       code: 200,

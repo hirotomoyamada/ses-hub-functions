@@ -30,7 +30,7 @@ export const fetchPost = functions
     if (!demo) await addHistory(context, post);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "fetchPost",
       index: "matters",
       code: 200,
@@ -52,7 +52,7 @@ export const fetchPosts = functions
     await fetchFirestore.search(data.index, posts);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "homePosts",
       index: data.index,
       code: 200,
@@ -281,7 +281,7 @@ const fetchFirestore = {
             break;
           }
 
-          case "matters": {
+          case "companys": {
             if (!("profile" in post)) return;
 
             if (

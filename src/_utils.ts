@@ -13,17 +13,18 @@ import * as Firestore from "./types/firestore";
 import { randomBytes } from "crypto";
 
 export type Log = ({
-  doc,
   index,
   run,
   code,
-  objectID,
   uid,
+  objectID,
   message,
-}: { doc?: string } & Omit<Firestore.Log, "createAt">) => Promise<void>;
+}: {
+  auth: { collection: "companys" | "persons"; doc?: string };
+} & Omit<Firestore.Log, "createAt">) => Promise<void>;
 
 export const log: Log = async ({
-  doc,
+  auth,
   index,
   run,
   code,
@@ -31,13 +32,13 @@ export const log: Log = async ({
   uid,
   message,
 }) => {
-  if (!doc) return;
+  if (!auth.doc) return;
 
   const timestamp = Date.now();
 
   const collection = db
-    .collection("companys")
-    .doc(doc)
+    .collection(auth.collection)
+    .doc(auth.doc)
     .collection("log")
     .withConverter(converter<Firestore.Log>());
 

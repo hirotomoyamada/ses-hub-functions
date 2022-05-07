@@ -56,7 +56,7 @@ export const createProfile = functions
     await createAlgolia(context, data);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "createProfile",
       code: 200,
       uid: context.auth?.uid,
@@ -78,7 +78,7 @@ export const editProfile = functions
       await editAlgolia(context, data);
 
       await log({
-        doc: context.auth?.uid,
+        auth: { collection: "companys", doc: context.auth?.uid },
         run: "editProfile",
         code: 200,
         uid: data.uid,

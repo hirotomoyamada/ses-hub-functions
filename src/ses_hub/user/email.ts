@@ -22,7 +22,7 @@ export const changeEmail = functions
     await editStripe(context, data);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "changeEmail",
       code: 200,
       uid: data.uid || context.auth?.uid,

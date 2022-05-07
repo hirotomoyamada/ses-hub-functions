@@ -15,7 +15,7 @@ export const changeEmail = functions
     await editAlgolia(context, data);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "changeEmail",
       code: 200,
     });

@@ -22,7 +22,7 @@ export const addProvider = functions
     data.email && addStripe(context, data);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "addProvider",
       code: 200,
     });

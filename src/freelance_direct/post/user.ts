@@ -23,7 +23,7 @@ export const userPosts = functions
     const { posts, hit } = await fetchAlgolia(data);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "homePosts",
       index: "matters",
       code: 200,

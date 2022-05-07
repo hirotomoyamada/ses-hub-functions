@@ -48,7 +48,7 @@ export const disableNotice = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "disableNotice",
       code: 200,
     });

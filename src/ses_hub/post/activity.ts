@@ -144,7 +144,7 @@ export const fetchPostActivity = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "fetchPostActivity",
       index: data.index,
       code: 200,

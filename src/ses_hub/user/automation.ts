@@ -43,7 +43,10 @@ export const createUser = functions
     await send(userMail);
 
     await log({
-      doc: snapshot.id,
+      auth: {
+        collection: "companys",
+        doc: snapshot.id,
+      },
       run: "createUser",
       code: 200,
     });
@@ -77,7 +80,10 @@ export const deleteUser = functions
     }
 
     await log({
-      doc: snapshot.uid,
+      auth: {
+        collection: "companys",
+        doc: snapshot.uid,
+      },
       run: "deleteUser",
       code: 200,
     });
@@ -110,7 +116,10 @@ export const enableUser = functions
       await send(userMail);
 
       await log({
-        doc: change.before.id,
+        auth: {
+          collection: "companys",
+          doc: change.before.id,
+        },
         run: "enableUser",
         code: 200,
       });
@@ -138,7 +147,10 @@ export const declineUser = functions
       await send(userMail);
 
       await log({
-        doc: change.before.id,
+        auth: {
+          collection: "companys",
+          doc: change.before.id,
+        },
         run: "declineUser",
         code: 200,
       });
@@ -191,7 +203,10 @@ export const disableUser = functions
       }
 
       await log({
-        doc: change.before.id,
+        auth: {
+          collection: "companys",
+          doc: change.before.id,
+        },
         run: "disableUser",
         code: 200,
       });
@@ -219,7 +234,10 @@ export const goBackUser = functions
       await send(userMail);
 
       await log({
-        doc: change.before.id,
+        auth: {
+          collection: "companys",
+          doc: change.before.id,
+        },
         run: "goBackUser",
         code: 200,
       });

@@ -15,7 +15,7 @@ export const addLike = functions
     await updateFirestore({ context, data });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "addLike",
       code: 200,
       objectID: data.objectID,
@@ -33,7 +33,7 @@ export const removeLike = functions
     await updateFirestore({ context, data });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "removeLike",
       code: 200,
       objectID: data.objectID,

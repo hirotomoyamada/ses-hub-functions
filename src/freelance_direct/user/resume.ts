@@ -58,7 +58,7 @@ export const uploadResume = functions
       const url = await uploadFile(data.file, doc, context.auth.uid);
 
       await log({
-        doc: context.auth?.uid,
+        auth: { collection: "persons", doc: context.auth?.uid },
         run: "uploadResume",
         code: 200,
       });
@@ -100,7 +100,7 @@ export const deleteResume = functions
       await deleteFile(doc);
 
       await log({
-        doc: context.auth?.uid,
+        auth: { collection: "persons", doc: context.auth?.uid },
         run: "deleteResume",
         code: 200,
       });

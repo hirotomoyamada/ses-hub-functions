@@ -43,7 +43,7 @@ export const createPlan = functions
     await updateAlgolia(context, children);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "createPlan",
       code: 200,
     });
@@ -72,7 +72,7 @@ export const createOption = functions
     await updateAlgolia(context, children, type);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "createOption",
       code: 200,
     });

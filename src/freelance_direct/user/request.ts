@@ -22,7 +22,7 @@ export const enableRequest = functions
     await sendMail(context, user, selectUser);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "enableRequest",
       code: 200,
       uid: data,
@@ -40,7 +40,7 @@ export const disableRequest = functions
     await updateFirestore({ context, data, status: "disable" });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "disableRequest",
       code: 200,
       uid: data,

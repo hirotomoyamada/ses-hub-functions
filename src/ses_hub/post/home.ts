@@ -30,7 +30,7 @@ export const homePosts = functions
       await fetchFiretore(context, data.index, posts, demo, status);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "homePosts",
       index: data.index,
       code: 200,

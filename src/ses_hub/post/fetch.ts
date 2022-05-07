@@ -42,7 +42,7 @@ export const fetchPost = functions
     await addHistory(context, data, post);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "fetchPost",
       index: data.index,
       code: 200,
@@ -67,7 +67,7 @@ export const fetchPosts = functions
       await fetchFirestore.search(context, data.index, posts, status);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "fetchPosts",
       index: data.index,
       code: 200,

@@ -65,7 +65,7 @@ export const updateSetting = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "updateSetting",
       code: 200,
     });

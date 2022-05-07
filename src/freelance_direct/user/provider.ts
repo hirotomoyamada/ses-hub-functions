@@ -20,7 +20,7 @@ export const addProvider = functions
     data.email && addAlgolia(context, data);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "persons", doc: context.auth?.uid },
       run: "addProvider",
       code: 200,
     });

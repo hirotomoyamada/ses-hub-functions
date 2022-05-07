@@ -30,7 +30,7 @@ export const fetchProducts = functions
     await verificationActive(products, context);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "fetchProducts",
       code: 200,
     });

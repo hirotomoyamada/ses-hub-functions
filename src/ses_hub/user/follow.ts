@@ -17,7 +17,7 @@ export const addFollow = functions
     await updateFirestore({ context, data });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "addFollow",
       index: "companys",
       code: 200,
@@ -40,7 +40,7 @@ export const removeFollow = functions
     await updateFirestore({ context, data });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "removeFollow",
       index: "companys",
       code: 200,

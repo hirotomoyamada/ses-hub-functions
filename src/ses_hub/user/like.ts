@@ -24,7 +24,7 @@ export const addLike = functions
 
     await log({
       ...{
-        doc: context.auth?.uid,
+        auth: { collection: "companys", doc: context.auth?.uid },
         run: "addLike",
         index: data.index,
         code: 200,
@@ -46,7 +46,7 @@ export const removeLike = functions
 
     await log({
       ...{
-        doc: context.auth?.uid,
+        auth: { collection: "companys", doc: context.auth?.uid },
         run: "removeLike",
         index: data.index,
         code: 200,

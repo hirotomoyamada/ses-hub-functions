@@ -69,7 +69,7 @@ export const addEntry = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "addEntry",
       index: data.index,
       code: 200,

@@ -27,7 +27,7 @@ export const addRequest = functions
     await sendMail(user, selectUser, data.body);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "addRequest",
       index: "persons",
       code: 200,

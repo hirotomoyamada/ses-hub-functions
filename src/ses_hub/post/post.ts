@@ -33,7 +33,7 @@ export const createPost = functions
     await updateFirestore({ context, data, post });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "createPost",
       index: data.index,
       code: 200,
@@ -55,7 +55,7 @@ export const editPost = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "editPost",
       index: data.index,
       code: 200,
@@ -76,7 +76,7 @@ export const deletePost = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "deletePost",
       index: data.index,
       code: 200,
@@ -117,7 +117,7 @@ export const sendPost = functions
     }
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "sendPost",
       index: data.index,
       code: 200,

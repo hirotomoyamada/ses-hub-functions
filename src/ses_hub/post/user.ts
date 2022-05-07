@@ -31,7 +31,7 @@ export const userPosts = functions
     if (posts.length) await fetchFirestore(context, data.index, posts);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "userPosts",
       index: data.index,
       code: 200,

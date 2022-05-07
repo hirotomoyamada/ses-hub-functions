@@ -57,7 +57,7 @@ export const updateHome = functions
     });
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "updateHome",
       index: "companys",
       code: 200,

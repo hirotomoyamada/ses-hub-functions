@@ -17,7 +17,7 @@ export const enableAgree = functions
     await updateFiresotre(context);
 
     await log({
-      doc: context.auth?.uid,
+      auth: { collection: "companys", doc: context.auth?.uid },
       run: "enableAgree",
       code: 200,
     });
@@ -38,7 +38,7 @@ export const disableAgree = functions
       await updateData();
 
       await log({
-        doc: context.auth?.uid,
+        auth: { collection: "companys", doc: context.auth?.uid },
         run: "disableAgree",
         code: 200,
       });

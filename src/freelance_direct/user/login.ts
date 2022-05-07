@@ -64,9 +64,9 @@ const fetchUser = async (
     .doc(context.auth.uid)
     .get();
 
-  await updateAlgolia(context, timestamp);
-
   if (doc.exists) {
+    await updateAlgolia(context, timestamp);
+
     if (doc.data()?.provider.length !== data.providerData.length) {
       await updateProvider(doc, data, timestamp);
       await loginAuthenticated({ doc: doc });
@@ -116,7 +116,7 @@ const fetchCollections = async (
 
   for (const key of Object.keys(collections)) {
     const querySnapshot = await db
-      .collection("companys")
+      .collection("persons")
       .doc(context.auth.uid)
       .collection(key === "home" ? "follows" : key)
       .where("active", "==", true)

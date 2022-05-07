@@ -80,7 +80,7 @@ const fetchFirestore = async (
     ) {
       throw new functions.https.HttpsError(
         "cancelled",
-        "オプション未加入のユーザーのため、処理中止",
+        "ユーザーの取得に失敗しました",
         "firebase"
       );
     } else {

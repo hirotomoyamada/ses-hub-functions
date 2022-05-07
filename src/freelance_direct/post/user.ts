@@ -50,7 +50,7 @@ const checkUser = async (uid: Data["uid"]): Promise<void> => {
   ) {
     throw new functions.https.HttpsError(
       "cancelled",
-      "オプション未加入のユーザーのため、処理中止",
+      "投稿の取得に失敗しました",
       "firebase"
     );
   }

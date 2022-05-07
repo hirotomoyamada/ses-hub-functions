@@ -15,8 +15,6 @@ type Data = {
   page?: number;
 };
 
-type Result = Algolia.Matter | Algolia.CompanyItem;
-
 export const fetchPost = functions
   .region(location)
   .runWith(runtime)
@@ -97,7 +95,7 @@ const fetchAlgolia = {
     data: Data,
     demo: boolean
   ): Promise<{
-    posts: Result[];
+    posts: Algolia.Matter[] | Algolia.CompanyItem[];
     hit: Algolia.Hit;
   }> => {
     const index = algolia.initIndex(
@@ -120,7 +118,7 @@ const fetchAlgolia = {
             page: hit.currentPage,
           };
 
-        case "matters":
+        case "companys":
           return {
             filters: "status:enable AND plan:enable AND freelanceDirect:enable",
             page: hit.currentPage,
@@ -131,7 +129,7 @@ const fetchAlgolia = {
       }
     })();
 
-    const result = await index
+    const { hits, nbHits, nbPages } = await index
       .search<Algolia.Matter | Algolia.Company>(value, options)
       .catch(() => {
         throw new functions.https.HttpsError(
@@ -141,26 +139,33 @@ const fetchAlgolia = {
         );
       });
 
-    hit.posts = result?.nbHits;
-    hit.pages = result?.nbPages;
+    hit.posts = nbHits;
+    hit.pages = nbPages;
 
-    const posts = result?.hits
-      ?.map((hit) => {
-        switch (data.index) {
-          case "matters": {
-            return fetch.matter(<Algolia.Matter>hit);
-          }
-
-          case "companys": {
-            if ((hit as Algolia.Company).person)
-              return fetch.company.item(<Algolia.Company>hit, demo);
-          }
-
-          default:
-            return;
+    const posts = (() => {
+      switch (data.index) {
+        case "matters": {
+          return hits?.map((hit) => fetch.matter(<Algolia.Matter>hit));
         }
-      })
-      ?.filter((post): post is Result => post !== undefined);
+
+        case "companys":
+          return hits
+            ?.map((hit) => {
+              if ((hit as Algolia.Company).person)
+                return fetch.company.item(<Algolia.Company>hit, demo);
+
+              return;
+            })
+            ?.filter((post): post is Algolia.CompanyItem => post !== undefined);
+
+        default:
+          throw new functions.https.HttpsError(
+            "not-found",
+            "投稿の取得に失敗しました",
+            "algolia"
+          );
+      }
+    })();
 
     return { posts, hit };
   },
@@ -245,8 +250,11 @@ const fetchFirestore = {
     return;
   },
 
-  search: async (index: Data["index"], posts: Result[]) => {
-    for (const post of posts) {
+  search: async (
+    index: Data["index"],
+    posts: Algolia.Matter[] | (Algolia.CompanyItem | undefined)[]
+  ): Promise<void> => {
+    for (const [i, post] of posts.entries()) {
       if (!post) continue;
 
       const doc = await db
@@ -285,20 +293,13 @@ const fetchFirestore = {
             if (!("profile" in post)) return;
 
             if (
-              data?.payment.status === "canceled" ||
-              !data?.payment.option?.freelanceDirect
+              data?.payment.status !== "canceled" &&
+              data?.payment.option?.freelanceDirect
             ) {
-              post.icon = "none";
-              post.status = "none";
-              post.type = "individual";
-              post.profile = {
-                name: undefined,
-                person: "存在しないユーザー",
-                body: undefined,
-              };
-            } else {
               post.icon = data?.icon;
               post.type = data?.type;
+            } else {
+              posts[i] = undefined;
             }
 
             break;

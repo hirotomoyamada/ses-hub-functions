@@ -9,6 +9,8 @@ import * as Auth from "../types/auth";
 import * as Algolia from "../types/algolia";
 
 type Arg = {
+  post: { index: "matters" | "persons"; objectID: string };
+
   posts: {
     index: "matters" | "resources" | "companys" | "persons";
     target: string | undefined;
@@ -21,6 +23,8 @@ type Arg = {
   user: { index: "companys" | "persons"; uid: string };
 };
 
+type Post = Algolia.Matter | Algolia.Resource;
+
 type Posts =
   | Algolia.Matter
   | Algolia.Resource
@@ -28,6 +32,16 @@ type Posts =
   | Algolia.Person;
 
 type Results = Algolia.Matter | Algolia.Resource | Auth.Company | Auth.Person;
+
+export const fetchPost = functions
+  .region(location)
+  .runWith(runtime)
+  .https.onCall(async (arg: Arg["post"], context) => {
+    await userAuthenticated(context);
+    const { post } = await fetchAlgolia.post(arg);
+
+    return { index: arg.index, post };
+  });
 
 export const fetchPosts = functions
   .region(location)
@@ -40,7 +54,7 @@ export const fetchPosts = functions
 
       return { index: arg.index, posts: posts };
     } else {
-      const { posts, hit } = await fetchAlgolia(arg);
+      const { posts, hit } = await fetchAlgolia.posts(arg);
 
       posts.length && (await fetchFirestore(arg, posts));
 
@@ -238,53 +252,76 @@ const fetchFirestore = async (
   return;
 };
 
-const fetchAlgolia = async (
-  arg: Arg["posts"]
-): Promise<{
-  posts: Results[];
-  hit: Algolia.Hit;
-}> => {
-  const index = algolia.initIndex(
-    !arg.target ||
-      ((arg.index === "matters" || arg.index === "resources") &&
-        arg.target === "createAt") ||
-      ((arg.index === "companys" || arg.index === "persons") &&
-        arg.target === "lastLogin")
-      ? arg.index
-      : `${arg.index}_${arg.target}_${arg.type}`
-  );
+const fetchAlgolia = {
+  post: async (
+    arg: Arg["post"]
+  ): Promise<{ post: Algolia.Matter | Algolia.Resource }> => {
+    const index = algolia.initIndex(arg.index);
 
-  const hit: Algolia.Hit = {
-    currentPage: arg.page ? arg.page : 0,
-  };
-
-  const result = await index
-    .search<Posts>(arg.value ? arg.value : "", {
-      page: hit.currentPage,
-      filters: arg.filter === "all" ? "" : arg.filter,
-    })
-    .catch(() => {
+    const hit = await index.getObject<Post>(arg.objectID).catch(() => {
       throw new functions.https.HttpsError(
         "not-found",
         "投稿の取得に失敗しました",
-        "algolia"
+        "notFound"
       );
     });
 
-  hit.posts = result?.nbHits;
-  hit.pages = result?.nbPages;
-
-  const posts = result?.hits
-    ?.map((hit) =>
+    const post =
       arg.index === "matters"
         ? fetch.matter(<Algolia.Matter>hit)
-        : arg.index === "resources"
-        ? fetch.resource(<Algolia.Resource>hit)
-        : arg.index === "companys"
-        ? fetch.company.item(<Algolia.Company>hit)
-        : arg.index === "persons" && fetch.person.item(<Algolia.Person>hit)
-    )
-    ?.filter((post) => post) as Results[];
+        : fetch.resource(<Algolia.Resource>hit);
 
-  return { posts, hit };
+    return { post };
+  },
+
+  posts: async (
+    arg: Arg["posts"]
+  ): Promise<{
+    posts: Results[];
+    hit: Algolia.Hit;
+  }> => {
+    const index = algolia.initIndex(
+      !arg.target ||
+        ((arg.index === "matters" || arg.index === "resources") &&
+          arg.target === "createAt") ||
+        ((arg.index === "companys" || arg.index === "persons") &&
+          arg.target === "lastLogin")
+        ? arg.index
+        : `${arg.index}_${arg.target}_${arg.type}`
+    );
+
+    const hit: Algolia.Hit = {
+      currentPage: arg.page ? arg.page : 0,
+    };
+
+    const result = await index
+      .search<Posts>(arg.value ? arg.value : "", {
+        page: hit.currentPage,
+        filters: arg.filter === "all" ? "" : arg.filter,
+      })
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "not-found",
+          "投稿の取得に失敗しました",
+          "algolia"
+        );
+      });
+
+    hit.posts = result?.nbHits;
+    hit.pages = result?.nbPages;
+
+    const posts = result?.hits
+      ?.map((hit) =>
+        arg.index === "matters"
+          ? fetch.matter(<Algolia.Matter>hit)
+          : arg.index === "resources"
+          ? fetch.resource(<Algolia.Resource>hit)
+          : arg.index === "companys"
+          ? fetch.company.item(<Algolia.Company>hit)
+          : arg.index === "persons" && fetch.person.item(<Algolia.Person>hit)
+      )
+      ?.filter((post) => post) as Results[];
+
+    return { posts, hit };
+  },
 };

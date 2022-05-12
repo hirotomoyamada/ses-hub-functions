@@ -16,7 +16,7 @@ type Arg = {
     | "enable"
     | "hold"
     | "disable";
-  user: Auth.Company | Auth.Person;
+  objectIDs: string[];
   type:
     | "children"
     | "follows"
@@ -117,54 +117,17 @@ const fetchAlgolia = async (
     arg.type !== "requests" ? arg.index : "companys"
   );
 
-  const objectIDs =
-    "posts" in arg.user
-      ? arg.type === "children"
-        ? arg.user.payment?.children
-        : arg.type === "follows"
-        ? arg.user[arg.type]
-        : (arg.type === "likes" || arg.type === "entries") &&
-          (arg.index === "matters" ||
-            arg.index === "resources" ||
-            arg.index === "persons")
-        ? arg.user[arg.type]?.[arg.index]
-        : (arg.type === "posts" || arg.type === "outputs") &&
-          (arg.index === "matters" || arg.index === "resources")
-        ? arg.user[arg.type]?.[arg.index]
-        : undefined
-      : "requests" in arg.user
-      ? arg.type === "follows" ||
-        arg.type === "likes" ||
-        arg.type === "entries" ||
-        arg.type === "histories"
-        ? arg.user[arg.type]
-        : arg.type === "requests" &&
-          (arg.index === "enable" ||
-            arg.index === "hold" ||
-            arg.index === "disable")
-        ? arg.user[arg.type]?.[arg.index]
-        : undefined
-      : undefined;
-
-  if (!objectIDs) {
-    throw new functions.https.HttpsError(
-      "not-found",
-      "投稿一覧の取得に失敗しました",
-      "objectID"
-    );
-  }
-
   const hitsPerPage = 50;
 
   const hit: Algolia.Hit = {
-    posts: objectIDs.length,
-    pages: Math.ceil(objectIDs.length / 50),
+    posts: arg.objectIDs.length,
+    pages: Math.ceil(arg.objectIDs.length / 50),
     currentPage: arg.page ? arg.page : 0,
   };
 
   const { results } = await index
     .getObjects<Posts>(
-      objectIDs.slice(
+      arg.objectIDs.slice(
         hit.currentPage * hitsPerPage,
         hitsPerPage * (hit.currentPage + 1)
       )

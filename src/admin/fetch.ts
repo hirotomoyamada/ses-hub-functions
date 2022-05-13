@@ -397,6 +397,7 @@ const fetchAlgolia = {
     arg: Arg["posts"]
   ): Promise<{
     posts: (Algolia.Matter | Algolia.Resource | Auth.Company | Auth.Person)[];
+
     hit: Algolia.Hit;
   }> => {
     const index = algolia.initIndex(

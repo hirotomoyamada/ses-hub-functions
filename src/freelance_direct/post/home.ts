@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
-import { log } from "../../_utils";
+import { dummy, log } from "../../_utils";
 
 type Data = { index: "matters" | "companys"; follows: string[]; page?: number };
 
@@ -20,7 +20,7 @@ export const homePosts = functions
 
     const { posts, hit } = await fetchAlgolia(context, data, demo);
 
-    posts.length && (await fetchFirestore(data.index, posts, demo));
+    posts.length && (await fetchFirestore(context, data.index, posts));
 
     await log({
       auth: { collection: "persons", doc: context.auth?.uid },
@@ -123,10 +123,12 @@ const fetchAlgolia = async (
 };
 
 const fetchFirestore = async (
+  context: functions.https.CallableContext,
   index: Data["index"],
-  posts: Posts[],
-  demo: boolean
+  posts: Posts[]
 ): Promise<void> => {
+  const demo = checkDemo(context);
+
   for (const post of posts) {
     if (!post) continue;
 
@@ -149,6 +151,10 @@ const fetchFirestore = async (
       switch (index) {
         case "matters": {
           if (!("objectID" in post)) return;
+
+          const { likes } = await fetchActivity(context, index, post);
+
+          post.likes = likes;
 
           if (
             data?.payment.status === "canceled" ||
@@ -187,6 +193,36 @@ const fetchFirestore = async (
       }
     }
   }
+};
+
+const fetchActivity = async (
+  context: functions.https.CallableContext,
+  index: "matters" | "resources",
+  post: Algolia.Matter | Algolia.Resource
+): Promise<{ likes: number }> => {
+  const demo = checkDemo(context);
+
+  type Collections = { likes: number };
+
+  const collections: Collections = {
+    likes: !demo ? 0 : dummy.num(99, 999),
+  };
+
+  if (!demo)
+    for (const collection of Object.keys(collections)) {
+      const { docs } = await db
+        .collectionGroup(collection)
+        .withConverter(converter<Firestore.Post>())
+        .where("index", "==", index)
+        .where("objectID", "==", post.objectID)
+        .where("active", "==", true)
+        .orderBy("createAt", "desc")
+        .get();
+
+      collections[collection as keyof Collections] = docs.length;
+    }
+
+  return { ...collections };
 };
 
 const checkDemo = (context: functions.https.CallableContext): boolean =>

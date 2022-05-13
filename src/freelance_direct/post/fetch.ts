@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
-import { log } from "../../_utils";
+import { dummy, log } from "../../_utils";
 
 type Data = {
   index: "matters" | "companys";
@@ -22,8 +22,8 @@ export const fetchPost = functions
     await userAuthenticated(context);
     const demo = checkDemo(context);
 
-    const post = await fetchAlgolia.post(data, demo);
-    const bests = await fetchAlgolia.bests(post);
+    const post = await fetchAlgolia.post(context, data);
+    const bests = await fetchAlgolia.bests(context, post);
 
     if (!demo) await addHistory(context, post);
 
@@ -47,7 +47,7 @@ export const fetchPosts = functions
 
     const { posts, hit } = await fetchAlgolia.search(data, demo);
 
-    await fetchFirestore.search(data.index, posts);
+    await fetchFirestore.search(context, data.index, posts);
 
     await log({
       auth: { collection: "persons", doc: context.auth?.uid },
@@ -65,7 +65,10 @@ export const fetchPosts = functions
   });
 
 const fetchAlgolia = {
-  post: async (data: string, demo: boolean): Promise<Algolia.Matter> => {
+  post: async (
+    context: functions.https.CallableContext,
+    data: string
+  ): Promise<Algolia.Matter> => {
     const index = algolia.initIndex("matters");
 
     const hit = await index.getObject<Algolia.Matter>(data).catch(() => {
@@ -86,7 +89,7 @@ const fetchAlgolia = {
       );
     }
 
-    await fetchFirestore.post({ demo, post });
+    await fetchFirestore.post({ context, post });
 
     return post;
   },
@@ -170,7 +173,10 @@ const fetchAlgolia = {
     return { posts, hit };
   },
 
-  bests: async (post: Algolia.Matter): Promise<Algolia.Matter[] | void> => {
+  bests: async (
+    context: functions.https.CallableContext,
+    post: Algolia.Matter
+  ): Promise<Algolia.Matter[] | void> => {
     const index = algolia.initIndex("matters");
 
     const options: (RequestOptions & SearchOptions) | undefined = {
@@ -196,7 +202,7 @@ const fetchAlgolia = {
 
     if (bests.length) {
       for (const post of bests) {
-        post && (await fetchFirestore.post({ post }));
+        post && (await fetchFirestore.post({ context, post }));
       }
 
       return bests;
@@ -208,12 +214,14 @@ const fetchAlgolia = {
 
 const fetchFirestore = {
   post: async ({
-    demo,
+    context,
     post,
   }: {
-    demo?: boolean;
+    context: functions.https.CallableContext;
     post: Algolia.Matter;
   }): Promise<void> => {
+    const demo = checkDemo(context);
+
     const doc = await db
       .collection("companys")
       .withConverter(converter<Firestore.Company>())
@@ -231,6 +239,10 @@ const fetchFirestore = {
       if (!post) return;
 
       const data = doc.data();
+
+      const { likes } = await fetchActivity(context, "matters", post);
+
+      post.likes = likes;
 
       if (
         data?.payment.status === "canceled" ||
@@ -251,6 +263,7 @@ const fetchFirestore = {
   },
 
   search: async (
+    context: functions.https.CallableContext,
     index: Data["index"],
     posts: Algolia.Matter[] | (Algolia.CompanyItem | undefined)[]
   ): Promise<void> => {
@@ -275,6 +288,10 @@ const fetchFirestore = {
         switch (index) {
           case "matters": {
             if (!("objectID" in post)) return;
+
+            const { likes } = await fetchActivity(context, index, post);
+
+            post.likes = likes;
 
             if (
               data?.payment.status === "canceled" ||
@@ -313,6 +330,36 @@ const fetchFirestore = {
 
     return;
   },
+};
+
+const fetchActivity = async (
+  context: functions.https.CallableContext,
+  index: "matters" | "resources",
+  post: Algolia.Matter | Algolia.Resource
+): Promise<{ likes: number }> => {
+  const demo = checkDemo(context);
+
+  type Collections = { likes: number };
+
+  const collections: Collections = {
+    likes: !demo ? 0 : dummy.num(99, 999),
+  };
+
+  if (!demo)
+    for (const collection of Object.keys(collections)) {
+      const { docs } = await db
+        .collectionGroup(collection)
+        .withConverter(converter<Firestore.Post>())
+        .where("index", "==", index)
+        .where("objectID", "==", post.objectID)
+        .where("active", "==", true)
+        .orderBy("createAt", "desc")
+        .get();
+
+      collections[collection as keyof Collections] = docs.length;
+    }
+
+  return { ...collections };
 };
 
 const addHistory = async (

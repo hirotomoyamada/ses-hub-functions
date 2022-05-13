@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
-import { log } from "../../_utils";
+import { dummy, log } from "../../_utils";
 
 type Data = {
   uid: string;
@@ -20,7 +20,7 @@ export const userPosts = functions
 
     await checkUser(data.uid);
 
-    const { posts, hit } = await fetchAlgolia(data);
+    const { posts, hit } = await fetchAlgolia(context, data);
 
     await log({
       auth: { collection: "persons", doc: context.auth?.uid },
@@ -57,6 +57,7 @@ const checkUser = async (uid: Data["uid"]): Promise<void> => {
 };
 
 const fetchAlgolia = async (
+  context: functions.https.CallableContext,
   data: Data
 ): Promise<{
   posts: Algolia.Matter[];
@@ -87,8 +88,47 @@ const fetchAlgolia = async (
   hit.pages = result?.nbPages;
 
   const posts = result?.hits
-    .map((hit) => hit && fetch.matter(hit))
-    ?.filter((post) => post);
+    .map((hit) => (hit ? fetch.matter(hit) : undefined))
+    ?.filter((post): post is Algolia.Matter => post !== undefined);
+
+  for (const post of posts) {
+    const { likes } = await fetchActivity(context, "matters", post);
+
+    post.likes = likes;
+  }
 
   return { posts, hit };
 };
+
+const fetchActivity = async (
+  context: functions.https.CallableContext,
+  index: "matters" | "resources",
+  post: Algolia.Matter | Algolia.Resource
+): Promise<{ likes: number }> => {
+  const demo = checkDemo(context);
+
+  type Collections = { likes: number };
+
+  const collections: Collections = {
+    likes: !demo ? 0 : dummy.num(99, 999),
+  };
+
+  if (!demo)
+    for (const collection of Object.keys(collections)) {
+      const { docs } = await db
+        .collectionGroup(collection)
+        .withConverter(converter<Firestore.Post>())
+        .where("index", "==", index)
+        .where("objectID", "==", post.objectID)
+        .where("active", "==", true)
+        .orderBy("createAt", "desc")
+        .get();
+
+      collections[collection as keyof Collections] = docs.length;
+    }
+
+  return { ...collections };
+};
+
+const checkDemo = (context: functions.https.CallableContext): boolean =>
+  context.auth?.uid === functions.config().demo.freelance_direct.uid;

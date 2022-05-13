@@ -5,7 +5,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 import * as fetch from "./_fetch";
 import * as Algolia from "../../types/algolia";
 import * as Firestore from "../../types/firestore";
-import { log } from "../../_utils";
+import { dummy, log } from "../../_utils";
 
 type Data = {
   index: "matters" | "companys" | "enable" | "hold" | "disable";
@@ -27,7 +27,7 @@ export const extractPosts = functions
 
     const { posts, hit } = await fetchAlgolia(data, demo);
 
-    if (posts.length) await fetchFirestore(data, posts);
+    if (posts.length) await fetchFirestore(context, data.index, posts);
 
     await log({
       auth: { collection: "persons", doc: context.auth?.uid },
@@ -109,7 +109,11 @@ const fetchAlgolia = async (
   return { posts, hit };
 };
 
-const fetchFirestore = async (data: Data, posts: Results[]): Promise<void> => {
+const fetchFirestore = async (
+  context: functions.https.CallableContext,
+  index: Data["index"],
+  posts: Results[]
+): Promise<void> => {
   for (const post of posts) {
     if (!post) continue;
 
@@ -127,9 +131,13 @@ const fetchFirestore = async (data: Data, posts: Results[]): Promise<void> => {
       });
 
     if (doc.exists) {
-      switch (data.index) {
+      switch (index) {
         case "matters": {
           if (!("objectID" in post)) return;
+
+          const { likes } = await fetchActivity(context, index, post);
+
+          post.likes = likes;
 
           const data = doc.data();
 
@@ -175,6 +183,36 @@ const fetchFirestore = async (data: Data, posts: Results[]): Promise<void> => {
       }
     }
   }
+};
+
+const fetchActivity = async (
+  context: functions.https.CallableContext,
+  index: "matters" | "resources",
+  post: Algolia.Matter | Algolia.Resource
+): Promise<{ likes: number }> => {
+  const demo = checkDemo(context);
+
+  type Collections = { likes: number };
+
+  const collections: Collections = {
+    likes: !demo ? 0 : dummy.num(99, 999),
+  };
+
+  if (!demo)
+    for (const collection of Object.keys(collections)) {
+      const { docs } = await db
+        .collectionGroup(collection)
+        .withConverter(converter<Firestore.Post>())
+        .where("index", "==", index)
+        .where("objectID", "==", post.objectID)
+        .where("active", "==", true)
+        .orderBy("createAt", "desc")
+        .get();
+
+      collections[collection as keyof Collections] = docs.length;
+    }
+
+  return { ...collections };
 };
 
 const checkDemo = (context: functions.https.CallableContext): boolean =>

@@ -84,7 +84,7 @@ export const fetchUserActivity = functions
         const activity: Activity = {
           active: true,
           key: collection,
-          label: label,
+          label,
           self: undefined,
           others: undefined,
           log: [],
@@ -175,14 +175,14 @@ const fetchLog = async (
           collection,
           sort: "self",
           uid: data.uid,
-          time: time,
+          time,
         });
 
         const self = querySnapshot ? querySnapshot.docs.length : 0;
 
         const log: Activity["log"][number] = {
-          label: label,
-          self: self,
+          label,
+          self,
           others: undefined,
         };
 
@@ -197,13 +197,13 @@ const fetchLog = async (
             collection,
             sort: "self",
             uid: data.uid,
-            time: time,
+            time,
           }),
           others: await fetchCollectionGroup({
             collection,
             sort: "others",
             uid: data.uid,
-            time: time,
+            time,
           }),
         };
 
@@ -214,8 +214,8 @@ const fetchLog = async (
 
         const log: Activity["log"][number] = {
           label: label,
-          self: self,
-          others: others,
+          self,
+          others,
         };
 
         activity.log.push(log);
@@ -277,8 +277,8 @@ const fetchTotal = async (
           )?.length;
 
         const log: Activity["log"][number] = {
-          label: label,
-          self: self,
+          label,
+          self,
           others: undefined,
         };
 

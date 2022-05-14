@@ -251,11 +251,19 @@ const updateFirestore = async ({
 
   const timestamp = Date.now();
 
-  const collection = db
-    .collection("companys")
-    .doc(context.auth.uid)
+  const ref = db.collection("companys").doc(context.auth.uid);
+
+  const collection = ref
     .collection("posts")
     .withConverter(converter<Firestore.Post>());
+
+  const doc = await ref.get().catch(() => {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "データの取得に失敗しました",
+      "firebase"
+    );
+  });
 
   const querySnapshot = await collection
     .where("index", "==", data.index)
@@ -269,10 +277,10 @@ const updateFirestore = async ({
       );
     });
 
-  const doc = querySnapshot.docs[0];
+  const querySnapshotDoc = querySnapshot.docs[0];
 
-  if (doc) {
-    await doc.ref
+  if (querySnapshotDoc) {
+    await querySnapshotDoc.ref
       .set(
         edit
           ? { display: data.post.display, updateAt: timestamp }
@@ -297,11 +305,16 @@ const updateFirestore = async ({
       );
     }
 
+    const type = doc.data()?.type || null;
+    const payment = doc.data()?.payment.status || null;
+
     await collection
       .add(
         Object.assign({
           index: data.index,
           active: true,
+          type,
+          payment,
           ...post,
           updateAt: timestamp,
         })

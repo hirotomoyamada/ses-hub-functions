@@ -263,7 +263,7 @@ const fetchCollectionGroup = async ({
             .withConverter(converter<Firestore.Log>())
             .where("payment", "==", sort !== "person" ? sort : null)
             .where("code", "==", 200)
-            .where("run", "in", "login")
+            .where("run", "==", "login")
             .where(
               "createAt",
               ">=",

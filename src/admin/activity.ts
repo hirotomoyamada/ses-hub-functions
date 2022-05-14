@@ -140,6 +140,76 @@ const fetchLog = async (
         continue;
       }
 
+      case "login": {
+        const querySnapshot = {
+          active: await fetchCollectionGroup({
+            collection,
+            sort: "active",
+            time,
+          }),
+          trialing: await fetchCollectionGroup({
+            collection,
+            sort: "trialing",
+            time,
+          }),
+          canceled: await fetchCollectionGroup({
+            collection,
+            sort: "canceled",
+            time,
+          }),
+          person: await fetchCollectionGroup({
+            collection,
+            sort: "person",
+            time,
+          }),
+        };
+
+        const active = querySnapshot.active
+          ? querySnapshot.active.docs.filter(
+              (current, i, others) =>
+                others.findIndex(
+                  (other) => other.data().uid === current.data().uid
+                ) === i
+            ).length
+          : 0;
+        const trialing = querySnapshot.trialing
+          ? querySnapshot.trialing.docs.filter(
+              (current, i, others) =>
+                others.findIndex(
+                  (other) => other.data().uid === current.data().uid
+                ) === i
+            ).length
+          : 0;
+        const canceled = querySnapshot.canceled
+          ? querySnapshot.canceled.docs.filter(
+              (current, i, others) =>
+                others.findIndex(
+                  (other) => other.data().uid === current.data().uid
+                ) === i
+            ).length
+          : 0;
+        const person = querySnapshot.person
+          ? querySnapshot.person.docs.filter(
+              (current, i, others) =>
+                others.findIndex(
+                  (other) => other.data().uid === current.data().uid
+                ) === i
+            ).length
+          : 0;
+
+        const log: Activity["log"][number] = {
+          label,
+          active,
+          trialing,
+          canceled,
+          person,
+        };
+
+        activity.log.push(log);
+
+        continue;
+      }
+
       default: {
         const querySnapshot = {
           active: await fetchCollectionGroup({
@@ -215,7 +285,20 @@ const fetchTotal = async (
 
       if (!querySnapshot) return;
 
-      const count = querySnapshot.docs.length;
+      const count = (() => {
+        switch (collection) {
+          case "login":
+            return querySnapshot.docs.filter(
+              (current, i, others) =>
+                others.findIndex(
+                  (other) => other.data().uid === current.data().uid
+                ) === i
+            ).length;
+
+          default:
+            return querySnapshot.docs.length;
+        }
+      })();
 
       activity[sort] = count;
     })

@@ -1,0 +1,583 @@
+[debug] [2022-05-14T05:28:14.375Z] ----------------------------------------------------------------------
+[debug] [2022-05-14T05:28:14.376Z] Command:       /Users/hirotomoyamada/.nodebrew/node/v16.14.0/bin/node /Users/hirotomoyamada/.nodebrew/current/bin/firebase emulators:start --import=dir
+[debug] [2022-05-14T05:28:14.377Z] CLI Version:   10.9.2
+[debug] [2022-05-14T05:28:14.377Z] Platform:      darwin
+[debug] [2022-05-14T05:28:14.377Z] Node Version:  v16.14.0
+[debug] [2022-05-14T05:28:14.378Z] Time:          Sat May 14 2022 14:28:14 GMT+0900 (日本標準時)
+[debug] [2022-05-14T05:28:14.378Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2022-05-14T05:28:14.422Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2022-05-14T05:28:14.422Z] > authorizing via signed-in user (hirotomoyamada.biz@gmail.com)
+[debug] [2022-05-14T05:28:14.500Z] java version "1.8.0_321"
+
+[debug] [2022-05-14T05:28:14.501Z] Java(TM) SE Runtime Environment (build 1.8.0_321-b07)
+Java HotSpot(TM) 64-Bit Server VM (build 25.321-b07, mixed mode)
+
+[debug] [2022-05-14T05:28:14.503Z] Parsed Java major version: 1
+[warn] ⚠  emulators: Support for Java version <= 10 will be dropped soon in firebase-tools@11. Please upgrade to Java version 11 or above to continue using the emulators. 
+[info] i  emulators: Starting emulators: auth, functions, firestore, storage {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore, storage"}}
+[debug] [2022-05-14T05:28:14.528Z] [hub] writing locator at /var/folders/t5/9q__62bj5hd3wgkk2jshkl3m0000gn/T/hub-ses-hub-dev-ed356.json
+[info] i  firestore: Detected non-emulator Firestore export at /Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/dir {"metadata":{"emulator":{"name":"firestore"},"message":"Detected non-emulator Firestore export at /Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/dir"}}
+[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: database, hosting, pubsub {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mdatabase, hosting, pubsub\u001b[22m"}}
+[info] ✔  functions: Using node@16 from host. {"metadata":{"emulator":{"name":"functions"},"message":"Using node@16 from host."}}
+[debug] [2022-05-14T05:28:14.565Z] defaultcredentials: writing to file /Users/hirotomoyamada/.config/firebase/hirotomoyamada_biz_gmail.com_application_default_credentials.json
+[debug] [2022-05-14T05:28:14.567Z] Setting GAC to /Users/hirotomoyamada/.config/firebase/hirotomoyamada_biz_gmail.com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /Users/hirotomoyamada/.config/firebase/hirotomoyamada_biz_gmail.com_application_default_credentials.json"}}
+[debug] [2022-05-14T05:28:14.570Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/ses-hub-dev-ed356/adminSdkConfig [none]
+[debug] [2022-05-14T05:28:15.165Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/ses-hub-dev-ed356/adminSdkConfig 200
+[debug] [2022-05-14T05:28:15.166Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/ses-hub-dev-ed356/adminSdkConfig {"projectId":"ses-hub-dev-ed356","storageBucket":"ses-hub-dev-ed356.appspot.com","locationId":"asia-northeast1"}
+[info] i  firestore: Importing data from /Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/dir/2022-05-14T05:11:39_76744.overall_export_metadata {"metadata":{"emulator":{"name":"firestore"},"message":"Importing data from /Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/dir/2022-05-14T05:11:39_76744.overall_export_metadata"}}
+[warn] ⚠  firestore: Did not find a Cloud Firestore rules file specified in a firebase.json config file. {"metadata":{"emulator":{"name":"firestore"},"message":"Did not find a Cloud Firestore rules file specified in a firebase.json config file."}}
+[warn] ⚠  firestore: The emulator will default to allowing all reads and writes. Learn more about this option: https://firebase.google.com/docs/emulator-suite/install_and_configure#security_rules_configuration. {"metadata":{"emulator":{"name":"firestore"},"message":"The emulator will default to allowing all reads and writes. Learn more about this option: https://firebase.google.com/docs/emulator-suite/install_and_configure#security_rules_configuration."}}
+[debug] [2022-05-14T05:28:15.450Z] Ignoring unsupported arg: projectId {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: projectId"}}
+[debug] [2022-05-14T05:28:15.450Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2022-05-14T05:28:15.450Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/Users/hirotomoyamada/.cache/firebase/emulators/cloud-firestore-emulator-v1.14.3.jar","--host","localhost","--port",8080,"--seed_from_export","/Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/dir/2022-05-14T05:11:39_76744.overall_export_metadata","--functions_emulator","localhost:5001"],"optionalArgs":["port","webchannel_port","host","rules","functions_emulator","seed_from_export"],"joinArgs":false} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/Users/hirotomoyamada/.cache/firebase/emulators/cloud-firestore-emulator-v1.14.3.jar\",\"--host\",\"localhost\",\"--port\",8080,\"--seed_from_export\",\"/Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/dir/2022-05-14T05:11:39_76744.overall_export_metadata\",\"--functions_emulator\",\"localhost:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"functions_emulator\",\"seed_from_export\"],\"joinArgs\":false}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to \u001b[1mfirestore-debug.log\u001b[22m"}}
+[debug] [2022-05-14T05:28:16.515Z] May 14, 2022 2:28:16 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+INFO: Started WebSocket server on ws://localhost:60207
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:16 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://localhost:60207\n"}}
+[debug] [2022-05-14T05:28:16.535Z] API endpoint: http:// {"metadata":{"emulator":{"name":"firestore"},"message":"API endpoint: http://"}}
+[debug] [2022-05-14T05:28:16.535Z] localhost:8080
+If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
+
+   export FIRESTORE_EMULATOR_HOST=localhost:8080
+
+Dev App Server is now running.
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"localhost:8080\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\n\n   export FIRESTORE_EMULATOR_HOST=localhost:8080\n\nDev App Server is now running.\n\n"}}
+[debug] [2022-05-14T05:28:22.338Z] May 14, 2022 2:28:17 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+May 14, 2022 2:28:17 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+May 14, 2022 2:28:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:17 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\nMay 14, 2022 2:28:17 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\nMay 14, 2022 2:28:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:22.342Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"storage"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2022-05-14T05:28:23.018Z] Temp file directory for storage emulator: /var/folders/t5/9q__62bj5hd3wgkk2jshkl3m0000gn/T/firebase/storage/blobs {"metadata":{"emulator":{"name":"storage"},"message":"Temp file directory for storage emulator: /var/folders/t5/9q__62bj5hd3wgkk2jshkl3m0000gn/T/firebase/storage/blobs"}}
+[debug] [2022-05-14T05:28:23.281Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2022-05-14T05:28:23.282Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"ui"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2022-05-14T05:28:23.282Z] Starting Emulator UI with command {"binary":"node","args":["/Users/hirotomoyamada/.cache/firebase/emulators/ui-v1.7.0/server.bundle.js"],"optionalArgs":[],"joinArgs":false} {"metadata":{"emulator":{"name":"ui"},"message":"Starting Emulator UI with command {\"binary\":\"node\",\"args\":[\"/Users/hirotomoyamada/.cache/firebase/emulators/ui-v1.7.0/server.bundle.js\"],\"optionalArgs\":[],\"joinArgs\":false}"}}
+[info] i  ui: Emulator UI logging to ui-debug.log {"metadata":{"emulator":{"name":"ui"},"message":"Emulator UI logging to \u001b[1mui-debug.log\u001b[22m"}}
+[debug] [2022-05-14T05:28:23.388Z] Web / API server started at localhost:4000
+ {"metadata":{"emulator":{"name":"ui"},"message":"Web / API server started at localhost:4000\n"}}
+[info] i  functions: Watching "/Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/Users/hirotomoyamada/GitHub/hitmeup/ses_hub_functions/\" for Cloud Functions..."}}
+[debug] [2022-05-14T05:28:23.551Z] Validating nodejs source
+[debug] [2022-05-14T05:28:24.563Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "16"
+  },
+  "main": "libs/index.js",
+  "dependencies": {
+    "@google-cloud/firestore": "^4.15.1",
+    "@sendgrid/mail": "^7.4.7",
+    "algoliasearch": "^4.10.3",
+    "bitly": "^7.1.2",
+    "firebase-admin": "^10.0.2",
+    "firebase-functions": "^3.21.1",
+    "stripe": "^8.176.0",
+    "twitter-api-v2": "^1.11.0"
+  },
+  "devDependencies": {
+    "@types/twitter": "^1.7.1",
+    "@typescript-eslint/eslint-plugin": "^5.11.0",
+    "@typescript-eslint/parser": "^5.11.0",
+    "eslint-config-prettier": "^8.3.0",
+    "firebase-functions-test": "^0.2.0",
+    "prettier": "^2.5.1",
+    "typescript": "^4.6.4"
+  },
+  "private": true
+}
+[debug] [2022-05-14T05:28:24.564Z] Building nodejs source
+[debug] [2022-05-14T05:28:24.564Z] Analyzing nodejs backend spec
+[debug] [2022-05-14T05:28:24.570Z] Could not find functions.yaml. Must use http discovery
+[debug] [2022-05-14T05:28:24.730Z] Serving at port 9005
+
+[debug] [2022-05-14T05:28:25.488Z] Got response from /__/functions.yaml {"endpoints":{"sh-contactPromotion":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.contactPromotion"},"sh-fetchProducts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.fetchProducts"},"sh-createCheckout":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.createCheckout"},"sh-updateTaxBehavior":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/products/{productsId}/prices/{priceId}"},"retry":false},"labels":{},"entryPoint":"sh.updateTaxBehavior"},"sh-createPlan":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}"},"retry":false},"labels":{},"entryPoint":"sh.createPlan"},"sh-createOption":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}"},"retry":false},"labels":{},"entryPoint":"sh.createOption"},"sh-updatePlan":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}"},"retry":false},"labels":{},"entryPoint":"sh.updatePlan"},"sh-updateOption":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}"},"retry":false},"labels":{},"entryPoint":"sh.updateOption"},"sh-disableNotice":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.disableNotice"},"sh-updateNotice":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 */3 * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"sh.updateNotice"},"sh-updateLimit":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 1 * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"sh.updateLimit"},"sh-enableAgree":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.enableAgree"},"sh-disableAgree":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/seshub/agree"},"retry":false},"labels":{},"entryPoint":"sh.disableAgree"},"sh-login":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.login"},"sh-createUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}"},"retry":false},"labels":{},"entryPoint":"sh.createUser"},"sh-enableUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}"},"retry":false},"labels":{},"entryPoint":"sh.enableUser"},"sh-disableUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}"},"retry":false},"labels":{},"entryPoint":"sh.disableUser"},"sh-declineUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}"},"retry":false},"labels":{},"entryPoint":"sh.declineUser"},"sh-goBackUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}"},"retry":false},"labels":{},"entryPoint":"sh.goBackUser"},"sh-deleteUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.delete","eventFilters":{"resource":"projects/ses-hub-dev-ed356"},"retry":false},"labels":{},"entryPoint":"sh.deleteUser"},"sh-verificationUser":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.verificationUser"},"sh-createProfile":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.createProfile"},"sh-editProfile":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.editProfile"},"sh-createChild":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.createChild"},"sh-changeEmail":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.changeEmail"},"sh-addProvider":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.addProvider"},"sh-updateSetting":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.updateSetting"},"sh-applicationType":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.applicationType"},"sh-fetchUser":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.fetchUser"},"sh-addLike":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.addLike"},"sh-removeLike":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.removeLike"},"sh-addOutput":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.addOutput"},"sh-removeOutput":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.removeOutput"},"sh-addFollow":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.addFollow"},"sh-removeFollow":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.removeFollow"},"sh-updateHome":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.updateHome"},"sh-addEntry":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.addEntry"},"sh-addRequest":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.addRequest"},"sh-fetchUserActivity":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.fetchUserActivity"},"sh-promotionPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.promotionPosts"},"sh-fetchPost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.fetchPost"},"sh-fetchPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.fetchPosts"},"sh-userPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.userPosts"},"sh-extractPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.extractPosts"},"sh-homePosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.homePosts"},"sh-fetchPostActivity":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.fetchPostActivity"},"sh-createPost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.createPost"},"sh-editPost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.editPost"},"sh-deletePost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.deletePost"},"sh-sendPost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"sh.sendPost"},"backup-users-companys":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 * * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"backup.users.companys"},"backup-users-persons":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 * * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"backup.users.persons"},"backup-users-customers":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 * * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"backup.users.customers"},"backup-posts-matters":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 * * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"backup.posts.matters"},"backup-posts-resources":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 * * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"backup.posts.resources"},"backup-posts-companys":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 * * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"backup.posts.companys"},"backup-posts-persons":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"scheduleTrigger":{"schedule":"0 0 * * *","timeZone":"Asia/Tokyo"},"labels":{},"entryPoint":"backup.posts.persons"},"fd-contactPromotion":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.contactPromotion"},"fd-enableAgree":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.enableAgree"},"fd-disableAgree":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/freelanceDirect/agree"},"retry":false},"labels":{},"entryPoint":"fd.disableAgree"},"fd-login":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.login"},"fd-createUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}"},"retry":false},"labels":{},"entryPoint":"fd.createUser"},"fd-enableUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}"},"retry":false},"labels":{},"entryPoint":"fd.enableUser"},"fd-disableUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}"},"retry":false},"labels":{},"entryPoint":"fd.disableUser"},"fd-declineUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}"},"retry":false},"labels":{},"entryPoint":"fd.declineUser"},"fd-goBackUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}"},"retry":false},"labels":{},"entryPoint":"fd.goBackUser"},"fd-deleteUser":{"platform":"gcfv1","timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.delete","eventFilters":{"resource":"projects/ses-hub-dev-ed356"},"retry":false},"labels":{},"entryPoint":"fd.deleteUser"},"fd-createProfile":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.createProfile"},"fd-editProfile":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.editProfile"},"fd-changeState":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.changeState"},"fd-changeEmail":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.changeEmail"},"fd-addProvider":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.addProvider"},"fd-uploadResume":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.uploadResume"},"fd-deleteResume":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.deleteResume"},"fd-fetchUser":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.fetchUser"},"fd-addLike":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.addLike"},"fd-removeLike":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.removeLike"},"fd-addFollow":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.addFollow"},"fd-removeFollow":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.removeFollow"},"fd-updateHome":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.updateHome"},"fd-addEntry":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.addEntry"},"fd-enableRequest":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.enableRequest"},"fd-disableRequest":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.disableRequest"},"fd-fetchPost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.fetchPost"},"fd-fetchPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.fetchPosts"},"fd-promotionPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.promotionPosts"},"fd-homePosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.homePosts"},"fd-extractPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.extractPosts"},"fd-userPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"fd.userPosts"},"admin-login":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.login"},"admin-editData":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.editData"},"admin-sendMail":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.sendMail"},"admin-updateAccount":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.updateAccount"},"admin-fetchPost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.fetchPost"},"admin-fetchPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.fetchPosts"},"admin-fetchUser":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.fetchUser"},"admin-editPost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.editPost"},"admin-deletePost":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.deletePost"},"admin-editUser":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.editUser"},"admin-extractPosts":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.extractPosts"},"admin-uploadResume":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.uploadResume"},"admin-deleteResume":{"platform":"gcfv1","labels":{},"timeoutSeconds":300,"region":["asia-northeast1"],"availableMemoryMb":1024,"callableTrigger":{},"entryPoint":"admin.deleteResume"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}]}
+[debug] [2022-05-14T05:28:25.503Z] shutdown requested via /__/quitquitquit
+
+[info] ✔  functions[asia-northeast1-sh-contactPromotion]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-contactPromotion). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-contactPromotion)."}}
+[info] ✔  functions[asia-northeast1-sh-fetchProducts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchProducts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchProducts)."}}
+[info] ✔  functions[asia-northeast1-sh-createCheckout]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createCheckout). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createCheckout)."}}
+[debug] [2022-05-14T05:28:25.515Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/products/{productsId}/prices/{priceId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.515Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-updateTaxBehavior-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/products/{productsId}/prices/{priceId}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.520Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.594Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.647Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-updateTaxBehavior]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.647Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.648Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-createPlan-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.651Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.657Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-createPlan]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.657Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.657Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-createOption-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.659Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.665Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-createOption]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.665Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.665Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-updatePlan-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.668Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.673Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-updatePlan]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.675Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.675Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-updateOption-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/customers/{uid}/subscriptions/{sub}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.677Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.683Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-updateOption]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[info] ✔  functions[asia-northeast1-sh-disableNotice]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-disableNotice). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-disableNotice)."}}
+[info] i  functions[asia-northeast1-sh-updateNotice]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[asia-northeast1-sh-updateLimit]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] ✔  functions[asia-northeast1-sh-enableAgree]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-enableAgree). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-enableAgree)."}}
+[debug] [2022-05-14T05:28:25.685Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/seshub/agree\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.685Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-disableAgree-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/seshub/agree","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.688Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.693Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-disableAgree]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[info] ✔  functions[asia-northeast1-sh-login]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-login). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-login)."}}
+[debug] [2022-05-14T05:28:25.694Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.694Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-createUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.696Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.702Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-createUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.703Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.703Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-enableUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.706Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.710Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-enableUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.711Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.711Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-disableUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.714Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.720Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-disableUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.720Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.720Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-declineUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.723Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.728Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-declineUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.728Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.729Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-sh-goBackUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/companys/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.732Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.737Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-sh-goBackUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.738Z] addAuthTrigger {"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.delete","resource":"projects/ses-hub-dev-ed356"}}
+[info] ✔  functions[asia-northeast1-sh-deleteUser]: auth function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mauth\u001b[22m function initialized."}}
+[info] ✔  functions[asia-northeast1-sh-verificationUser]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-verificationUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-verificationUser)."}}
+[info] ✔  functions[asia-northeast1-sh-createProfile]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createProfile). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createProfile)."}}
+[info] ✔  functions[asia-northeast1-sh-editProfile]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-editProfile). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-editProfile)."}}
+[info] ✔  functions[asia-northeast1-sh-createChild]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createChild). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createChild)."}}
+[info] ✔  functions[asia-northeast1-sh-changeEmail]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-changeEmail). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-changeEmail)."}}
+[info] ✔  functions[asia-northeast1-sh-addProvider]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addProvider). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addProvider)."}}
+[info] ✔  functions[asia-northeast1-sh-updateSetting]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-updateSetting). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-updateSetting)."}}
+[info] ✔  functions[asia-northeast1-sh-applicationType]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-applicationType). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-applicationType)."}}
+[info] ✔  functions[asia-northeast1-sh-fetchUser]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchUser)."}}
+[info] ✔  functions[asia-northeast1-sh-addLike]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addLike). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addLike)."}}
+[info] ✔  functions[asia-northeast1-sh-removeLike]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-removeLike). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-removeLike)."}}
+[info] ✔  functions[asia-northeast1-sh-addOutput]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addOutput). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addOutput)."}}
+[info] ✔  functions[asia-northeast1-sh-removeOutput]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-removeOutput). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-removeOutput)."}}
+[info] ✔  functions[asia-northeast1-sh-addFollow]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addFollow). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addFollow)."}}
+[info] ✔  functions[asia-northeast1-sh-removeFollow]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-removeFollow). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-removeFollow)."}}
+[info] ✔  functions[asia-northeast1-sh-updateHome]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-updateHome). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-updateHome)."}}
+[info] ✔  functions[asia-northeast1-sh-addEntry]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addEntry). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addEntry)."}}
+[info] ✔  functions[asia-northeast1-sh-addRequest]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addRequest). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-addRequest)."}}
+[info] ✔  functions[asia-northeast1-sh-fetchUserActivity]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchUserActivity). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchUserActivity)."}}
+[info] ✔  functions[asia-northeast1-sh-promotionPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-promotionPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-promotionPosts)."}}
+[info] ✔  functions[asia-northeast1-sh-fetchPost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchPost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchPost)."}}
+[info] ✔  functions[asia-northeast1-sh-fetchPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchPosts)."}}
+[info] ✔  functions[asia-northeast1-sh-userPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-userPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-userPosts)."}}
+[info] ✔  functions[asia-northeast1-sh-extractPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-extractPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-extractPosts)."}}
+[info] ✔  functions[asia-northeast1-sh-homePosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-homePosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-homePosts)."}}
+[info] ✔  functions[asia-northeast1-sh-fetchPostActivity]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchPostActivity). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-fetchPostActivity)."}}
+[info] ✔  functions[asia-northeast1-sh-createPost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createPost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-createPost)."}}
+[info] ✔  functions[asia-northeast1-sh-editPost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-editPost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-editPost)."}}
+[info] ✔  functions[asia-northeast1-sh-deletePost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-deletePost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-deletePost)."}}
+[info] ✔  functions[asia-northeast1-sh-sendPost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-sendPost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/sh-sendPost)."}}
+[info] i  functions[asia-northeast1-backup-users-companys]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[asia-northeast1-backup-users-persons]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[asia-northeast1-backup-users-customers]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[asia-northeast1-backup-posts-matters]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[asia-northeast1-backup-posts-resources]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[asia-northeast1-backup-posts-companys]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[asia-northeast1-backup-posts-persons]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] ✔  functions[asia-northeast1-fd-contactPromotion]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-contactPromotion). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-contactPromotion)."}}
+[info] ✔  functions[asia-northeast1-fd-enableAgree]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-enableAgree). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-enableAgree)."}}
+[debug] [2022-05-14T05:28:25.744Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/freelanceDirect/agree\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.744Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-fd-disableAgree-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/freelanceDirect/agree","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.748Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.752Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-fd-disableAgree]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[info] ✔  functions[asia-northeast1-fd-login]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-login). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-login)."}}
+[debug] [2022-05-14T05:28:25.753Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.753Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-fd-createUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.755Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.759Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-fd-createUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.759Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.759Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-fd-enableUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.762Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.765Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-fd-enableUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.766Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.766Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-fd-disableUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.768Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.772Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-fd-disableUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.772Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.772Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-fd-declineUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.775Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.780Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-fd-declineUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.780Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2022-05-14T05:28:25.781Z] >>> HTTP REQUEST PUT http://localhost:8080/emulator/v1/projects/ses-hub-dev-ed356/triggers/asia-northeast1-fd-goBackUser-0  
+ {"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","resource":"projects/ses-hub-dev-ed356/databases/(default)/documents/persons/{uid}","service":"firestore.googleapis.com"}}
+[debug] [2022-05-14T05:28:25.783Z] May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:25.787Z] <<< HTTP RESPONSE 200 {"content-type":"application/json","content-length":"4"}
+[info] ✔  functions[asia-northeast1-fd-goBackUser]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2022-05-14T05:28:25.788Z] addAuthTrigger {"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.delete","resource":"projects/ses-hub-dev-ed356"}}
+[info] ✔  functions[asia-northeast1-fd-deleteUser]: auth function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mauth\u001b[22m function initialized."}}
+[info] ✔  functions[asia-northeast1-fd-createProfile]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-createProfile). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-createProfile)."}}
+[info] ✔  functions[asia-northeast1-fd-editProfile]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-editProfile). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-editProfile)."}}
+[info] ✔  functions[asia-northeast1-fd-changeState]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-changeState). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-changeState)."}}
+[info] ✔  functions[asia-northeast1-fd-changeEmail]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-changeEmail). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-changeEmail)."}}
+[info] ✔  functions[asia-northeast1-fd-addProvider]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addProvider). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addProvider)."}}
+[info] ✔  functions[asia-northeast1-fd-uploadResume]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-uploadResume). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-uploadResume)."}}
+[info] ✔  functions[asia-northeast1-fd-deleteResume]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-deleteResume). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-deleteResume)."}}
+[info] ✔  functions[asia-northeast1-fd-fetchUser]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-fetchUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-fetchUser)."}}
+[info] ✔  functions[asia-northeast1-fd-addLike]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addLike). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addLike)."}}
+[info] ✔  functions[asia-northeast1-fd-removeLike]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-removeLike). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-removeLike)."}}
+[info] ✔  functions[asia-northeast1-fd-addFollow]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addFollow). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addFollow)."}}
+[info] ✔  functions[asia-northeast1-fd-removeFollow]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-removeFollow). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-removeFollow)."}}
+[info] ✔  functions[asia-northeast1-fd-updateHome]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-updateHome). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-updateHome)."}}
+[info] ✔  functions[asia-northeast1-fd-addEntry]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addEntry). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-addEntry)."}}
+[info] ✔  functions[asia-northeast1-fd-enableRequest]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-enableRequest). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-enableRequest)."}}
+[info] ✔  functions[asia-northeast1-fd-disableRequest]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-disableRequest). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-disableRequest)."}}
+[info] ✔  functions[asia-northeast1-fd-fetchPost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-fetchPost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-fetchPost)."}}
+[info] ✔  functions[asia-northeast1-fd-fetchPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-fetchPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-fetchPosts)."}}
+[info] ✔  functions[asia-northeast1-fd-promotionPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-promotionPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-promotionPosts)."}}
+[info] ✔  functions[asia-northeast1-fd-homePosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-homePosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-homePosts)."}}
+[info] ✔  functions[asia-northeast1-fd-extractPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-extractPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-extractPosts)."}}
+[info] ✔  functions[asia-northeast1-fd-userPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-userPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/fd-userPosts)."}}
+[info] ✔  functions[asia-northeast1-admin-login]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-login). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-login)."}}
+[info] ✔  functions[asia-northeast1-admin-editData]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-editData). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-editData)."}}
+[info] ✔  functions[asia-northeast1-admin-sendMail]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-sendMail). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-sendMail)."}}
+[info] ✔  functions[asia-northeast1-admin-updateAccount]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-updateAccount). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-updateAccount)."}}
+[info] ✔  functions[asia-northeast1-admin-fetchPost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-fetchPost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-fetchPost)."}}
+[info] ✔  functions[asia-northeast1-admin-fetchPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-fetchPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-fetchPosts)."}}
+[info] ✔  functions[asia-northeast1-admin-fetchUser]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-fetchUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-fetchUser)."}}
+[info] ✔  functions[asia-northeast1-admin-editPost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-editPost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-editPost)."}}
+[info] ✔  functions[asia-northeast1-admin-deletePost]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-deletePost). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-deletePost)."}}
+[info] ✔  functions[asia-northeast1-admin-editUser]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-editUser). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-editUser)."}}
+[info] ✔  functions[asia-northeast1-admin-extractPosts]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-extractPosts). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-extractPosts)."}}
+[info] ✔  functions[asia-northeast1-admin-uploadResume]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-uploadResume). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-uploadResume)."}}
+[info] ✔  functions[asia-northeast1-admin-deleteResume]: http function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-deleteResume). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://localhost:5001/ses-hub-dev-ed356/asia-northeast1/admin-deleteResume)."}}
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://localhost:4000                │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────────┬────────────────┬─────────────────────────────────┐
+│ Emulator       │ Host:Port      │ View in Emulator UI             │
+├────────────────┼────────────────┼─────────────────────────────────┤
+│ Authentication │ localhost:9099 │ http://localhost:4000/auth      │
+├────────────────┼────────────────┼─────────────────────────────────┤
+│ Functions      │ localhost:5001 │ http://localhost:4000/functions │
+├────────────────┼────────────────┼─────────────────────────────────┤
+│ Firestore      │ localhost:8080 │ http://localhost:4000/firestore │
+├────────────────┼────────────────┼─────────────────────────────────┤
+│ Storage        │ localhost:9199 │ http://localhost:4000/storage   │
+└────────────────┴────────────────┴─────────────────────────────────┘
+  Emulator Hub running at localhost:4400
+  Other reserved ports: 4500
+
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[warn] ⚠  emulators: Support for Java version <= 10 will be dropped soon in firebase-tools@11. Please upgrade to Java version 11 or above to continue using the emulators. 
+[debug] [2022-05-14T05:28:44.592Z] May 14, 2022 2:28:44 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:44 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:44.640Z] May 14, 2022 2:28:44 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
+INFO: Connected to new websocket client
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:44 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\nINFO: Connected to new websocket client\n"}}
+[debug] [2022-05-14T05:28:47.728Z] May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:47.786Z] May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:47.810Z] May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:47.964Z] May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:47 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:48.591Z] May 14, 2022 2:28:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:50.600Z] May 14, 2022 2:28:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:51.055Z] May 14, 2022 2:28:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:51.601Z] May 14, 2022 2:28:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:52.610Z] May 14, 2022 2:28:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:52.632Z] May 14, 2022 2:28:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:53.084Z] May 14, 2022 2:28:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:53.568Z] May 14, 2022 2:28:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:53.917Z] May 14, 2022 2:28:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:53 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:54.284Z] May 14, 2022 2:28:54 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:54 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:54.624Z] May 14, 2022 2:28:54 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:54 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:55.351Z] May 14, 2022 2:28:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:56.636Z] May 14, 2022 2:28:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:56.691Z] May 14, 2022 2:28:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:56 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:57.544Z] May 14, 2022 2:28:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:57.907Z] May 14, 2022 2:28:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:57.966Z] May 14, 2022 2:28:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:57 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:58.309Z] May 14, 2022 2:28:58 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:58 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:58.647Z] May 14, 2022 2:28:58 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:58 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:58.908Z] May 14, 2022 2:28:58 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:58 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:28:59.492Z] May 14, 2022 2:28:59 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:28:59 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:00.358Z] May 14, 2022 2:29:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:00.661Z] May 14, 2022 2:29:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:02.676Z] May 14, 2022 2:29:02 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:02 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:04.691Z] May 14, 2022 2:29:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:04 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:06.707Z] May 14, 2022 2:29:06 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:06 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:08.723Z] May 14, 2022 2:29:08 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:08 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:10.735Z] May 14, 2022 2:29:10 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:10 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:12.749Z] May 14, 2022 2:29:12 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:12 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:14.762Z] May 14, 2022 2:29:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:14 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:16.777Z] May 14, 2022 2:29:16 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:16 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:18.257Z] May 14, 2022 2:29:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:18.791Z] May 14, 2022 2:29:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:20.801Z] May 14, 2022 2:29:20 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:20 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:22.816Z] May 14, 2022 2:29:22 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:22 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:24.827Z] May 14, 2022 2:29:24 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:24 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:26.841Z] May 14, 2022 2:29:26 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:26 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:28.855Z] May 14, 2022 2:29:28 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:28 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:30.869Z] May 14, 2022 2:29:30 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:30 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:32.884Z] May 14, 2022 2:29:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:34.898Z] May 14, 2022 2:29:34 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:34 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:36.908Z] May 14, 2022 2:29:36 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:36 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:38.920Z] May 14, 2022 2:29:38 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:38 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:40.934Z] May 14, 2022 2:29:40 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:40 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:42.949Z] May 14, 2022 2:29:42 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:42 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:44.958Z] May 14, 2022 2:29:44 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:44 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:46.965Z] May 14, 2022 2:29:46 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:46 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:48.974Z] May 14, 2022 2:29:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:48 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:50.985Z] May 14, 2022 2:29:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:52.995Z] May 14, 2022 2:29:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:52 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:55.006Z] May 14, 2022 2:29:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:29:55.419Z] May 14, 2022 2:29:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:29:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:30:00.422Z] May 14, 2022 2:30:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:30:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:30:18.269Z] May 14, 2022 2:30:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:30:18 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:31:00.436Z] May 14, 2022 2:31:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:31:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:31:10.107Z] May 14, 2022 2:31:10 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:31:10 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:32:00.449Z] May 14, 2022 2:32:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:32:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:32:10.118Z] May 14, 2022 2:32:10 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:32:10 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:32:55.730Z] May 14, 2022 2:32:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:32:55 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:33:00.463Z] May 14, 2022 2:33:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:33:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:34:00.476Z] May 14, 2022 2:34:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:34:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:34:11.274Z] May 14, 2022 2:34:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:34:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:35:00.488Z] May 14, 2022 2:35:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:35:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:35:11.289Z] May 14, 2022 2:35:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:35:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:36:00.503Z] May 14, 2022 2:36:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:36:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:36:11.300Z] May 14, 2022 2:36:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:36:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:37:00.548Z] May 14, 2022 2:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:37:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:37:11.330Z] May 14, 2022 2:37:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:37:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:38:00.562Z] May 14, 2022 2:38:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:38:00 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2022-05-14T05:38:11.346Z] May 14, 2022 2:38:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"May 14, 2022 2:38:11 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}

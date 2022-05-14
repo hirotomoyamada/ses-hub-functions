@@ -7,3 +7,4 @@ export { editPost, deletePost } from "./post";
 export { editUser } from "./user";
 export { extractPosts } from "./extract";
 export { uploadResume, deleteResume } from "./resume";
+export { fetchActivity } from "./activity";

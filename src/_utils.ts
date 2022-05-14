@@ -41,15 +41,9 @@ export const log: Log = async ({
     .doc(auth.doc)
     .withConverter(converter<Firestore.Company | Firestore.Person>());
 
-  const doc = await ref.get().catch(() => {
-    throw new functions.https.HttpsError(
-      "data-loss",
-      "データの更新に失敗しました",
-      "firebase"
-    );
-  });
+  const doc = await ref.get().catch(() => {});
 
-  const data = doc.data();
+  const data = doc?.data();
 
   const type = data && "payment" in data ? data.type : null;
   const payment = data && "payment" in data ? data.payment.status : null;

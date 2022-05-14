@@ -65,9 +65,12 @@ const updateFirestore = async ({
 
   const timestamp = Date.now();
 
-  const collection = db
+  const ref = db
     .collection("companys")
     .doc(context.auth.uid)
+    .withConverter(converter<Firestore.Company>());
+
+  const collection = ref
     .collection("outputs")
     .withConverter(converter<Firestore.Post>());
 
@@ -76,6 +79,14 @@ const updateFirestore = async ({
         .where("index", "==", data.index)
         .where("objectID", "==", data.objectID)
     : collection.where("index", "==", data.index);
+
+  const doc = await ref.get().catch(() => {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "データの取得に失敗しました",
+      "firebase"
+    );
+  });
 
   const querySnapshot = await query.get().catch(() => {
     throw new functions.https.HttpsError(
@@ -88,12 +99,12 @@ const updateFirestore = async ({
   const objectIDs = data.objectIDs;
 
   if (!objectIDs) {
-    const doc = querySnapshot.docs[0];
+    const querySnapshotDoc = querySnapshot.docs[0];
 
-    if (doc) {
-      const active = doc.data().active;
+    if (querySnapshotDoc) {
+      const active = querySnapshotDoc.data().active;
 
-      await doc.ref
+      await querySnapshotDoc.ref
         .set({ active: !active, updateAt: timestamp }, { merge: true })
         .catch(() => {
           throw new functions.https.HttpsError(
@@ -103,6 +114,9 @@ const updateFirestore = async ({
           );
         });
     } else {
+      const type = doc.data()?.type || null;
+      const payment = doc.data()?.payment.status || null;
+
       if (!data.uid || !data.objectID) {
         throw new functions.https.HttpsError(
           "data-loss",
@@ -117,6 +131,8 @@ const updateFirestore = async ({
           uid: data.uid,
           objectID: data.objectID,
           active: true,
+          type,
+          payment,
           createAt: timestamp,
           updateAt: timestamp,
         })

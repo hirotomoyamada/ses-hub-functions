@@ -25,7 +25,7 @@ export const createFirestore = ({
   const icon = Math.floor(Math.random() * 17 + 1);
   const cover = Math.floor(Math.random() * 18 + 1);
 
-  const profile = {
+  const profile: Firestore.Company["profile"] = {
     name: data.name,
     person: data.person,
     position: data.position,
@@ -40,7 +40,7 @@ export const createFirestore = ({
     social: { twitter: null, instagram: null, line: null, linkedIn: null },
   };
 
-  const payment = {
+  const payment: Firestore.Company["payment"] = {
     id: customer.stripeId,
     link: customer.stripeLink,
     status: "canceled",

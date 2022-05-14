@@ -136,7 +136,7 @@ export interface Company {
   objectID: string;
   uid: string;
   status: string;
-  type: string;
+  type: "individual" | "parent" | "child" | "office" | "none";
   name: string;
   person: string | null;
   body: string | null;

@@ -103,12 +103,20 @@ const updateFirestore = async (
   for await (const index of ["persons", "companys"]) {
     const person = index === "persons";
 
-    const collection = db
+    const ref = db
       .collection(index)
       .doc(person ? selectUser.uid : user.uid)
       .withConverter(converter<Firestore.Company | Firestore.Person>());
 
-    const subCollection = collection
+    const doc = await ref.get().catch(() => {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "データの取得に失敗しました",
+        "firebase"
+      );
+    });
+
+    const subCollection = ref
       .collection(person ? "requests" : "entries")
       .withConverter(converter<Firestore.User>());
 
@@ -124,12 +132,19 @@ const updateFirestore = async (
       });
 
     if (!querySnapshot.docs[0]) {
+      const data = doc.data();
+
+      const type = data && "payment" in data ? data.type : null;
+      const payment = data && "payment" in data ? data.payment.status : null;
+
       await subCollection
         .add({
           index: person ? "companys" : "persons",
           uid: person ? user.uid : selectUser.uid,
           status: "hold",
           active: true,
+          type,
+          payment,
           createAt: timestamp,
           updateAt: timestamp,
         })
@@ -147,14 +162,6 @@ const updateFirestore = async (
         "firebase"
       );
     }
-
-    const doc = await collection.get().catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "データの取得に失敗しました",
-        "firebase"
-      );
-    });
 
     Object.assign(person ? selectUser : user, doc.data());
   }

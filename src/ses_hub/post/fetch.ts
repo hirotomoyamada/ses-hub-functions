@@ -649,11 +649,22 @@ const addHistory = async (
 
   const timestamp = Date.now();
 
-  const collection = db
+  const ref = db
     .collection("companys")
     .doc(context.auth.uid)
+    .withConverter(converter<Firestore.Company>());
+
+  const collection = ref
     .collection("histories")
     .withConverter(converter<Firestore.Post>());
+
+  const doc = await ref.get().catch(() => {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "データの取得に失敗しました",
+      "firebase"
+    );
+  });
 
   const querySnapshot = await collection
     .where("index", "==", data.index)
@@ -671,12 +682,17 @@ const addHistory = async (
     }
   }
 
+  const type = doc.data()?.type || null;
+  const payment = doc.data()?.payment.status || null;
+
   await collection
     .add({
       index: data.index,
       objectID: post.objectID,
       uid: post.uid,
       active: true,
+      type,
+      payment,
       createAt: timestamp,
       updateAt: timestamp,
     })

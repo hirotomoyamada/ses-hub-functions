@@ -9,7 +9,7 @@ import { log } from "../../_utils";
 
 export type Data = {
   create: {
-    type: string;
+    type: "individual" | "parent" | "child";
     name: string;
     person: string;
     position: string | null;

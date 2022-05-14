@@ -132,6 +132,8 @@ const addHistory = async (
       index: "companys",
       uid: data,
       active: true,
+      type: null,
+      payment: null,
       createAt: timestamp,
       updateAt: timestamp,
     })

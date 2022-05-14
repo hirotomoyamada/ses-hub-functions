@@ -29,11 +29,22 @@ export const addEntry = functions
 
     const timestamp = Date.now();
 
-    const collection = db
+    const ref = db
       .collection("companys")
       .doc(context.auth.uid)
+      .withConverter(converter<Firestore.Company>());
+
+    const collection = ref
       .collection("entries")
       .withConverter(converter<Firestore.Post>());
+
+    const doc = await ref.get().catch(() => {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "データの取得に失敗しました",
+        "firebase"
+      );
+    });
 
     const querySnapshot = await collection
       .where("index", "==", data.index)
@@ -47,15 +58,20 @@ export const addEntry = functions
         );
       });
 
-    const doc = querySnapshot.docs[0];
+    const type = doc.data()?.type || null;
+    const payment = doc.data()?.payment.status || null;
 
-    if (!doc) {
+    const querySnapshotDoc = querySnapshot.docs[0];
+
+    if (!querySnapshotDoc) {
       await collection
         .add({
           index: data.index,
           uid: data.uid,
           objectID: data.objectID,
           active: true,
+          type,
+          payment,
           createAt: timestamp,
           updateAt: timestamp,
         })

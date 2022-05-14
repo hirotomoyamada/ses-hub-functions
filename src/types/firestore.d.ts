@@ -4,7 +4,7 @@ import { Matter, Resource } from "./algolia";
 
 export interface Company {
   uid?: string;
-  type: string;
+  type: "individual" | "parent" | "child" | "office" | "none";
   icon: string;
   cover: string;
   provider: string[];
@@ -30,7 +30,7 @@ export interface Company {
     };
   };
   payment: {
-    status: string;
+    status: "active" | "trialing" | "canceled";
     trial: boolean;
     limit: number;
     notice: boolean;
@@ -112,6 +112,8 @@ export interface Post extends NestedPartial<Matter>, NestedPartial<Resource> {
   objectID: string;
   uid: string;
   active: boolean;
+  type: "individual" | "parent" | "child" | "office" | "none" | null;
+  payment: "active" | "trialing" | "canceled" | null;
   createAt: number;
   display?: "public" | "private";
   updateAt?: number;
@@ -123,6 +125,8 @@ export interface User {
   uid: string;
   active: boolean;
   home?: boolean;
+  type: "individual" | "parent" | "child" | "office" | "none" | null;
+  payment: "active" | "trialing" | "canceled" | null;
   status?: "enable" | "hold" | "disable";
   createAt: number;
   updateAt?: number;
@@ -133,6 +137,8 @@ export interface Log {
   run: string;
   code: number;
   objectID?: string | string[];
+  type: "individual" | "parent" | "child" | "office" | "none" | null;
+  payment: "active" | "trialing" | "canceled" | null;
   uid?: string | string[];
   message?: string;
   createAt: number;

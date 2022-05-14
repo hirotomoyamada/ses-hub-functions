@@ -118,6 +118,8 @@ const updateFirestore = async ({
         uid: data,
         active: true,
         home: home < 15 || false,
+        type: null,
+        payment: null,
         createAt: timestamp,
         updateAt: timestamp,
       })

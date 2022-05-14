@@ -21,7 +21,7 @@ export type Log = ({
   message,
 }: {
   auth: { collection: "companys" | "persons"; doc?: string };
-} & Omit<Firestore.Log, "createAt">) => Promise<void>;
+} & Omit<Firestore.Log, "type" | "payment" | "createAt">) => Promise<void>;
 
 export const log: Log = async ({
   auth,
@@ -34,12 +34,28 @@ export const log: Log = async ({
 }) => {
   if (!auth.doc) return;
 
-  const timestamp = Date.now();
+  const createAt = Date.now();
 
-  const collection = db
+  const ref = db
     .collection(auth.collection)
     .doc(auth.doc)
-    .collection("log")
+    .withConverter(converter<Firestore.Company | Firestore.Person>());
+
+  const doc = await ref.get().catch(() => {
+    throw new functions.https.HttpsError(
+      "data-loss",
+      "データの更新に失敗しました",
+      "firebase"
+    );
+  });
+
+  const data = doc.data();
+
+  const type = data && "payment" in data ? data.type : null;
+  const payment = data && "payment" in data ? data.payment.status : null;
+
+  const collection = ref
+    .collection("logs")
     .withConverter(converter<Firestore.Log>());
 
   if (run === "login") {
@@ -53,7 +69,7 @@ export const log: Log = async ({
       const doc = querySnapshot.docs[0];
       const lastLog = doc?.data()?.createAt;
 
-      if (lastLog && lastLog + 60 * 60 * 1 * 1000 > timestamp) {
+      if (lastLog && lastLog + 60 * 60 * 1 * 1000 > createAt) {
         return;
       }
     }
@@ -62,14 +78,16 @@ export const log: Log = async ({
   await collection
     .add({
       ...{
-        run: run,
-        code: code,
-        createAt: timestamp,
+        run,
+        code,
+        createAt,
+        type,
+        payment,
       },
-      ...(index ? { index: index } : {}),
-      ...(uid ? { uid: uid } : {}),
-      ...(objectID ? { objectID: objectID } : {}),
-      ...(message ? { message: message } : {}),
+      ...(index ? { index } : {}),
+      ...(uid ? { uid } : {}),
+      ...(objectID ? { objectID } : {}),
+      ...(message ? { message } : {}),
     })
     .catch(() => {
       throw new functions.https.HttpsError(

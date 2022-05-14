@@ -404,6 +404,8 @@ const addHistory = async (
       objectID: post.objectID,
       uid: post.uid,
       active: true,
+      type: null,
+      payment: null,
       createAt: timestamp,
       updateAt: timestamp,
     })

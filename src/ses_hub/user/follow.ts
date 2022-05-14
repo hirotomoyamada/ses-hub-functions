@@ -67,13 +67,24 @@ const updateFirestore = async ({
 
   const timestamp = Date.now();
 
-  const collection = db
+  const ref = db
     .collection("companys")
     .doc(context.auth.uid)
+    .withConverter(converter<Firestore.Company>());
+
+  const collection = ref
     .collection("follows")
     .withConverter(converter<Firestore.User>());
 
-  const doc = await collection
+  const doc = await ref.get().catch(() => {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "データの取得に失敗しました",
+      "firebase"
+    );
+  });
+
+  const querySnapshotDoc = await collection
     .doc(data)
     .get()
     .catch(() => {
@@ -95,11 +106,11 @@ const updateFirestore = async ({
       );
     });
 
-  if (doc.exists) {
-    const active = doc.data()?.active;
+  if (querySnapshotDoc.exists) {
+    const active = querySnapshotDoc.data()?.active;
     const home = querySnapshot.docs.length;
 
-    await doc.ref
+    await querySnapshotDoc.ref
       .set(
         {
           active: !active,
@@ -117,13 +128,17 @@ const updateFirestore = async ({
       });
   } else {
     const home = querySnapshot.docs.length;
+    const type = doc.data()?.type || null;
+    const payment = doc.data()?.payment.status || null;
 
-    await doc.ref
+    await querySnapshotDoc.ref
       .set({
         index: "companys",
         uid: data,
         active: true,
         home: home < 15 || false,
+        type,
+        payment,
         createAt: timestamp,
         updateAt: timestamp,
       })

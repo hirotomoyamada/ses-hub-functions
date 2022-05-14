@@ -51,6 +51,8 @@ export const addEntry = functions
           uid: data.uid,
           objectID: data.objectID,
           active: true,
+          type: null,
+          payment: null,
           createAt: timestamp,
           updateAt: timestamp,
         })

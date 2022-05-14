@@ -583,7 +583,7 @@ const timestamp = (i: number, span: Data["span"]): Timestamp => {
             return `今月`;
 
           default:
-            return `${date.getMonth()}月`;
+            return `${start.getMonth() + 1}月`;
         }
       })();
 

@@ -1,6 +1,4 @@
-firebase-debug
-firestore-debug
-ui-debug
+**.log
 
 .env*
 .DS_Store

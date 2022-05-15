@@ -70,25 +70,23 @@ export const fetchUserActivity = functions
 
     const activities: Activity["user"][] = [];
 
-    await Promise.allSettled(
-      collections.map(async ({ collection, label }) => {
-        const activity: Activity["user"] = {
-          key: collection,
-          label,
-          active: undefined,
-          trialing: undefined,
-          canceled: undefined,
-          person: undefined,
-          log: [],
-        };
+    for await (const { collection, label } of collections) {
+      const activity: Activity["user"] = {
+        key: collection,
+        label,
+        active: undefined,
+        trialing: undefined,
+        canceled: undefined,
+        person: undefined,
+        log: [],
+      };
 
-        await fetchTotal.user(activity, collection, span);
+      await fetchTotal.user(activity, collection, span);
 
-        await fetchLog.user(activity, collection, span);
+      await fetchLog.user(activity, collection, span);
 
-        activities.push(activity);
-      })
-    );
+      activities.push(activity);
+    }
 
     return activities;
   });
@@ -123,24 +121,22 @@ export const fetchPostActivity = functions
 
       const activities: Activity["post"][] = [];
 
-      await Promise.allSettled(
-        collections.map(async ({ collection, label }) => {
-          const posts = collection === "posts";
+      for await (const { collection, label } of collections) {
+        const posts = collection === "posts";
 
-          const activity: Activity["post"] = {
-            key: collection,
-            label,
-            active: undefined,
-            log: [],
-          };
+        const activity: Activity["post"] = {
+          key: collection,
+          label,
+          active: undefined,
+          log: [],
+        };
 
-          await fetchTotal.post(activity, collection, index, span);
+        await fetchTotal.post(activity, collection, index, span);
 
-          if (posts) await fetchLog.post(activity, collection, index, span);
+        if (posts) await fetchLog.post(activity, collection, index, span);
 
-          activities.push(activity);
-        })
-      );
+        activities.push(activity);
+      }
 
       return activities;
     }

@@ -2,7 +2,15 @@ import * as functions from "firebase-functions";
 
 export const userAuthenticated = async (
   context: functions.https.CallableContext
-) => {
+): Promise<string> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
+
   if (context.auth?.uid !== functions.config().admin.uid) {
     throw new functions.https.HttpsError(
       "cancelled",
@@ -10,4 +18,8 @@ export const userAuthenticated = async (
       "firebase"
     );
   }
+
+  const uid = context.auth.uid;
+
+  return uid;
 };

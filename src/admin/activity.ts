@@ -4,46 +4,61 @@ import * as Firestore from "../types/firestore";
 import { time as calcTime } from "../_utils";
 import { userAuthenticated } from "./_userAuthenticated";
 
-type Data = {
-  span: "total" | "day" | "week" | "month";
+type Collection = {
+  user:
+    | "login"
+    | "posts"
+    | "histories"
+    | "likes"
+    | "outputs"
+    | "entries"
+    | "follows";
+  post: "posts" | "position" | "distribution" | "approval" | "sex" | "age";
 };
 
-type Collection =
-  | "login"
-  | "posts"
-  | "histories"
-  | "likes"
-  | "outputs"
-  | "entries"
-  | "follows";
+type Index = "matters" | "resources";
+
+type Span = "total" | "day" | "week" | "month";
 
 type Sort = "active" | "trialing" | "canceled" | "person";
 
 type Timestamp = { label: string; time: { start: number; end: number } };
 
 type Activity = {
-  key: Collection;
-  label: string;
-  active?: number;
-  trialing?: number;
-  canceled?: number;
-  person?: number;
-  log: {
+  user: {
+    key: Collection["user"];
     label: string;
     active?: number;
     trialing?: number;
     canceled?: number;
     person?: number;
-  }[];
+    log: {
+      label: string;
+      active?: number;
+      trialing?: number;
+      canceled?: number;
+      person?: number;
+    }[];
+  };
+
+  post: {
+    key: Collection["post"];
+    label: string;
+    active?: number;
+    log: {
+      label: string | number;
+      active: number;
+    }[];
+  };
 };
 
-export const fetchActivity = functions
+export const fetchUserActivity = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data: Data, context) => {
+  .https.onCall(async ({ span }: { span: Span }, context) => {
     await userAuthenticated(context);
 
-    const collections: { collection: Collection; label: string }[] = [
+    const collections: { collection: Collection["user"]; label: string }[] = [
       { collection: "login", label: "ログイン" },
       { collection: "posts", label: "投稿" },
       { collection: "histories", label: "閲覧" },
@@ -53,352 +68,548 @@ export const fetchActivity = functions
       { collection: "follows", label: "フォロー" },
     ];
 
-    const activities: Activity[] = [];
+    const activities: Activity["user"][] = [];
 
-    for (const { collection, label } of collections) {
-      const activity: Activity = {
-        key: collection,
-        label,
-        active: undefined,
-        trialing: undefined,
-        canceled: undefined,
-        person: undefined,
-        log: [],
-      };
+    await Promise.allSettled(
+      collections.map(async ({ collection, label }) => {
+        const activity: Activity["user"] = {
+          key: collection,
+          label,
+          active: undefined,
+          trialing: undefined,
+          canceled: undefined,
+          person: undefined,
+          log: [],
+        };
 
-      await fetchTotal(activity, collection, data);
+        await fetchTotal.user(activity, collection, span);
 
-      await fetchLog(activity, collection, data);
+        await fetchLog.user(activity, collection, span);
 
-      activities.push(activity);
-    }
+        activities.push(activity);
+      })
+    );
 
     return activities;
   });
 
-const fetchLog = async (
-  activity: Activity,
-  collection: Collection,
-  data: Data
-): Promise<void> => {
-  const span = data.span;
-  const day = span === "day";
-  const max = (() => {
-    switch (collection) {
-      case "login":
-        return day ? 14 : 12;
+export const fetchPostActivity = functions
+  .region(location)
+  .runWith(runtime)
+  .https.onCall(
+    async ({ index, span }: { index: Index; span: Span }, context) => {
+      await userAuthenticated(context);
 
-      default:
-        return day ? 7 : 6;
+      const collections: { collection: Collection["post"]; label: string }[] =
+        (() => {
+          switch (index) {
+            case "matters":
+              return [
+                { collection: "posts", label: "投稿" },
+                { collection: "position", label: "ポジション" },
+                { collection: "distribution", label: "商流" },
+                { collection: "approval", label: "稟議速度" },
+              ];
+
+            case "resources":
+              return [
+                { collection: "posts", label: "投稿" },
+                { collection: "position", label: "ポジション" },
+                { collection: "sex", label: "性別" },
+                { collection: "age", label: "年齢" },
+              ];
+          }
+        })();
+
+      const activities: Activity["post"][] = [];
+
+      await Promise.allSettled(
+        collections.map(async ({ collection, label }) => {
+          const posts = collection === "posts";
+
+          const activity: Activity["post"] = {
+            key: collection,
+            label,
+            active: undefined,
+            log: [],
+          };
+
+          await fetchTotal.post(activity, collection, index, span);
+
+          if (posts) await fetchLog.post(activity, collection, index, span);
+
+          activities.push(activity);
+        })
+      );
+
+      return activities;
     }
-  })();
+  );
 
-  for (let i = 0; i < max; i++) {
-    const { label, time } = timestamp(i, span);
+const fetchLog = {
+  user: async (
+    activity: Activity["user"],
+    collection: Collection["user"],
+    span: Span
+  ): Promise<void> => {
+    const day = span === "day";
+    const max = (() => {
+      switch (collection) {
+        case "login":
+          return day ? 14 : 12;
+
+        default:
+          return day ? 7 : 6;
+      }
+    })();
+
+    for (let i = 0; i < max; i++) {
+      const { label, time } = timestamp(i, span);
+
+      switch (collection) {
+        case "posts":
+        case "outputs": {
+          const querySnapshot = {
+            active: await fetchCollectionGroup.user({
+              collection,
+              sort: "active",
+              time,
+            }),
+            trialing: await fetchCollectionGroup.user({
+              collection,
+              sort: "trialing",
+              time,
+            }),
+            canceled: await fetchCollectionGroup.user({
+              collection,
+              sort: "canceled",
+              time,
+            }),
+          };
+
+          const active = querySnapshot.active
+            ? querySnapshot.active.docs.length
+            : 0;
+          const trialing = querySnapshot.trialing
+            ? querySnapshot.trialing.docs.length
+            : 0;
+          const canceled = querySnapshot.canceled
+            ? querySnapshot.canceled.docs.length
+            : 0;
+
+          const log: Activity["user"]["log"][number] = {
+            label,
+            active,
+            trialing,
+            canceled,
+            person: undefined,
+          };
+
+          activity.log.push(log);
+
+          continue;
+        }
+
+        case "login": {
+          const querySnapshot = {
+            active: await fetchCollectionGroup.user({
+              collection,
+              sort: "active",
+              time,
+            }),
+            trialing: await fetchCollectionGroup.user({
+              collection,
+              sort: "trialing",
+              time,
+            }),
+            canceled: await fetchCollectionGroup.user({
+              collection,
+              sort: "canceled",
+              time,
+            }),
+            person: await fetchCollectionGroup.user({
+              collection,
+              sort: "person",
+              time,
+            }),
+          };
+
+          const active = querySnapshot.active
+            ? querySnapshot.active.docs.filter(
+                (current, i, others) =>
+                  others.findIndex(
+                    (other) => other.data().uid === current.data().uid
+                  ) === i
+              ).length
+            : 0;
+          const trialing = querySnapshot.trialing
+            ? querySnapshot.trialing.docs.filter(
+                (current, i, others) =>
+                  others.findIndex(
+                    (other) => other.data().uid === current.data().uid
+                  ) === i
+              ).length
+            : 0;
+          const canceled = querySnapshot.canceled
+            ? querySnapshot.canceled.docs.filter(
+                (current, i, others) =>
+                  others.findIndex(
+                    (other) => other.data().uid === current.data().uid
+                  ) === i
+              ).length
+            : 0;
+          const person = querySnapshot.person
+            ? querySnapshot.person.docs.filter(
+                (current, i, others) =>
+                  others.findIndex(
+                    (other) => other.data().uid === current.data().uid
+                  ) === i
+              ).length
+            : 0;
+
+          const log: Activity["user"]["log"][number] = {
+            label,
+            active,
+            trialing,
+            canceled,
+            person,
+          };
+
+          activity.log.push(log);
+
+          continue;
+        }
+
+        default: {
+          const querySnapshot = {
+            active: await fetchCollectionGroup.user({
+              collection,
+              sort: "active",
+              time,
+            }),
+            trialing: await fetchCollectionGroup.user({
+              collection,
+              sort: "trialing",
+              time,
+            }),
+            canceled: await fetchCollectionGroup.user({
+              collection,
+              sort: "canceled",
+              time,
+            }),
+            person: await fetchCollectionGroup.user({
+              collection,
+              sort: "person",
+              time,
+            }),
+          };
+
+          const active = querySnapshot.active
+            ? querySnapshot.active.docs.length
+            : 0;
+          const trialing = querySnapshot.trialing
+            ? querySnapshot.trialing.docs.length
+            : 0;
+          const canceled = querySnapshot.canceled
+            ? querySnapshot.canceled.docs.length
+            : 0;
+          const person = querySnapshot.person
+            ? querySnapshot.person.docs.length
+            : 0;
+
+          const log: Activity["user"]["log"][number] = {
+            label,
+            active,
+            trialing,
+            canceled,
+            person,
+          };
+
+          activity.log.push(log);
+
+          continue;
+        }
+      }
+    }
+  },
+
+  post: async (
+    activity: Activity["post"],
+    collection: Collection["post"],
+    index: Index,
+    span: Span
+  ): Promise<void> => {
+    const day = span === "day";
+    const max = (() => {
+      switch (collection) {
+        case "posts":
+          return day ? 14 : 12;
+
+        default:
+          return day ? 7 : 6;
+      }
+    })();
+
+    for (let i = 0; i < max; i++) {
+      const { label, time } = timestamp(i, span);
+
+      const querySnapshot = await fetchCollectionGroup.post({
+        collection,
+        index,
+        time,
+      });
+
+      const active = querySnapshot ? querySnapshot.docs.length : 0;
+
+      const log: Activity["post"]["log"][number] = {
+        label,
+        active,
+      };
+
+      activity.log.push(log);
+
+      continue;
+    }
+  },
+};
+
+const fetchTotal = {
+  user: async (
+    activity: Activity["user"],
+    collection: Collection["user"],
+    span: Span
+  ): Promise<void> => {
+    const posts = collection === "posts";
+    const outputs = collection === "outputs";
+
+    const sorts: Sort[] = ["active", "trialing", "canceled", "person"];
+
+    await Promise.allSettled(
+      sorts.map(async (sort) => {
+        if (sort === "person") if (posts || outputs) return;
+
+        const querySnapshot = await fetchCollectionGroup.user({
+          collection,
+          sort,
+          span,
+        });
+
+        if (!querySnapshot) return;
+
+        const count = (() => {
+          switch (collection) {
+            case "login":
+              return querySnapshot.docs.filter(
+                (current, i, others) =>
+                  others.findIndex(
+                    (other) => other.data().uid === current.data().uid
+                  ) === i
+              ).length;
+
+            default:
+              return querySnapshot.docs.length;
+          }
+        })();
+
+        activity[sort] = count;
+      })
+    );
+  },
+
+  post: async (
+    activity: Activity["post"],
+    collection: Collection["post"],
+    index: Index,
+    span: Span
+  ): Promise<void> => {
+    const posts = collection === "posts";
+
+    const querySnapshot = await fetchCollectionGroup.post({
+      collection,
+      index,
+      span,
+    });
+
+    if (!querySnapshot) return;
+
+    if (posts) {
+      const count = querySnapshot.docs.length;
+
+      activity.active = count;
+    } else {
+      querySnapshot.forEach((doc) => {
+        const data = doc.data()[collection];
+
+        const label = data !== null && data !== undefined ? data : "不明";
+
+        const index = activity.log.findIndex((d) => d.label === label);
+
+        if (index < 0) {
+          activity.log.push({ label, active: 1 });
+        } else {
+          activity.log[index].active += 1;
+        }
+      });
+
+      activity.log.sort((a, b) => {
+        if (a.active < b.active) return -1;
+        if (a.active > b.active) return 1;
+
+        return 0;
+      });
+    }
+  },
+};
+
+const fetchCollectionGroup = {
+  user: async ({
+    collection,
+    sort,
+    span,
+    time,
+  }: {
+    collection: Collection["user"];
+    sort: Sort;
+    span?: Span;
+    time?: Timestamp["time"];
+  }): Promise<void | FirebaseFirestore.QuerySnapshot<
+    Firestore.Post | Firestore.User | Firestore.Log
+  >> => {
+    const collectionGroup = (() => {
+      switch (collection) {
+        case "login":
+          return db.collectionGroup("logs");
+        default:
+          return db.collectionGroup(collection);
+      }
+    })();
 
     switch (collection) {
-      case "posts":
-      case "outputs": {
-        const querySnapshot = {
-          active: await fetchCollectionGroup({
-            collection,
-            sort: "active",
-            time,
-          }),
-          trialing: await fetchCollectionGroup({
-            collection,
-            sort: "trialing",
-            time,
-          }),
-          canceled: await fetchCollectionGroup({
-            collection,
-            sort: "canceled",
-            time,
-          }),
-        };
-
-        const active = querySnapshot.active
-          ? querySnapshot.active.docs.length
-          : 0;
-        const trialing = querySnapshot.trialing
-          ? querySnapshot.trialing.docs.length
-          : 0;
-        const canceled = querySnapshot.canceled
-          ? querySnapshot.canceled.docs.length
-          : 0;
-
-        const log: Activity["log"][number] = {
-          label,
-          active,
-          trialing,
-          canceled,
-          person: undefined,
-        };
-
-        activity.log.push(log);
-
-        continue;
-      }
-
       case "login": {
-        const querySnapshot = {
-          active: await fetchCollectionGroup({
-            collection,
-            sort: "active",
-            time,
-          }),
-          trialing: await fetchCollectionGroup({
-            collection,
-            sort: "trialing",
-            time,
-          }),
-          canceled: await fetchCollectionGroup({
-            collection,
-            sort: "canceled",
-            time,
-          }),
-          person: await fetchCollectionGroup({
-            collection,
-            sort: "person",
-            time,
-          }),
-        };
+        switch (span) {
+          case "total": {
+            return await collectionGroup
+              .withConverter(converter<Firestore.Log>())
+              .where("payment", "==", sort !== "person" ? sort : null)
+              .where("code", "==", 200)
+              .where("run", "==", "login")
+              .orderBy("createAt", "desc")
+              .get()
+              .catch(() => {});
+          }
 
-        const active = querySnapshot.active
-          ? querySnapshot.active.docs.filter(
-              (current, i, others) =>
-                others.findIndex(
-                  (other) => other.data().uid === current.data().uid
-                ) === i
-            ).length
-          : 0;
-        const trialing = querySnapshot.trialing
-          ? querySnapshot.trialing.docs.filter(
-              (current, i, others) =>
-                others.findIndex(
-                  (other) => other.data().uid === current.data().uid
-                ) === i
-            ).length
-          : 0;
-        const canceled = querySnapshot.canceled
-          ? querySnapshot.canceled.docs.filter(
-              (current, i, others) =>
-                others.findIndex(
-                  (other) => other.data().uid === current.data().uid
-                ) === i
-            ).length
-          : 0;
-        const person = querySnapshot.person
-          ? querySnapshot.person.docs.filter(
-              (current, i, others) =>
-                others.findIndex(
-                  (other) => other.data().uid === current.data().uid
-                ) === i
-            ).length
-          : 0;
-
-        const log: Activity["log"][number] = {
-          label,
-          active,
-          trialing,
-          canceled,
-          person,
-        };
-
-        activity.log.push(log);
-
-        continue;
+          default: {
+            return await collectionGroup
+              .withConverter(converter<Firestore.Log>())
+              .where("payment", "==", sort !== "person" ? sort : null)
+              .where("code", "==", 200)
+              .where("run", "==", "login")
+              .where(
+                "createAt",
+                ">=",
+                span ? calcTime(span).start : time ? time.start : undefined
+              )
+              .where(
+                "createAt",
+                "<=",
+                span ? calcTime(span).end : time ? time.end : undefined
+              )
+              .orderBy("createAt", "desc")
+              .get()
+              .catch(() => {});
+          }
+        }
       }
 
       default: {
-        const querySnapshot = {
-          active: await fetchCollectionGroup({
-            collection,
-            sort: "active",
-            time,
-          }),
-          trialing: await fetchCollectionGroup({
-            collection,
-            sort: "trialing",
-            time,
-          }),
-          canceled: await fetchCollectionGroup({
-            collection,
-            sort: "canceled",
-            time,
-          }),
-          person: await fetchCollectionGroup({
-            collection,
-            sort: "person",
-            time,
-          }),
-        };
+        switch (span) {
+          case "total": {
+            return await collectionGroup
+              .withConverter(converter<Firestore.Post | Firestore.User>())
+              .where("payment", "==", sort !== "person" ? sort : null)
+              .orderBy("createAt", "desc")
+              .get()
+              .catch(() => {});
+          }
 
-        const active = querySnapshot.active
-          ? querySnapshot.active.docs.length
-          : 0;
-        const trialing = querySnapshot.trialing
-          ? querySnapshot.trialing.docs.length
-          : 0;
-        const canceled = querySnapshot.canceled
-          ? querySnapshot.canceled.docs.length
-          : 0;
-        const person = querySnapshot.person
-          ? querySnapshot.person.docs.length
-          : 0;
-
-        const log: Activity["log"][number] = {
-          label,
-          active,
-          trialing,
-          canceled,
-          person,
-        };
-
-        activity.log.push(log);
-
-        continue;
+          default: {
+            return await collectionGroup
+              .withConverter(converter<Firestore.Post | Firestore.User>())
+              .where("payment", "==", sort !== "person" ? sort : null)
+              .where(
+                "createAt",
+                ">=",
+                span ? calcTime(span).start : time ? time.start : undefined
+              )
+              .where(
+                "createAt",
+                "<=",
+                span ? calcTime(span).end : time ? time.end : undefined
+              )
+              .orderBy("createAt", "desc")
+              .get()
+              .catch(() => {});
+          }
+        }
       }
     }
-  }
-};
+  },
 
-const fetchTotal = async (
-  activity: Activity,
-  collection: Collection,
-  data: Data
-): Promise<void> => {
-  const posts = collection === "posts";
-  const outputs = collection === "outputs";
+  post: async ({
+    collection,
+    index,
+    span,
+    time,
+  }: {
+    collection: Collection["post"];
+    index: Index;
+    span?: Span;
+    time?: Timestamp["time"];
+  }): Promise<void | FirebaseFirestore.QuerySnapshot<Firestore.Post>> => {
+    const collectionGroup = (() => {
+      switch (collection) {
+        default:
+          return db.collectionGroup("posts");
+      }
+    })();
 
-  const sorts: Sort[] = ["active", "trialing", "canceled", "person"];
-
-  await Promise.allSettled(
-    sorts.map(async (sort) => {
-      if (sort === "person") if (posts || outputs) return;
-
-      const querySnapshot = await fetchCollectionGroup({
-        collection,
-        sort,
-        span: data.span,
-      });
-
-      if (!querySnapshot) return;
-
-      const count = (() => {
-        switch (collection) {
-          case "login":
-            return querySnapshot.docs.filter(
-              (current, i, others) =>
-                others.findIndex(
-                  (other) => other.data().uid === current.data().uid
-                ) === i
-            ).length;
-
-          default:
-            return querySnapshot.docs.length;
-        }
-      })();
-
-      activity[sort] = count;
-    })
-  );
-};
-
-const fetchCollectionGroup = async ({
-  collection,
-  sort,
-  span,
-  time,
-}: {
-  collection: Collection;
-  sort: Sort;
-  span?: Data["span"];
-  time?: Timestamp["time"];
-}): Promise<void | FirebaseFirestore.QuerySnapshot<
-  Firestore.Post | Firestore.User | Firestore.Log
->> => {
-  const collectionGroup = (() => {
     switch (collection) {
-      case "login":
-        return db.collectionGroup("logs");
-      default:
-        return db.collectionGroup(collection);
-    }
-  })();
+      default: {
+        switch (span) {
+          case "total": {
+            return await collectionGroup
+              .withConverter(converter<Firestore.Post>())
+              .where("index", "==", index)
+              .orderBy("createAt", "desc")
+              .get()
+              .catch(() => {});
+          }
 
-  switch (collection) {
-    case "login": {
-      switch (span) {
-        case "total": {
-          return await collectionGroup
-            .withConverter(converter<Firestore.Log>())
-            .where("payment", "==", sort !== "person" ? sort : null)
-            .where("code", "==", 200)
-            .where("run", "==", "login")
-            .orderBy("createAt", "desc")
-            .get()
-            .catch(() => {});
-        }
-
-        default: {
-          return await collectionGroup
-            .withConverter(converter<Firestore.Log>())
-            .where("payment", "==", sort !== "person" ? sort : null)
-            .where("code", "==", 200)
-            .where("run", "==", "login")
-            .where(
-              "createAt",
-              ">=",
-              span ? calcTime(span).start : time ? time.start : undefined
-            )
-            .where(
-              "createAt",
-              "<=",
-              span ? calcTime(span).end : time ? time.end : undefined
-            )
-            .orderBy("createAt", "desc")
-            .get()
-            .catch(() => {});
+          default: {
+            return await collectionGroup
+              .withConverter(converter<Firestore.Post>())
+              .where("index", "==", index)
+              .where(
+                "createAt",
+                ">=",
+                span ? calcTime(span).start : time ? time.start : undefined
+              )
+              .where(
+                "createAt",
+                "<=",
+                span ? calcTime(span).end : time ? time.end : undefined
+              )
+              .orderBy("createAt", "desc")
+              .get()
+              .catch(() => {});
+          }
         }
       }
     }
-
-    default: {
-      switch (span) {
-        case "total": {
-          return await collectionGroup
-            .withConverter(converter<Firestore.Post | Firestore.User>())
-            .where("payment", "==", sort !== "person" ? sort : null)
-            .orderBy("createAt", "desc")
-            .get()
-            .catch(() => {});
-        }
-
-        default: {
-          return await collectionGroup
-            .withConverter(converter<Firestore.Post | Firestore.User>())
-            .where("payment", "==", sort !== "person" ? sort : null)
-            .where(
-              "createAt",
-              ">=",
-              span ? calcTime(span).start : time ? time.start : undefined
-            )
-            .where(
-              "createAt",
-              "<=",
-              span ? calcTime(span).end : time ? time.end : undefined
-            )
-            .orderBy("createAt", "desc")
-            .get()
-            .catch(() => {});
-        }
-      }
-    }
-  }
+  },
 };
 
-const timestamp = (i: number, span: Data["span"]): Timestamp => {
+const timestamp = (i: number, span: Span): Timestamp => {
   const timeZone = 60 * 60 * 9 * 1000;
 
   switch (span) {

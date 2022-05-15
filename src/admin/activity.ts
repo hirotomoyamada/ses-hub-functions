@@ -46,7 +46,7 @@ type Activity = {
     label: string;
     active?: number;
     log: {
-      label: string | number;
+      label: string;
       active: number;
     }[];
   };
@@ -436,7 +436,17 @@ const fetchTotal = {
       querySnapshot.forEach((doc) => {
         const data = doc.data()[collection];
 
-        const label = data !== null && data !== undefined ? data : "不明";
+        const label = ((): string => {
+          const label = data !== null && data !== undefined ? data : "不明";
+
+          switch (collection) {
+            case "age":
+              return `${label}歳`;
+
+            default:
+              return `${label}`;
+          }
+        })();
 
         const index = activity.log.findIndex((d) => d.label === label);
 
@@ -448,8 +458,8 @@ const fetchTotal = {
       });
 
       activity.log.sort((a, b) => {
-        if (a.active < b.active) return -1;
-        if (a.active > b.active) return 1;
+        if (a.active > b.active) return -1;
+        if (a.active < b.active) return 1;
 
         return 0;
       });

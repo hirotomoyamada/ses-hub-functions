@@ -23,7 +23,7 @@ type Sort = "self" | "others";
 
 type Timestamp = { label: string; time: { start: number; end: number } };
 
-type Activity = {
+type Analytics = {
   active: boolean;
   key: Collection;
   label: string;
@@ -36,7 +36,7 @@ type Activity = {
   }[];
 };
 
-export const fetchUserActivity = functions
+export const fetchAnalytics = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
@@ -60,11 +60,11 @@ export const fetchUserActivity = functions
       { collection: "approval", label: "稟議速度" },
     ];
 
-    const activities: Activity[] = [];
+    const activities: Analytics[] = [];
 
     if (!demo) {
       for (const { collection, label } of collections) {
-        const activity: Activity = {
+        const analytics: Analytics = {
           active: true,
           key: collection,
           label: label,
@@ -73,15 +73,15 @@ export const fetchUserActivity = functions
           log: [],
         };
 
-        await fetchTotal(activity, collection, data);
+        await fetchTotal(analytics, collection, data);
 
-        await fetchLog(activity, collection, data);
+        await fetchLog(analytics, collection, data);
 
-        activities.push(activity);
+        activities.push(analytics);
       }
     } else {
       for (const { collection, label } of collections) {
-        const activity: Activity = {
+        const analytics: Analytics = {
           active: true,
           key: collection,
           label,
@@ -90,15 +90,15 @@ export const fetchUserActivity = functions
           log: [],
         };
 
-        createDummy(activity, collection, data);
+        createDummy(analytics, collection, data);
 
-        activities.push(activity);
+        activities.push(analytics);
       }
     }
 
     await log({
       auth: { collection: "companys", doc: context.auth?.uid },
-      run: "fetchUserActivity",
+      run: "fetchAnalytics",
       code: 200,
       uid: data.uid,
     });
@@ -107,10 +107,10 @@ export const fetchUserActivity = functions
   });
 
 const createDummy = (
-  activity: Activity,
+  analytics: Analytics,
   collection: Collection,
   data: Data
-): Activity => {
+): Analytics => {
   const distribution = collection === "distribution";
   const approval = collection === "approval";
 
@@ -119,19 +119,19 @@ const createDummy = (
     const day = span === "day";
     const max = day ? 7 : 6;
 
-    activity.self = dummy.num(99, 999);
-    activity.others = dummy.num(99, 999);
+    analytics.self = dummy.num(99, 999);
+    analytics.others = dummy.num(99, 999);
 
     for (let i = 0; i < max; i++) {
       const { label } = timestamp(i, span);
 
-      const log: Activity["log"][number] = {
+      const log: Analytics["log"][number] = {
         label: label,
         self: dummy.num(99),
         others: dummy.num(99),
       };
 
-      activity.log.push(log);
+      analytics.log.push(log);
     }
   } else {
     const labels = distribution
@@ -139,21 +139,21 @@ const createDummy = (
       : ["当日中", "翌営業日1日以内", "翌営業日3日以内", "不明"];
 
     for (const label of labels) {
-      const log: Activity["log"][number] = {
+      const log: Analytics["log"][number] = {
         label: label,
         self: dummy.num(99),
         others: dummy.num(99),
       };
 
-      activity.log.push(log);
+      analytics.log.push(log);
     }
   }
 
-  return activity;
+  return analytics;
 };
 
 const fetchLog = async (
-  activity: Activity,
+  analytics: Analytics,
   collection: Collection,
   data: Data
 ): Promise<void> => {
@@ -180,13 +180,13 @@ const fetchLog = async (
 
         const self = querySnapshot ? querySnapshot.docs.length : 0;
 
-        const log: Activity["log"][number] = {
+        const log: Analytics["log"][number] = {
           label,
           self,
           others: undefined,
         };
 
-        activity.log.push(log);
+        analytics.log.push(log);
 
         continue;
       }
@@ -212,13 +212,13 @@ const fetchLog = async (
           ? querySnapshot.others.docs.length
           : 0;
 
-        const log: Activity["log"][number] = {
+        const log: Analytics["log"][number] = {
           label: label,
           self,
           others,
         };
 
-        activity.log.push(log);
+        analytics.log.push(log);
 
         continue;
       }
@@ -227,7 +227,7 @@ const fetchLog = async (
 };
 
 const fetchTotal = async (
-  activity: Activity,
+  analytics: Analytics,
   collection: Collection,
   data: Data
 ): Promise<void> => {
@@ -252,7 +252,7 @@ const fetchTotal = async (
     if (!distribution && !approval) {
       const count = querySnapshot.docs.length;
 
-      activity[sort] = count;
+      analytics[sort] = count;
     } else {
       const labels = distribution
         ? ["プライム", "二次請け", "三次請け", "営業支援", "その他"]
@@ -276,13 +276,13 @@ const fetchTotal = async (
             (objectID): objectID is string => objectID !== undefined
           )?.length;
 
-        const log: Activity["log"][number] = {
+        const log: Analytics["log"][number] = {
           label,
           self,
           others: undefined,
         };
 
-        activity.log.push(log);
+        analytics.log.push(log);
       }
     }
   }

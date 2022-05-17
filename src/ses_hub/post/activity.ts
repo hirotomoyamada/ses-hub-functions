@@ -40,7 +40,7 @@ type User = {
   display: string;
 };
 
-export const fetchPostActivity = functions
+export const fetchActivity = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
@@ -145,7 +145,7 @@ export const fetchPostActivity = functions
 
     await log({
       auth: { collection: "companys", doc: context.auth?.uid },
-      run: "fetchPostActivity",
+      run: "fetchActivity",
       index: data.index,
       code: 200,
       objectID: data.post.objectID,

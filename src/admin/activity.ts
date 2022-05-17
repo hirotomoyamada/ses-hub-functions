@@ -48,6 +48,7 @@ type Activity = {
     log: {
       label: string;
       active: number;
+      ratio?: number;
     }[];
   };
 };
@@ -433,6 +434,8 @@ const fetchTotal = {
 
       activity.active = count;
     } else {
+      const total = querySnapshot.docs.length;
+
       querySnapshot.forEach((doc) => {
         const data = doc.data()[collection];
 
@@ -455,6 +458,10 @@ const fetchTotal = {
         } else {
           activity.log[index].active += 1;
         }
+      });
+
+      activity.log.forEach((log, i) => {
+        activity.log[i] = { ...log, ratio: log.active / total };
       });
 
       activity.log.sort((a, b) => {

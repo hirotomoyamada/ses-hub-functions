@@ -93,6 +93,8 @@ export const userAuthenticated = async ({
               "cancelled",
               "オプション未加入のアカウントのため、実行できません"
             );
+
+          break;
         }
 
         default:

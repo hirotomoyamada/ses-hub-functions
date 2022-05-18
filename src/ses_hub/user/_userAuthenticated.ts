@@ -11,7 +11,7 @@ interface UserAuthenticated {
   parent?: boolean;
   child?: boolean;
   fetch?: boolean;
-  option?: boolean;
+  option?: string;
   index?: string;
 }
 export const userAuthenticated = async ({
@@ -24,6 +24,7 @@ export const userAuthenticated = async ({
   child,
   fetch,
   index,
+  option,
 }: UserAuthenticated): Promise<boolean> => {
   if (context?.auth) {
     const doc = await db
@@ -83,6 +84,23 @@ export const userAuthenticated = async ({
           "cancelled",
           "オプション未加入のアカウントのため、実行できません"
         );
+
+    if (option)
+      switch (option) {
+        case "analytics": {
+          if (type === "individual" && !payment.option?.analytics)
+            throw new functions.https.HttpsError(
+              "cancelled",
+              "オプション未加入のアカウントのため、実行できません"
+            );
+        }
+
+        default:
+          throw new functions.https.HttpsError(
+            "internal",
+            "エラーが発生したため、実行できません"
+          );
+      }
 
     if (canceled)
       if (payment.status === "canceled")

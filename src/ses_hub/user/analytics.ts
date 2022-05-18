@@ -45,6 +45,7 @@ export const fetchAnalytics = functions
       context,
       canceled: true,
       child: true,
+      option: "analytics",
     });
 
     const demo = checkDemo(context);

@@ -3,7 +3,7 @@ import { converter, db, location, runtime } from "../../_firebase";
 import * as Firestore from "../../types/firestore";
 import * as Algolia from "../../types/algolia";
 import { dummy, log, time } from "../../_utils";
-import { postAuthenticated } from "./_postAuthenticated";
+import { userAuthenticated } from "./_userAuthenticated";
 
 type Data = {
   index: "matters" | "resources";
@@ -44,7 +44,7 @@ export const fetchActivity = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await postAuthenticated({
+    const status = await userAuthenticated({
       context,
       canceled: true,
     });
@@ -75,64 +75,82 @@ export const fetchActivity = functions
     };
 
     if (!demo) {
-      for (const key of Object.keys(activity)) {
-        if (key === "total" || key === "today") {
-          for (const collection of Object.keys(activity[key])) {
-            const querySnapshot = await fetchCollectionGroup(
-              collection,
-              data,
-              key
+      await Promise.allSettled(
+        Object.keys(activity).map(async (key) => {
+          if (key === "total" || key === "today") {
+            await Promise.allSettled(
+              Object.keys(activity[key]).map(async (collection) => {
+                if (!status && collection !== "histories") return;
+
+                const querySnapshot = await fetchCollectionGroup(
+                  collection,
+                  data,
+                  key
+                );
+
+                if (!querySnapshot) return;
+
+                const count = querySnapshot.docs.length;
+
+                activity[key][
+                  collection as
+                    | keyof Activity["today"]
+                    | keyof Activity["total"]
+                ] = count;
+              })
             );
-
-            if (!querySnapshot) continue;
-
-            const count = querySnapshot.docs.length;
-
-            activity[key][
-              collection as keyof Activity["today"] | keyof Activity["total"]
-            ] = count;
-          }
-        }
-
-        if (key === "log") {
-          for await (const collection of ["likes", "outputs", "entries"]) {
-            const querySnapshot = await fetchCollectionGroup(
-              collection,
-              data,
-              key
-            );
-
-            if (!querySnapshot) continue;
-
-            for await (const doc of querySnapshot.docs.slice(0, 10)) {
-              const ref = doc.ref.parent.parent;
-
-              if (!ref) continue;
-
-              const user = await fetchUser(ref, context).catch(() => {});
-
-              if (!user) continue;
-
-              const { index, uid, icon, display } = user;
-              const type = collection as "likes" | "outputs" | "entries";
-              const createAt = doc.data().createAt;
-
-              const log: Activity["log"][number] = {
-                index: index,
-                uid: uid,
-                icon: icon,
-                display: display,
-                type: type,
-                createAt: createAt,
-              };
-
-              activity[key].push(log);
-            }
           }
 
-          activity[key] = activity[key].sort((a, b) => b.createAt - a.createAt);
-        }
-      }
+          if (key === "log") {
+            if (!status) return;
+
+            const collections = ["likes", "outputs", "entries"];
+
+            await Promise.allSettled(
+              collections.map(async (collection) => {
+                const querySnapshot = await fetchCollectionGroup(
+                  collection,
+                  data,
+                  key
+                );
+
+                if (!querySnapshot) return;
+
+                await Promise.allSettled(
+                  querySnapshot.docs.slice(0, 10).map(async (doc) => {
+                    const ref = doc.ref.parent.parent;
+
+                    if (!ref) return;
+
+                    const user = await fetchUser(ref, context).catch(() => {});
+
+                    if (!user) return;
+
+                    const { index, uid, icon, display } = user;
+                    const type = collection as "likes" | "outputs" | "entries";
+                    const createAt = doc.data().createAt;
+
+                    const log: Activity["log"][number] = {
+                      index: index,
+                      uid: uid,
+                      icon: icon,
+                      display: display,
+                      type: type,
+                      createAt: createAt,
+                    };
+
+                    activity[key].push(log);
+                  })
+                );
+              })
+            );
+
+            activity[key] = activity[key].sort(
+              (a, b) => b.createAt - a.createAt
+            );
+          }
+        })
+      );
     } else {
       for (let i = 0; i < 30; i++) {
         const log = createDummy();

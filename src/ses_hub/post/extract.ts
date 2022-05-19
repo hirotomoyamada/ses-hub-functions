@@ -192,12 +192,6 @@ const fetchFirestore = async (
             ) {
               posts[i] = undefined;
             } else {
-              const { likes, outputs, entries } = await fetchActivity.post(
-                context,
-                index,
-                post
-              );
-
               post.user = {
                 uid: doc.id,
                 icon: data?.icon,
@@ -215,9 +209,18 @@ const fetchFirestore = async (
                   social: !demo && status ? data?.profile.social : undefined,
                 },
               };
-              post.likes = likes;
-              post.outputs = outputs;
-              post.entries = entries;
+
+              if (status) {
+                const { likes, outputs, entries } = await fetchActivity.post(
+                  context,
+                  index,
+                  post
+                );
+
+                post.likes = likes;
+                post.outputs = outputs;
+                post.entries = entries;
+              }
             }
           }
           break;

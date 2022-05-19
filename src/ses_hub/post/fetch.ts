@@ -370,15 +370,17 @@ const fetchFirestore = {
       },
     };
 
-    const { likes, outputs, entries } = await fetchActivity.post(
-      context,
-      index,
-      post
-    );
+    if (status) {
+      const { likes, outputs, entries } = await fetchActivity.post(
+        context,
+        index,
+        post
+      );
 
-    post.likes = likes;
-    post.outputs = outputs;
-    post.entries = entries;
+      post.likes = likes;
+      post.outputs = outputs;
+      post.entries = entries;
+    }
   },
 
   search: async (
@@ -437,12 +439,6 @@ const fetchFirestore = {
               ) {
                 posts[i] = undefined;
               } else {
-                const { likes, outputs, entries } = await fetchActivity.post(
-                  context,
-                  index,
-                  post
-                );
-
                 post.user = {
                   uid: doc.id,
                   icon: data?.icon,
@@ -461,9 +457,17 @@ const fetchFirestore = {
                   },
                 };
 
-                post.likes = likes;
-                post.outputs = outputs;
-                post.entries = entries;
+                if (status) {
+                  const { likes, outputs, entries } = await fetchActivity.post(
+                    context,
+                    index,
+                    post
+                  );
+
+                  post.likes = likes;
+                  post.outputs = outputs;
+                  post.entries = entries;
+                }
               }
             }
             break;

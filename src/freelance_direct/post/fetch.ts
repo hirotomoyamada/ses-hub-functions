@@ -235,28 +235,26 @@ const fetchFirestore = {
         );
       });
 
-    if (doc.exists) {
-      if (!post) return;
+    if (!doc.exists || !post) return;
 
-      const data = doc.data();
+    const data = doc.data();
 
-      const { likes } = await fetchActivity(context, "matters", post);
+    const { likes } = await fetchActivity(context, "matters", post);
 
-      post.likes = likes;
+    post.likes = likes;
 
-      if (
-        data?.payment.status === "canceled" ||
-        !data?.payment.option?.freelanceDirect
-      ) {
-        post.uid = "";
-        post.costs.display = "private";
-        post.costs.type = "応談";
-        post.costs.min = 0;
-        post.costs.max = 0;
-        post.user = fetch.company.office(demo);
-      } else {
-        post.user = fetch.company.supplementary(doc, demo);
-      }
+    if (
+      data?.payment.status === "canceled" ||
+      !data?.payment.option?.freelanceDirect
+    ) {
+      post.uid = "";
+      post.costs.display = "private";
+      post.costs.type = "応談";
+      post.costs.min = 0;
+      post.costs.max = 0;
+      post.user = fetch.company.office(demo);
+    } else {
+      post.user = fetch.company.supplementary(doc, demo);
     }
 
     return;
@@ -267,66 +265,70 @@ const fetchFirestore = {
     index: Data["index"],
     posts: Algolia.Matter[] | (Algolia.CompanyItem | undefined)[]
   ): Promise<void> => {
-    for (const [i, post] of posts.entries()) {
-      if (!post) continue;
+    await Promise.allSettled(
+      posts.map(async (_, i) => {
+        const post = posts[i];
 
-      const doc = await db
-        .collection("companys")
-        .doc(post.uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
-          );
-        });
+        if (!post) return;
 
-      if (doc.exists) {
-        const data = doc.data();
+        const doc = await db
+          .collection("companys")
+          .doc(post.uid)
+          .get()
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "not-found",
+              "ユーザーの取得に失敗しました",
+              "firebase"
+            );
+          });
 
-        switch (index) {
-          case "matters": {
-            if (!("objectID" in post)) return;
+        if (doc.exists) {
+          const data = doc.data();
 
-            const { likes } = await fetchActivity(context, index, post);
+          switch (index) {
+            case "matters": {
+              if (!("objectID" in post)) return;
 
-            post.likes = likes;
+              const { likes } = await fetchActivity(context, index, post);
 
-            if (
-              data?.payment.status === "canceled" ||
-              !data?.payment.option?.freelanceDirect
-            ) {
-              post.costs.display = "private";
-              post.costs.type = "応談";
-              post.costs.min = 0;
-              post.costs.max = 0;
+              post.likes = likes;
+
+              if (
+                data?.payment.status === "canceled" ||
+                !data?.payment.option?.freelanceDirect
+              ) {
+                post.costs.display = "private";
+                post.costs.type = "応談";
+                post.costs.min = 0;
+                post.costs.max = 0;
+              }
+
+              break;
             }
 
-            break;
-          }
+            case "companys": {
+              if (!("profile" in post)) return;
 
-          case "companys": {
-            if (!("profile" in post)) return;
+              if (
+                data?.payment.status !== "canceled" &&
+                data?.payment.option?.freelanceDirect
+              ) {
+                post.icon = data?.icon;
+                post.type = data?.type;
+              } else {
+                posts[i] = undefined;
+              }
 
-            if (
-              data?.payment.status !== "canceled" &&
-              data?.payment.option?.freelanceDirect
-            ) {
-              post.icon = data?.icon;
-              post.type = data?.type;
-            } else {
-              posts[i] = undefined;
+              break;
             }
 
-            break;
+            default:
+              break;
           }
-
-          default:
-            break;
         }
-      }
-    }
+      })
+    );
 
     return;
   },
@@ -346,18 +348,20 @@ const fetchActivity = async (
   };
 
   if (!demo)
-    for (const collection of Object.keys(collections)) {
-      const { docs } = await db
-        .collectionGroup(collection)
-        .withConverter(converter<Firestore.Post>())
-        .where("index", "==", index)
-        .where("objectID", "==", post.objectID)
-        .where("active", "==", true)
-        .orderBy("createAt", "desc")
-        .get();
+    await Promise.allSettled(
+      Object.keys(collections).map(async (collection) => {
+        const { docs } = await db
+          .collectionGroup(collection)
+          .withConverter(converter<Firestore.Post>())
+          .where("index", "==", index)
+          .where("objectID", "==", post.objectID)
+          .where("active", "==", true)
+          .orderBy("createAt", "desc")
+          .get();
 
-      collections[collection as keyof Collections] = docs.length;
-    }
+        collections[collection as keyof Collections] = docs.length;
+      })
+    );
 
   return { ...collections };
 };

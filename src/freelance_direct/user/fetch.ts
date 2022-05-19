@@ -73,21 +73,21 @@ const fetchFirestore = async (
       );
     });
 
-  if (doc.exists) {
-    if (
-      doc.data()?.payment.status === "canceled" ||
-      !doc.data()?.payment.option?.freelanceDirect
-    ) {
-      throw new functions.https.HttpsError(
-        "cancelled",
-        "ユーザーの取得に失敗しました",
-        "firebase"
-      );
-    } else {
-      user.icon = doc.data()?.icon;
-      user.cover = doc.data()?.cover;
-      user.type = doc.data()?.type;
-    }
+  if (!doc.exists) return;
+
+  if (
+    doc.data()?.payment.status === "canceled" ||
+    !doc.data()?.payment.option?.freelanceDirect
+  ) {
+    throw new functions.https.HttpsError(
+      "cancelled",
+      "ユーザーの取得に失敗しました",
+      "firebase"
+    );
+  } else {
+    user.icon = doc.data()?.icon;
+    user.cover = doc.data()?.cover;
+    user.type = doc.data()?.type;
   }
 };
 

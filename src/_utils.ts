@@ -100,19 +100,22 @@ export type Time = (t: "day" | "week" | "month") => {
 };
 
 export const time: Time = (t = "day") => {
+  const location = new Date().toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+  });
   const timeZone = 60 * 60 * 9 * 1000;
 
-  const end = new Date().setHours(23, 59, 59, 999) - timeZone;
+  const end = new Date(location).setHours(23, 59, 59, 999) - timeZone;
 
   switch (t) {
     case "month": {
       const start =
-        new Date(new Date().setDate(1)).setHours(0, 0, 0, 0) - timeZone;
+        new Date(new Date(location).setDate(1)).setHours(0, 0, 0, 0) - timeZone;
 
       return { start, end };
     }
     case "week": {
-      let timestamp = new Date();
+      let timestamp = new Date(location);
 
       while (true) {
         if (timestamp.getDay() == 1) break;
@@ -128,7 +131,7 @@ export const time: Time = (t = "day") => {
       return { start, end };
     }
     default: {
-      const start = new Date().setHours(0, 0, 0, 0) - timeZone;
+      const start = new Date(location).setHours(0, 0, 0, 0) - timeZone;
 
       return { start, end };
     }

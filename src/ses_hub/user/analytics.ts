@@ -61,40 +61,44 @@ export const fetchAnalytics = functions
       { collection: "approval", label: "稟議速度" },
     ];
 
-    const activities: Analytics[] = [];
+    const analysis: Analytics[] = [];
 
     if (!demo) {
-      for (const { collection, label } of collections) {
-        const analytics: Analytics = {
-          active: true,
-          key: collection,
-          label: label,
-          self: undefined,
-          others: undefined,
-          log: [],
-        };
+      await Promise.allSettled(
+        collections.map(async ({ collection, label }) => {
+          const analytics: Analytics = {
+            active: true,
+            key: collection,
+            label: label,
+            self: undefined,
+            others: undefined,
+            log: [],
+          };
 
-        await fetchTotal(analytics, collection, data);
+          await fetchTotal(analytics, collection, data);
 
-        await fetchLog(analytics, collection, data);
+          await fetchLog(analytics, collection, data);
 
-        activities.push(analytics);
-      }
+          analysis.push(analytics);
+        })
+      );
     } else {
-      for (const { collection, label } of collections) {
-        const analytics: Analytics = {
-          active: true,
-          key: collection,
-          label,
-          self: undefined,
-          others: undefined,
-          log: [],
-        };
+      await Promise.allSettled(
+        collections.map(async ({ collection, label }) => {
+          const analytics: Analytics = {
+            active: true,
+            key: collection,
+            label,
+            self: undefined,
+            others: undefined,
+            log: [],
+          };
 
-        createDummy(analytics, collection, data);
+          createDummy(analytics, collection, data);
 
-        activities.push(analytics);
-      }
+          analysis.push(analytics);
+        })
+      );
     }
 
     await log({
@@ -104,7 +108,7 @@ export const fetchAnalytics = functions
       uid: data.uid,
     });
 
-    return activities;
+    return analysis;
   });
 
 const createDummy = (
@@ -238,55 +242,57 @@ const fetchTotal = async (
 
   const sorts: Sort[] = ["self", "others"];
 
-  for (const sort of sorts) {
-    if (sort === "others") if (posts || distribution || approval) continue;
+  await Promise.allSettled(
+    sorts.map(async (sort) => {
+      if (sort === "others") if (posts || distribution || approval) return;
 
-    const querySnapshot = await fetchCollectionGroup({
-      collection,
-      sort,
-      uid: data.uid,
-      span: data.span,
-    });
+      const querySnapshot = await fetchCollectionGroup({
+        collection,
+        sort,
+        uid: data.uid,
+        span: data.span,
+      });
 
-    if (!querySnapshot) continue;
+      if (!querySnapshot) return;
 
-    if (!distribution && !approval) {
-      const count = querySnapshot.docs.length;
+      if (!distribution && !approval) {
+        const count = querySnapshot.docs.length;
 
-      analytics[sort] = count;
-    } else {
-      const labels = distribution
-        ? ["プライム", "二次請け", "三次請け", "営業支援", "その他"]
-        : ["当日中", "翌営業日1日以内", "翌営業日3日以内", "不明"];
+        analytics[sort] = count;
+      } else {
+        const labels = distribution
+          ? ["プライム", "二次請け", "三次請け", "営業支援", "その他"]
+          : ["当日中", "翌営業日1日以内", "翌営業日3日以内", "不明"];
 
-      for (const label of labels) {
-        const self = querySnapshot.docs
-          .map((doc) => {
-            const data = doc.data();
+        for (const label of labels) {
+          const self = querySnapshot.docs
+            .map((doc) => {
+              const data = doc.data();
 
-            if (!("objectID" in data)) return;
+              if (!("objectID" in data)) return;
 
-            return label ===
-              (collection === "distribution"
-                ? data.distribution
-                : data.approval)
-              ? data.objectID
-              : undefined;
-          })
-          ?.filter(
-            (objectID): objectID is string => objectID !== undefined
-          )?.length;
+              return label ===
+                (collection === "distribution"
+                  ? data.distribution
+                  : data.approval)
+                ? data.objectID
+                : undefined;
+            })
+            ?.filter(
+              (objectID): objectID is string => objectID !== undefined
+            )?.length;
 
-        const log: Analytics["log"][number] = {
-          label,
-          self,
-          others: undefined,
-        };
+          const log: Analytics["log"][number] = {
+            label,
+            self,
+            others: undefined,
+          };
 
-        analytics.log.push(log);
+          analytics.log.push(log);
+        }
       }
-    }
-  }
+    })
+  );
 };
 
 const fetchCollectionGroup = async ({
@@ -505,11 +511,14 @@ const fetchCollectionGroup = async ({
 };
 
 const timestamp = (i: number, span: Data["span"]): Timestamp => {
+  const location = new Date().toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+  });
   const timeZone = 60 * 60 * 9 * 1000;
 
   switch (span) {
     case "day": {
-      const date = new Date(new Date().setHours(0, 0, 0, 0));
+      const date = new Date(new Date(location).setHours(0, 0, 0, 0));
       const start = new Date(date.setDate(date.getDate() - i));
       const end = new Date(date.setHours(23, 59, 59, 999));
 
@@ -533,12 +542,9 @@ const timestamp = (i: number, span: Data["span"]): Timestamp => {
 
     case "week": {
       const date = new Date(
-        new Date(new Date().setDate(new Date().getDate() - i * 7)).setHours(
-          0,
-          0,
-          0,
-          0
-        )
+        new Date(
+          new Date(location).setDate(new Date(location).getDate() - i * 7)
+        ).setHours(0, 0, 0, 0)
       );
       const start = new Date(
         date.setDate(
@@ -569,7 +575,7 @@ const timestamp = (i: number, span: Data["span"]): Timestamp => {
 
     default: {
       const date = new Date(
-        new Date(new Date().setDate(1)).setHours(0, 0, 0, 0)
+        new Date(new Date(location).setDate(1)).setHours(0, 0, 0, 0)
       );
       const start = new Date(date.setMonth(date.getMonth() - i));
       const end = new Date(

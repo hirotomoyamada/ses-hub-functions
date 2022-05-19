@@ -148,14 +148,14 @@ const createFirestore = async (
       );
     });
 
-  !doc.exists &&
-    (await doc.ref.set(child).catch(() => {
+  if (!doc.exists)
+    await doc.ref.set(child).catch(() => {
       throw new functions.https.HttpsError(
         "data-loss",
         "プロフィールの更新に失敗しました",
         "firebase"
       );
-    }));
+    });
 
   return {
     uid: context.auth?.uid,

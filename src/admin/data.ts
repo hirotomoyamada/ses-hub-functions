@@ -13,21 +13,24 @@ export const editData = functions
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated(context);
 
-    for (const type of Object.keys(data)) {
-      if (type !== "index") {
-        const doc = await db
-          .collection(data.index === "companys" ? "seshub" : "freelanceDirect")
-          .doc(type)
-          .get()
-          .catch(() => {
-            throw new functions.https.HttpsError(
-              "not-found",
-              "データの取得に失敗しました",
-              "firebase"
-            );
-          });
+    await Promise.allSettled(
+      Object.keys(data).map(async (type) => {
+        if (type !== "index") {
+          const doc = await db
+            .collection(
+              data.index === "companys" ? "seshub" : "freelanceDirect"
+            )
+            .doc(type)
+            .get()
+            .catch(() => {
+              throw new functions.https.HttpsError(
+                "not-found",
+                "データの取得に失敗しました",
+                "firebase"
+              );
+            });
 
-        if (doc.exists) {
+          if (!doc.exists) return;
           data[
             <
               keyof Pick<
@@ -57,8 +60,8 @@ export const editData = functions
               );
             });
         }
-      }
-    }
+      })
+    );
 
     return data;
   });

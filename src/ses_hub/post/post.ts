@@ -103,18 +103,20 @@ export const sendPost = functions
       );
     }
 
-    for await (const index of ["companys", "persons"]) {
-      if (index === "persons" && data.index === "resources") {
-        continue;
-      }
+    await Promise.all(
+      ["companys", "persons"].map(async (index) => {
+        if (index === "persons" && data.index === "resources") {
+          return;
+        }
 
-      await sendMail(index, data, post);
+        await sendMail(index, data, post);
 
-      // ver 2.X.X 削除予定
-      if (index === "persons") {
-        await sendTweet(index, data, post);
-      }
-    }
+        // ver 2.X.X 削除予定
+        if (index === "persons") {
+          await sendTweet(index, data, post);
+        }
+      })
+    );
 
     await log({
       auth: { collection: "companys", doc: context.auth?.uid },
@@ -334,30 +336,32 @@ const updateFirestore = async ({
 const updateCollectionGroup = async (data: Data) => {
   const collections = ["likes", "outputs", "entries", "histories"];
 
-  for await (const collection of collections) {
-    const querySnapshot = await db
-      .collectionGroup(collection)
-      .withConverter(converter<Firestore.Post>())
-      .where("index", "==", data.index)
-      .where("objectID", "==", data.post.objectID)
-      .orderBy("createAt", "desc")
-      .get()
-      .catch(() => {});
+  await Promise.allSettled(
+    collections.map(async (collection) => {
+      const querySnapshot = await db
+        .collectionGroup(collection)
+        .withConverter(converter<Firestore.Post>())
+        .where("index", "==", data.index)
+        .where("objectID", "==", data.post.objectID)
+        .orderBy("createAt", "desc")
+        .get()
+        .catch(() => {});
 
-    const timestamp = Date.now();
+      const timestamp = Date.now();
 
-    if (!querySnapshot) {
-      return;
-    }
-
-    querySnapshot?.forEach(async (doc) => {
-      if (doc) {
-        await doc.ref
-          .set({ active: false, updateAt: timestamp }, { merge: true })
-          .catch(() => {});
+      if (!querySnapshot) {
+        return;
       }
-    });
-  }
+
+      querySnapshot?.forEach(async (doc) => {
+        if (doc) {
+          await doc.ref
+            .set({ active: false, updateAt: timestamp }, { merge: true })
+            .catch(() => {});
+        }
+      });
+    })
+  );
 };
 
 const sendMail = async (

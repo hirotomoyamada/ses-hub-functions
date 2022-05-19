@@ -100,71 +100,73 @@ const updateFirestore = async (
 
   const timestamp = Date.now();
 
-  for await (const index of ["persons", "companys"]) {
-    const person = index === "persons";
+  await Promise.allSettled(
+    ["persons", "companys"].map(async (index) => {
+      const person = index === "persons";
 
-    const ref = db
-      .collection(index)
-      .doc(person ? selectUser.uid : user.uid)
-      .withConverter(converter<Firestore.Company | Firestore.Person>());
+      const ref = db
+        .collection(index)
+        .doc(person ? selectUser.uid : user.uid)
+        .withConverter(converter<Firestore.Company | Firestore.Person>());
 
-    const doc = await ref.get().catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "データの取得に失敗しました",
-        "firebase"
-      );
-    });
-
-    const subCollection = ref
-      .collection(person ? "requests" : "entries")
-      .withConverter(converter<Firestore.User>());
-
-    const querySnapshot = await subCollection
-      .where("uid", "==", person ? user.uid : selectUser.uid)
-      .get()
-      .catch(() => {
+      const doc = await ref.get().catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
-          "コレクションの取得に失敗しました",
+          "データの取得に失敗しました",
           "firebase"
         );
       });
 
-    if (!querySnapshot.docs[0]) {
-      const data = doc.data();
+      const subCollection = ref
+        .collection(person ? "requests" : "entries")
+        .withConverter(converter<Firestore.User>());
 
-      const type = data && "payment" in data ? data.type : null;
-      const payment = data && "payment" in data ? data.payment.status : null;
-
-      await subCollection
-        .add({
-          index: person ? "companys" : "persons",
-          uid: person ? user.uid : selectUser.uid,
-          status: "hold",
-          active: true,
-          type,
-          payment,
-          createAt: timestamp,
-          updateAt: timestamp,
-        })
+      const querySnapshot = await subCollection
+        .where("uid", "==", person ? user.uid : selectUser.uid)
+        .get()
         .catch(() => {
           throw new functions.https.HttpsError(
-            "data-loss",
-            "データの追加に失敗しました",
+            "not-found",
+            "コレクションの取得に失敗しました",
             "firebase"
           );
         });
-    } else {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "すでにリクエスト済みのため、処理中止",
-        "firebase"
-      );
-    }
 
-    Object.assign(person ? selectUser : user, doc.data());
-  }
+      if (!querySnapshot.docs[0]) {
+        const data = doc.data();
+
+        const type = data && "payment" in data ? data.type : null;
+        const payment = data && "payment" in data ? data.payment.status : null;
+
+        await subCollection
+          .add({
+            index: person ? "companys" : "persons",
+            uid: person ? user.uid : selectUser.uid,
+            status: "hold",
+            active: true,
+            type,
+            payment,
+            createAt: timestamp,
+            updateAt: timestamp,
+          })
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "data-loss",
+              "データの追加に失敗しました",
+              "firebase"
+            );
+          });
+      } else {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "すでにリクエスト済みのため、処理中止",
+          "firebase"
+        );
+      }
+
+      Object.assign(person ? selectUser : user, doc.data());
+    })
+  );
 
   return {
     user: user as Firestore.Company,

@@ -114,18 +114,20 @@ const fetchActivity = async (
   };
 
   if (!demo)
-    for (const collection of Object.keys(collections)) {
-      const { docs } = await db
-        .collectionGroup(collection)
-        .withConverter(converter<Firestore.Post>())
-        .where("index", "==", index)
-        .where("objectID", "==", post.objectID)
-        .where("active", "==", true)
-        .orderBy("createAt", "desc")
-        .get();
+    await Promise.allSettled(
+      Object.keys(collections).map(async (collection) => {
+        const { docs } = await db
+          .collectionGroup(collection)
+          .withConverter(converter<Firestore.Post>())
+          .where("index", "==", index)
+          .where("objectID", "==", post.objectID)
+          .where("active", "==", true)
+          .orderBy("createAt", "desc")
+          .get();
 
-      collections[collection as keyof Collections] = docs.length;
-    }
+        collections[collection as keyof Collections] = docs.length;
+      })
+    );
 
   return { ...collections };
 };

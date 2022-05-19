@@ -123,67 +123,74 @@ const fetchFiretore = async (
   demo: boolean,
   status: boolean
 ): Promise<void> => {
-  for (const [i, post] of posts.entries()) {
-    if (!post) continue;
+  await Promise.allSettled(
+    posts.map(async (_, i) => {
+      const post = posts[i];
 
-    const doc = await db
-      .collection("companys")
-      .withConverter(converter<Firestore.Company>())
-      .doc(post.uid)
-      .get()
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "ユーザーの取得に失敗しました",
-          "firebase"
-        );
-      });
+      if (!post) return;
 
-    if (doc.exists) {
-      const data = doc.data();
+      const doc = await db
+        .collection("companys")
+        .withConverter(converter<Firestore.Company>())
+        .doc(post.uid)
+        .get()
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "not-found",
+            "ユーザーの取得に失敗しました",
+            "firebase"
+          );
+        });
 
-      if (data?.type !== "individual" && data?.payment.status === "canceled") {
-        posts[i] = undefined;
-      } else {
-        const { likes, outputs, entries } = await fetchActivity(
-          context,
-          index,
-          post
-        );
+      if (doc.exists) {
+        const data = doc.data();
 
-        post.user = {
-          type: data?.type,
-          profile: {
-            name: !demo ? data?.profile.name : dummy.name(),
-            person: !demo ? data?.profile.person : dummy.person(),
-          },
-        };
+        if (
+          data?.type !== "individual" &&
+          data?.payment.status === "canceled"
+        ) {
+          posts[i] = undefined;
+        } else {
+          const { likes, outputs, entries } = await fetchActivity(
+            context,
+            index,
+            post
+          );
 
-        post.user = {
-          uid: doc.id,
-          icon: data?.icon,
-          type: data?.type,
-          status: data?.payment.status,
-          profile: {
-            name: !demo ? data?.profile.name : dummy.name(),
-            person: !demo
-              ? data?.profile.person
+          post.user = {
+            type: data?.type,
+            profile: {
+              name: !demo ? data?.profile.name : dummy.name(),
+              person: !demo ? data?.profile.person : dummy.person(),
+            },
+          };
+
+          post.user = {
+            uid: doc.id,
+            icon: data?.icon,
+            type: data?.type,
+            status: data?.payment.status,
+            profile: {
+              name: !demo ? data?.profile.name : dummy.name(),
+              person: !demo
                 ? data?.profile.person
-                : "名無しさん"
-              : dummy.person(),
-            body: data?.profile.body,
-            email: !demo ? data?.profile.email : undefined,
-            social: !demo && status ? data?.profile.social : undefined,
-          },
-        };
-        post.likes = likes;
-        post.outputs = outputs;
-        post.entries = entries;
+                  ? data?.profile.person
+                  : "名無しさん"
+                : dummy.person(),
+              body: data?.profile.body,
+              email: !demo ? data?.profile.email : undefined,
+              social: !demo && status ? data?.profile.social : undefined,
+            },
+          };
+          post.likes = likes;
+          post.outputs = outputs;
+          post.entries = entries;
+        }
+      } else {
+        posts[i] = undefined;
       }
-    } else {
-      posts[i] = undefined;
-    }
-  }
+    })
+  );
 };
 
 const fetchActivity = async (
@@ -202,18 +209,20 @@ const fetchActivity = async (
   };
 
   if (!demo)
-    for (const collection of Object.keys(collections)) {
-      const { docs } = await db
-        .collectionGroup(collection)
-        .withConverter(converter<Firestore.Post>())
-        .where("index", "==", index)
-        .where("objectID", "==", post.objectID)
-        .where("active", "==", true)
-        .orderBy("createAt", "desc")
-        .get();
+    await Promise.allSettled(
+      Object.keys(collections).map(async (collection) => {
+        const { docs } = await db
+          .collectionGroup(collection)
+          .withConverter(converter<Firestore.Post>())
+          .where("index", "==", index)
+          .where("objectID", "==", post.objectID)
+          .where("active", "==", true)
+          .orderBy("createAt", "desc")
+          .get();
 
-      collections[collection as keyof Collections] = docs.length;
-    }
+        collections[collection as keyof Collections] = docs.length;
+      })
+    );
 
   return { ...collections };
 };

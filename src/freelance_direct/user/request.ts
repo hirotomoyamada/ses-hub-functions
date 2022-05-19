@@ -105,83 +105,85 @@ const updateFirestore = async ({
 
   const timestamp = Date.now();
 
-  for await (const index of ["persons", "companys"]) {
-    const person = index === "persons";
+  await Promise.allSettled(
+    ["persons", "companys"].map(async (index) => {
+      const person = index === "persons";
 
-    const collection = db
-      .collection(index)
-      .doc(person ? user.uid : selectUser.uid)
-      .withConverter(converter<Firestore.Company | Firestore.Person>());
+      const collection = db
+        .collection(index)
+        .doc(person ? user.uid : selectUser.uid)
+        .withConverter(converter<Firestore.Company | Firestore.Person>());
 
-    const subCollection = collection
-      .collection(person ? "requests" : "entries")
-      .withConverter(converter<Firestore.User>());
+      const subCollection = collection
+        .collection(person ? "requests" : "entries")
+        .withConverter(converter<Firestore.User>());
 
-    const querySnapshot = await subCollection
-      .where("uid", "==", person ? selectUser.uid : user.uid)
-      .get()
-      .catch(() => {
+      const querySnapshot = await subCollection
+        .where("uid", "==", person ? selectUser.uid : user.uid)
+        .get()
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "not-found",
+            "コレクションの取得に失敗しました",
+            "firebase"
+          );
+        });
+
+      if (querySnapshot.docs[0]) {
+        const doc = querySnapshot.docs[0];
+
+        await doc.ref
+          .set(
+            {
+              uid: person ? user.uid : selectUser.uid,
+              status: status,
+              updateAt: timestamp,
+            },
+            { merge: true }
+          )
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "data-loss",
+              "データの追加に失敗しました",
+              "firebase"
+            );
+          });
+      } else {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "リクエストが存在していません",
+          "firebase"
+        );
+      }
+
+      const doc = await collection.get().catch(() => {
         throw new functions.https.HttpsError(
           "not-found",
-          "コレクションの取得に失敗しました",
+          "データの取得に失敗しました",
           "firebase"
         );
       });
 
-    if (querySnapshot.docs[0]) {
-      const doc = querySnapshot.docs[0];
+      if (!person) {
+        const data = doc.data();
 
-      await doc.ref
-        .set(
-          {
-            uid: person ? user.uid : selectUser.uid,
-            status: status,
-            updateAt: timestamp,
-          },
-          { merge: true }
-        )
-        .catch(() => {
+        if (
+          data &&
+          "payment" in data &&
+          (data.payment.status === "canceled" ||
+            !data.payment.option?.freelanceDirect)
+        ) {
           throw new functions.https.HttpsError(
-            "data-loss",
-            "データの追加に失敗しました",
+            "cancelled",
+            "相手がオプション未加入のユーザーのためリクエストが承認できません",
             "firebase"
           );
-        });
-    } else {
-      throw new functions.https.HttpsError(
-        "data-loss",
-        "リクエストが存在していません",
-        "firebase"
-      );
-    }
-
-    const doc = await collection.get().catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "データの取得に失敗しました",
-        "firebase"
-      );
-    });
-
-    if (!person) {
-      const data = doc.data();
-
-      if (
-        data &&
-        "payment" in data &&
-        (data.payment.status === "canceled" ||
-          !data.payment.option?.freelanceDirect)
-      ) {
-        throw new functions.https.HttpsError(
-          "cancelled",
-          "相手がオプション未加入のユーザーのためリクエストが承認できません",
-          "firebase"
-        );
+        }
       }
-    }
 
-    Object.assign(person ? user : selectUser, doc.data());
-  }
+      Object.assign(person ? user : selectUser, doc.data());
+    })
+  );
 
   return {
     user: user as Firestore.Person,

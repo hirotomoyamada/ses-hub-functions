@@ -340,45 +340,45 @@ const fetchFirestore = {
         );
       });
 
-    if (doc.exists) {
-      const data = doc.data();
+    if (!doc.exists) return;
 
-      if (data?.type !== "individual" && data?.payment.status === "canceled") {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "投稿の取得に失敗しました",
-          "notFound"
-        );
-      }
+    const data = doc.data();
 
-      post.user = {
-        uid: doc.id,
-        icon: data?.icon,
-        type: data?.type,
-        status: data?.payment.status,
-        profile: {
-          name: !demo ? data?.profile.name : dummy.name(),
-          person: !demo
-            ? data?.profile.person
-              ? data?.profile.person
-              : "名無しさん"
-            : dummy.person(),
-          body: data?.profile.body,
-          email: !demo ? data?.profile.email : undefined,
-          social: !demo && status ? data?.profile.social : undefined,
-        },
-      };
-
-      const { likes, outputs, entries } = await fetchActivity.post(
-        context,
-        index,
-        post
+    if (data?.type !== "individual" && data?.payment.status === "canceled") {
+      throw new functions.https.HttpsError(
+        "not-found",
+        "投稿の取得に失敗しました",
+        "notFound"
       );
-
-      post.likes = likes;
-      post.outputs = outputs;
-      post.entries = entries;
     }
+
+    post.user = {
+      uid: doc.id,
+      icon: data?.icon,
+      type: data?.type,
+      status: data?.payment.status,
+      profile: {
+        name: !demo ? data?.profile.name : dummy.name(),
+        person: !demo
+          ? data?.profile.person
+            ? data?.profile.person
+            : "名無しさん"
+          : dummy.person(),
+        body: data?.profile.body,
+        email: !demo ? data?.profile.email : undefined,
+        social: !demo && status ? data?.profile.social : undefined,
+      },
+    };
+
+    const { likes, outputs, entries } = await fetchActivity.post(
+      context,
+      index,
+      post
+    );
+
+    post.likes = likes;
+    post.outputs = outputs;
+    post.entries = entries;
   },
 
   search: async (
@@ -401,25 +401,29 @@ const fetchFirestore = {
       );
     }
 
-    for (const [i, post] of posts.entries()) {
-      if (!post) continue;
+    await Promise.allSettled(
+      posts.map(async (_, i) => {
+        const post = posts[i];
 
-      const doc = await db
-        .collection(
-          index === "matters" || index === "resources" ? "companys" : index
-        )
-        .withConverter(converter<Firestore.Company | Firestore.Person>())
-        .doc(post.uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
-          );
-        });
+        if (!post) return;
 
-      if (doc.exists) {
+        const doc = await db
+          .collection(
+            index === "matters" || index === "resources" ? "companys" : index
+          )
+          .withConverter(converter<Firestore.Company | Firestore.Person>())
+          .doc(post.uid)
+          .get()
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "not-found",
+              "ユーザーの取得に失敗しました",
+              "firebase"
+            );
+          });
+
+        if (!doc.exists) return;
+
         switch (index) {
           case "matters":
           case "resources":
@@ -487,16 +491,16 @@ const fetchFirestore = {
               );
 
               post.icon = data.icon;
-              post.request = requests;
               post.likes = likes;
+              post.request = requests;
             }
             break;
 
           default:
             return;
         }
-      }
-    }
+      })
+    );
   },
 };
 
@@ -517,18 +521,20 @@ const fetchActivity = {
     };
 
     if (!demo)
-      for (const collection of Object.keys(collections)) {
-        const { docs } = await db
-          .collectionGroup(collection)
-          .withConverter(converter<Firestore.Post>())
-          .where("index", "==", index)
-          .where("objectID", "==", post.objectID)
-          .where("active", "==", true)
-          .orderBy("createAt", "desc")
-          .get();
+      await Promise.allSettled(
+        Object.keys(collections).map(async (collection) => {
+          const { docs } = await db
+            .collectionGroup(collection)
+            .withConverter(converter<Firestore.Post>())
+            .where("index", "==", index)
+            .where("objectID", "==", post.objectID)
+            .where("active", "==", true)
+            .orderBy("createAt", "desc")
+            .get();
 
-        collections[collection as keyof Collections] = docs.length;
-      }
+          collections[collection as keyof Collections] = docs.length;
+        })
+      );
 
     return { ...collections };
   },
@@ -546,34 +552,36 @@ const fetchActivity = {
     };
 
     if (!demo)
-      for (const collection of Object.keys(collections)) {
-        if (collection === "likes") {
-          const { docs } = await db
-            .collectionGroup(collection)
-            .withConverter(converter<Firestore.Post>())
-            .where("index", "==", index)
-            .where("uid", "==", post.uid)
-            .where("active", "==", true)
-            .orderBy("createAt", "desc")
-            .get();
+      await Promise.allSettled(
+        Object.keys(collections).map(async (collection) => {
+          if (collection === "likes") {
+            const { docs } = await db
+              .collectionGroup(collection)
+              .withConverter(converter<Firestore.Post>())
+              .where("index", "==", index)
+              .where("uid", "==", post.uid)
+              .where("active", "==", true)
+              .orderBy("createAt", "desc")
+              .get();
 
-          collections.likes = docs.length;
-        } else {
-          const { docs } = await db
-            .collection(index)
-            .withConverter(converter<Firestore.User>())
-            .doc(post.uid)
-            .collection(collection)
-            .withConverter(converter<Firestore.User>())
-            .where("uid", "==", context.auth?.uid)
-            .get();
+            collections.likes = docs.length;
+          } else {
+            const { docs } = await db
+              .collection(index)
+              .withConverter(converter<Firestore.User>())
+              .doc(post.uid)
+              .collection(collection)
+              .withConverter(converter<Firestore.User>())
+              .where("uid", "==", context.auth?.uid)
+              .get();
 
-          const status = docs.length && docs[0].data().status;
+            const status = docs.length && docs[0].data().status;
 
-          collections.requests =
-            status === "enable" ? "enable" : status ? "hold" : "none";
-        }
-      }
+            collections.requests =
+              status === "enable" ? "enable" : status ? "hold" : "none";
+          }
+        })
+      );
 
     return { ...collections };
   },

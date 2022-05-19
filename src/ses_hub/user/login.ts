@@ -111,74 +111,76 @@ const fetchCollections = async (
     entries: { matters: [], resources: [], persons: [] },
   };
 
-  for (const key of Object.keys(collections)) {
-    if (key !== "followers") {
-      const querySnapshot = await db
-        .collection("companys")
-        .doc(context.auth.uid)
-        .collection(key === "home" ? "follows" : key)
-        .where("active", "==", true)
-        .orderBy("updateAt", "desc")
-        .withConverter(converter<Firestore.Post | Firestore.User>())
-        .get()
-        .catch(() => {});
+  const { uid } = context.auth;
 
-      if (!querySnapshot) {
-        continue;
-      }
+  await Promise.allSettled(
+    Object.keys(collections).map(async (key) => {
+      if (key !== "followers") {
+        const querySnapshot = await db
+          .collection("companys")
+          .doc(uid)
+          .collection(key === "home" ? "follows" : key)
+          .where("active", "==", true)
+          .orderBy("updateAt", "desc")
+          .withConverter(converter<Firestore.Post | Firestore.User>())
+          .get()
+          .catch(() => {});
 
-      querySnapshot.forEach((doc) => {
-        const collection = collections[key];
-        const data = doc.data();
+        if (!querySnapshot) return;
 
-        if (collection instanceof Array) {
-          if ("uid" in data) {
-            const uid = data.uid;
+        querySnapshot.forEach((doc) => {
+          const collection = collections[key];
+          const data = doc.data();
 
-            if ("home" in data) {
-              const home = data.home;
+          if (collection instanceof Array) {
+            if ("uid" in data) {
+              const uid = data.uid;
 
-              if (home) {
+              if ("home" in data) {
+                const home = data.home;
+
+                if (home) {
+                  Object.assign(collections, {
+                    [key]: [...collection, uid],
+                  });
+                }
+              } else {
                 Object.assign(collections, {
                   [key]: [...collection, uid],
                 });
               }
+            }
+          } else if (typeof collection !== "number") {
+            const index = data.index;
+
+            if ("objectID" in data) {
+              const objectID = data.objectID;
+
+              Object.assign(collections[key], {
+                [index]: [...collection[index], objectID],
+              });
             } else {
-              Object.assign(collections, {
-                [key]: [...collection, uid],
+              const uid = data.uid;
+
+              Object.assign(collections[key], {
+                [index]: [...collection[index], uid],
               });
             }
           }
-        } else if (typeof collection !== "number") {
-          const index = data.index;
+        });
+      } else {
+        const { docs } = await db
+          .collectionGroup("follows")
+          .withConverter(converter<Firestore.User>())
+          .where("uid", "==", uid)
+          .where("active", "==", true)
+          .orderBy("updateAt", "desc")
+          .get();
 
-          if ("objectID" in data) {
-            const objectID = data.objectID;
-
-            Object.assign(collections[key], {
-              [index]: [...collection[index], objectID],
-            });
-          } else {
-            const uid = data.uid;
-
-            Object.assign(collections[key], {
-              [index]: [...collection[index], uid],
-            });
-          }
-        }
-      });
-    } else {
-      const { docs } = await db
-        .collectionGroup("follows")
-        .withConverter(converter<Firestore.User>())
-        .where("uid", "==", context.auth.uid)
-        .where("active", "==", true)
-        .orderBy("updateAt", "desc")
-        .get();
-
-      collections.followers = docs.length;
-    }
-  }
+        collections.followers = docs.length;
+      }
+    })
+  );
 
   return collections;
 };

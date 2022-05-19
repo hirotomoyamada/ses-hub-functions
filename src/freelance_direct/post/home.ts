@@ -129,23 +129,26 @@ const fetchFirestore = async (
 ): Promise<void> => {
   const demo = checkDemo(context);
 
-  for (const post of posts) {
-    if (!post) continue;
+  await Promise.allSettled(
+    posts.map(async (_, i) => {
+      const post = posts[i];
 
-    const doc = await db
-      .collection("companys")
-      .withConverter(converter<Firestore.Company>())
-      .doc(post.uid)
-      .get()
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "not-found",
-          "ユーザーの取得に失敗しました",
-          "firebase"
-        );
-      });
+      if (!post) return;
 
-    if (doc.exists) {
+      const doc = await db
+        .collection("companys")
+        .withConverter(converter<Firestore.Company>())
+        .doc(post.uid)
+        .get()
+        .catch(() => {
+          throw new functions.https.HttpsError(
+            "not-found",
+            "ユーザーの取得に失敗しました",
+            "firebase"
+          );
+        });
+
+      if (!doc.exists) return;
       const data = doc.data();
 
       switch (index) {
@@ -191,8 +194,8 @@ const fetchFirestore = async (
         default:
           break;
       }
-    }
-  }
+    })
+  );
 };
 
 const fetchActivity = async (
@@ -209,18 +212,20 @@ const fetchActivity = async (
   };
 
   if (!demo)
-    for (const collection of Object.keys(collections)) {
-      const { docs } = await db
-        .collectionGroup(collection)
-        .withConverter(converter<Firestore.Post>())
-        .where("index", "==", index)
-        .where("objectID", "==", post.objectID)
-        .where("active", "==", true)
-        .orderBy("createAt", "desc")
-        .get();
+    await Promise.allSettled(
+      Object.keys(collections).map(async (collection) => {
+        const { docs } = await db
+          .collectionGroup(collection)
+          .withConverter(converter<Firestore.Post>())
+          .where("index", "==", index)
+          .where("objectID", "==", post.objectID)
+          .where("active", "==", true)
+          .orderBy("createAt", "desc")
+          .get();
 
-      collections[collection as keyof Collections] = docs.length;
-    }
+        collections[collection as keyof Collections] = docs.length;
+      })
+    );
 
   return { ...collections };
 };

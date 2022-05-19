@@ -66,22 +66,23 @@ const updateFiresotre = async (
         );
       });
 
-    doc.exists &&
-      (await doc.ref
-        .set(
-          {
-            agree: "enable",
-            updateAt: timestamp,
-          },
-          { merge: true }
-        )
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "data-loss",
-            "プロフィールの更新に失敗しました",
-            "firebase"
-          );
-        }));
+    if (!doc.exists) return;
+
+    await doc.ref
+      .set(
+        {
+          agree: "enable",
+          updateAt: timestamp,
+        },
+        { merge: true }
+      )
+      .catch(() => {
+        throw new functions.https.HttpsError(
+          "data-loss",
+          "プロフィールの更新に失敗しました",
+          "firebase"
+        );
+      });
   } else {
     const querySnapshot = await db
       .collection("companys")

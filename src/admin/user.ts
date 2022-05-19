@@ -70,43 +70,41 @@ const editFirestore = async (data: Data): Promise<void> => {
       );
     });
 
-  if (doc.exists) {
-    const application = (
-      doc as FirebaseFirestore.DocumentSnapshot<Firestore.Company>
-    ).data()?.application
-      ? (doc as FirebaseFirestore.DocumentSnapshot<Firestore.Company>).data()
-          ?.type === "individual" &&
-        (user as Firestore.Company).type !== "individual"
-        ? false
-        : true
-      : false;
+  if (!doc.exists) return;
 
-    await doc.ref
-      .set(
-        Object.assign(
-          doc.data(),
-          data.index === "companys"
-            ? { application: application, ...user }
-            : user
-        ),
-        { merge: true }
-      )
-      .then(
-        async () =>
-          data.index === "companys" &&
-          (await sendApplication(
-            doc as FirebaseFirestore.DocumentSnapshot<Firestore.Company>,
-            user as Firestore.Company
-          ))
-      )
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "data-loss",
-          "ユーザーの編集に失敗しました",
-          "firebase"
-        );
-      });
-  }
+  const application = (
+    doc as FirebaseFirestore.DocumentSnapshot<Firestore.Company>
+  ).data()?.application
+    ? (doc as FirebaseFirestore.DocumentSnapshot<Firestore.Company>).data()
+        ?.type === "individual" &&
+      (user as Firestore.Company).type !== "individual"
+      ? false
+      : true
+    : false;
+
+  await doc.ref
+    .set(
+      Object.assign(
+        doc.data(),
+        data.index === "companys" ? { application: application, ...user } : user
+      ),
+      { merge: true }
+    )
+    .then(
+      async () =>
+        data.index === "companys" &&
+        (await sendApplication(
+          doc as FirebaseFirestore.DocumentSnapshot<Firestore.Company>,
+          user as Firestore.Company
+        ))
+    )
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "ユーザーの編集に失敗しました",
+        "firebase"
+      );
+    });
 
   return;
 };

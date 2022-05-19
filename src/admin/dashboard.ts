@@ -24,7 +24,7 @@ type Sort = "active" | "trialing" | "canceled" | "person";
 
 type Timestamp = { label: string; time: { start: number; end: number } };
 
-type Activity = {
+type Analytics = {
   user: {
     key: Collection["user"];
     label: string;
@@ -53,7 +53,7 @@ type Activity = {
   };
 };
 
-export const fetchUserActivity = functions
+export const fetchUserDashBoard = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async ({ span }: { span: Span }, context) => {
@@ -69,10 +69,10 @@ export const fetchUserActivity = functions
       { collection: "follows", label: "フォロー" },
     ];
 
-    const activities: Activity["user"][] = [];
+    const analysis: Analytics["user"][] = [];
 
     for await (const { collection, label } of collections) {
-      const activity: Activity["user"] = {
+      const analytics: Analytics["user"] = {
         key: collection,
         label,
         active: undefined,
@@ -82,17 +82,17 @@ export const fetchUserActivity = functions
         log: [],
       };
 
-      await fetchTotal.user(activity, collection, span);
+      await fetchTotal.user(analytics, collection, span);
 
-      await fetchLog.user(activity, collection, span);
+      await fetchLog.user(analytics, collection, span);
 
-      activities.push(activity);
+      analysis.push(analytics);
     }
 
-    return activities;
+    return analysis;
   });
 
-export const fetchPostActivity = functions
+export const fetchPostDashBoard = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(
@@ -120,32 +120,32 @@ export const fetchPostActivity = functions
           }
         })();
 
-      const activities: Activity["post"][] = [];
+      const analysis: Analytics["post"][] = [];
 
       for await (const { collection, label } of collections) {
         const posts = collection === "posts";
 
-        const activity: Activity["post"] = {
+        const analytics: Analytics["post"] = {
           key: collection,
           label,
           active: undefined,
           log: [],
         };
 
-        await fetchTotal.post(activity, collection, index, span);
+        await fetchTotal.post(analytics, collection, index, span);
 
-        if (posts) await fetchLog.post(activity, collection, index, span);
+        if (posts) await fetchLog.post(analytics, collection, index, span);
 
-        activities.push(activity);
+        analysis.push(analytics);
       }
 
-      return activities;
+      return analysis;
     }
   );
 
 const fetchLog = {
   user: async (
-    activity: Activity["user"],
+    analytics: Analytics["user"],
     collection: Collection["user"],
     span: Span
   ): Promise<void> => {
@@ -194,7 +194,7 @@ const fetchLog = {
             ? querySnapshot.canceled.docs.length
             : 0;
 
-          const log: Activity["user"]["log"][number] = {
+          const log: Analytics["user"]["log"][number] = {
             label,
             active,
             trialing,
@@ -202,7 +202,7 @@ const fetchLog = {
             person: undefined,
           };
 
-          activity.log.push(log);
+          analytics.log.push(log);
 
           continue;
         }
@@ -264,7 +264,7 @@ const fetchLog = {
               ).length
             : 0;
 
-          const log: Activity["user"]["log"][number] = {
+          const log: Analytics["user"]["log"][number] = {
             label,
             active,
             trialing,
@@ -272,7 +272,7 @@ const fetchLog = {
             person,
           };
 
-          activity.log.push(log);
+          analytics.log.push(log);
 
           continue;
         }
@@ -314,7 +314,7 @@ const fetchLog = {
             ? querySnapshot.person.docs.length
             : 0;
 
-          const log: Activity["user"]["log"][number] = {
+          const log: Analytics["user"]["log"][number] = {
             label,
             active,
             trialing,
@@ -322,7 +322,7 @@ const fetchLog = {
             person,
           };
 
-          activity.log.push(log);
+          analytics.log.push(log);
 
           continue;
         }
@@ -331,7 +331,7 @@ const fetchLog = {
   },
 
   post: async (
-    activity: Activity["post"],
+    analytics: Analytics["post"],
     collection: Collection["post"],
     index: Index,
     span: Span
@@ -358,12 +358,12 @@ const fetchLog = {
 
       const active = querySnapshot ? querySnapshot.docs.length : 0;
 
-      const log: Activity["post"]["log"][number] = {
+      const log: Analytics["post"]["log"][number] = {
         label,
         active,
       };
 
-      activity.log.push(log);
+      analytics.log.push(log);
 
       continue;
     }
@@ -372,7 +372,7 @@ const fetchLog = {
 
 const fetchTotal = {
   user: async (
-    activity: Activity["user"],
+    analytics: Analytics["user"],
     collection: Collection["user"],
     span: Span
   ): Promise<void> => {
@@ -408,13 +408,13 @@ const fetchTotal = {
           }
         })();
 
-        activity[sort] = count;
+        analytics[sort] = count;
       })
     );
   },
 
   post: async (
-    activity: Activity["post"],
+    analytics: Analytics["post"],
     collection: Collection["post"],
     index: Index,
     span: Span
@@ -432,7 +432,7 @@ const fetchTotal = {
     if (posts) {
       const count = querySnapshot.docs.length;
 
-      activity.active = count;
+      analytics.active = count;
     } else {
       const total = querySnapshot.docs.length;
 
@@ -451,20 +451,20 @@ const fetchTotal = {
           }
         })();
 
-        const index = activity.log.findIndex((d) => d.label === label);
+        const index = analytics.log.findIndex((d) => d.label === label);
 
         if (index < 0) {
-          activity.log.push({ label, active: 1 });
+          analytics.log.push({ label, active: 1 });
         } else {
-          activity.log[index].active += 1;
+          analytics.log[index].active += 1;
         }
       });
 
-      activity.log.forEach((log, i) => {
-        activity.log[i] = { ...log, ratio: log.active / total };
+      analytics.log.forEach((log, i) => {
+        analytics.log[i] = { ...log, ratio: log.active / total };
       });
 
-      activity.log.sort((a, b) => {
+      analytics.log.sort((a, b) => {
         if (a.active > b.active) return -1;
         if (a.active < b.active) return 1;
 
@@ -623,11 +623,14 @@ const fetchCollectionGroup = {
 };
 
 const timestamp = (i: number, span: Span): Timestamp => {
+  const location = new Date().toLocaleString("ja-JP", {
+    timeZone: "Asia/Tokyo",
+  });
   const timeZone = 60 * 60 * 9 * 1000;
 
   switch (span) {
     case "day": {
-      const date = new Date(new Date().setHours(0, 0, 0, 0));
+      const date = new Date(new Date(location).setHours(0, 0, 0, 0));
       const start = new Date(date.setDate(date.getDate() - i));
       const end = new Date(date.setHours(23, 59, 59, 999));
 
@@ -651,12 +654,9 @@ const timestamp = (i: number, span: Span): Timestamp => {
 
     case "week": {
       const date = new Date(
-        new Date(new Date().setDate(new Date().getDate() - i * 7)).setHours(
-          0,
-          0,
-          0,
-          0
-        )
+        new Date(
+          new Date(location).setDate(new Date(location).getDate() - i * 7)
+        ).setHours(0, 0, 0, 0)
       );
       const start = new Date(
         date.setDate(
@@ -687,7 +687,7 @@ const timestamp = (i: number, span: Span): Timestamp => {
 
     default: {
       const date = new Date(
-        new Date(new Date().setDate(1)).setHours(0, 0, 0, 0)
+        new Date(new Date(location).setDate(1)).setHours(0, 0, 0, 0)
       );
       const start = new Date(date.setMonth(date.getMonth() - i));
       const end = new Date(

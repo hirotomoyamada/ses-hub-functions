@@ -60,48 +60,51 @@ const fetchFirestore = async (arg: Arg, posts: Results[]): Promise<void> => {
     arg.index === "companys" ||
     arg.index === "persons"
   ) {
-    for (let i = 0; i < posts.length; i++) {
-      const post = posts[i];
-      const uid = post.uid;
+    await Promise.allSettled(
+      posts.map(async (_, i) => {
+        const post = posts[i];
 
-      if (!uid) {
-        if ("objectID" in post) {
-          post.user = fetch.company.none();
+        const uid = post.uid;
+
+        if (!uid) {
+          if ("objectID" in post) {
+            post.user = fetch.company.none();
+          }
+
+          return;
         }
 
-        return;
-      }
+        const doc = await db
+          .collection(arg.type !== "requests" ? arg.index : "companys")
+          .withConverter(converter<Firestore.Company | Firestore.Person>())
+          .doc(uid)
+          .get()
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "not-found",
+              "ユーザーの取得に失敗しました",
+              "firebase"
+            );
+          });
 
-      const doc = await db
-        .collection(arg.type !== "requests" ? arg.index : "companys")
-        .withConverter(converter<Firestore.Company | Firestore.Person>())
-        .doc(uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
+        const data = doc.data();
+
+        if (!doc.exists || !data) {
+          return;
+        }
+
+        if (arg.type === "requests" || arg.index === "companys") {
+          fetch.company.supplementary(
+            <Auth.Company>post,
+            <Firestore.Company>data
           );
-        });
+        }
 
-      const data = doc.data();
-
-      if (!doc.exists || !data) {
-        return;
-      }
-
-      if (arg.type === "requests" || arg.index === "companys") {
-        fetch.company.supplementary(
-          <Auth.Company>post,
-          <Firestore.Company>data
-        );
-      }
-
-      if (arg.index === "persons") {
-        fetch.person.supplementary(<Auth.Person>post, <Firestore.Person>data);
-      }
-    }
+        if (arg.index === "persons") {
+          fetch.person.supplementary(<Auth.Person>post, <Firestore.Person>data);
+        }
+      })
+    );
   }
 
   return;

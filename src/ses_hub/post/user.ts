@@ -167,56 +167,60 @@ const fetchFirestore = async (
   index: Data["index"],
   posts: Algolia.Matter[] | Algolia.Resource[] | Algolia.CompanyItem[]
 ): Promise<void> => {
-  for (const post of posts) {
-    if (!post) continue;
+  await Promise.allSettled(
+    posts.map(async (_, i) => {
+      const post = posts[i];
 
-    if ("objectID" in post) {
-      if (index === "companys") return;
+      if (!post) return;
 
-      const { likes, outputs, entries } = await fetchActivity(
-        context,
-        index,
-        post
-      );
+      if ("objectID" in post) {
+        if (index === "companys") return;
 
-      post.likes = likes;
-      post.outputs = outputs;
-      post.entries = entries;
-    } else {
-      const doc = await db
-        .collection(index)
-        .withConverter(converter<Firestore.Company>())
-        .doc(post.uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
-          );
-        });
+        const { likes, outputs, entries } = await fetchActivity(
+          context,
+          index,
+          post
+        );
 
-      if (doc.exists) {
-        const data = doc.data();
-        if (
-          data?.type !== "individual" &&
-          data?.payment.status === "canceled"
-        ) {
-          post.icon = "none";
-          post.status = "none";
-          post.type = "none";
-          post.profile = {
-            name: undefined,
-            person: "存在しないユーザー",
-            body: undefined,
-          };
-        } else {
-          post.icon = data?.icon;
-          post.type = data?.type;
+        post.likes = likes;
+        post.outputs = outputs;
+        post.entries = entries;
+      } else {
+        const doc = await db
+          .collection(index)
+          .withConverter(converter<Firestore.Company>())
+          .doc(post.uid)
+          .get()
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "not-found",
+              "ユーザーの取得に失敗しました",
+              "firebase"
+            );
+          });
+
+        if (doc.exists) {
+          const data = doc.data();
+          if (
+            data?.type !== "individual" &&
+            data?.payment.status === "canceled"
+          ) {
+            post.icon = "none";
+            post.status = "none";
+            post.type = "none";
+            post.profile = {
+              name: undefined,
+              person: "存在しないユーザー",
+              body: undefined,
+            };
+          } else {
+            post.icon = data?.icon;
+            post.type = data?.type;
+          }
         }
       }
-    }
-  }
+    })
+  );
 };
 
 const fetchActivity = async (
@@ -235,18 +239,20 @@ const fetchActivity = async (
   };
 
   if (!demo)
-    for (const collection of Object.keys(collections)) {
-      const { docs } = await db
-        .collectionGroup(collection)
-        .withConverter(converter<Firestore.Post>())
-        .where("index", "==", index)
-        .where("objectID", "==", post.objectID)
-        .where("active", "==", true)
-        .orderBy("createAt", "desc")
-        .get();
+    await Promise.allSettled(
+      Object.keys(collections).map(async (collection) => {
+        const { docs } = await db
+          .collectionGroup(collection)
+          .withConverter(converter<Firestore.Post>())
+          .where("index", "==", index)
+          .where("objectID", "==", post.objectID)
+          .where("active", "==", true)
+          .orderBy("createAt", "desc")
+          .get();
 
-      collections[collection as keyof Collections] = docs.length;
-    }
+        collections[collection as keyof Collections] = docs.length;
+      })
+    );
 
   return { ...collections };
 };

@@ -17,17 +17,19 @@ export const updateAccount = functions
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated(context);
 
-    for await (const user of data) {
-      const children = await updateFirestore(user);
-      await updateAlgolia(user);
+    await Promise.allSettled(
+      data.map(async (user) => {
+        const children = await updateFirestore(user);
+        await updateAlgolia(user);
 
-      if (children?.length) {
-        for await (const child of children) {
-          await updateFirestore(user, child);
-          await updateAlgolia(user, child);
+        if (children?.length) {
+          for await (const child of children) {
+            await updateFirestore(user, child);
+            await updateAlgolia(user, child);
+          }
         }
-      }
-    }
+      })
+    );
 
     return data;
   });

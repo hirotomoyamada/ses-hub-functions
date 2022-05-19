@@ -141,68 +141,70 @@ const fetchFirestore = {
   ): Promise<void> => {
     if (!posts?.length) return;
 
-    for (let i = 0; i < posts.length; i++) {
-      const index = arg.index !== "persons" ? "companys" : "persons";
-      const post = posts[i];
-      const uid = post.uid;
+    await Promise.allSettled(
+      posts.map(async (_, i) => {
+        const index = arg.index !== "persons" ? "companys" : "persons";
+        const post = posts[i];
+        const uid = post.uid;
 
-      if (!uid) {
-        if ("objectID" in post) {
-          post.user = fetch.company.none();
+        if (!uid) {
+          if ("objectID" in post) {
+            post.user = fetch.company.none();
+          }
+
+          return;
         }
 
-        return;
-      }
+        const doc = await db
+          .collection(index)
+          .withConverter(converter<Firestore.Company | Firestore.Person>())
+          .doc(uid)
+          .get()
+          .catch(() => {
+            throw new functions.https.HttpsError(
+              "not-found",
+              "ユーザーの取得に失敗しました",
+              "firebase"
+            );
+          });
 
-      const doc = await db
-        .collection(index)
-        .withConverter(converter<Firestore.Company | Firestore.Person>())
-        .doc(uid)
-        .get()
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            "not-found",
-            "ユーザーの取得に失敗しました",
-            "firebase"
+        const data = doc.data();
+
+        if (!doc.exists || !data) return;
+
+        if (
+          (arg.index === "matters" || arg.index === "resources") &&
+          "objectID" in post
+        ) {
+          post.user = fetch.company.itemSupplementary(<Firestore.Company>data);
+        }
+
+        if (arg.index === "companys") {
+          const collections = await fetchCollections({
+            index: arg.index,
+            uid: doc.id,
+          });
+
+          fetch.company.supplementary(
+            <Auth.Company>post,
+            <Firestore.Company>data
           );
-        });
 
-      const data = doc.data();
+          Object.assign(post, collections);
+        }
 
-      if (!doc.exists || !data) return;
+        if (arg.index === "persons") {
+          const collections = await fetchCollections({
+            index: arg.index,
+            uid: doc.id,
+          });
 
-      if (
-        (arg.index === "matters" || arg.index === "resources") &&
-        "objectID" in post
-      ) {
-        post.user = fetch.company.itemSupplementary(<Firestore.Company>data);
-      }
+          fetch.person.supplementary(<Auth.Person>post, <Firestore.Person>data);
 
-      if (arg.index === "companys") {
-        const collections = await fetchCollections({
-          index: arg.index,
-          uid: doc.id,
-        });
-
-        fetch.company.supplementary(
-          <Auth.Company>post,
-          <Firestore.Company>data
-        );
-
-        Object.assign(post, collections);
-      }
-
-      if (arg.index === "persons") {
-        const collections = await fetchCollections({
-          index: arg.index,
-          uid: doc.id,
-        });
-
-        fetch.person.supplementary(<Auth.Person>post, <Firestore.Person>data);
-
-        Object.assign(post, collections);
-      }
-    }
+          Object.assign(post, collections);
+        }
+      })
+    );
   },
 
   user: async (
@@ -294,79 +296,79 @@ const fetchCollections = async ({
           requests: { enable: [], hold: [], disable: [] },
         };
 
-  for (const key of Object.keys(collections)) {
-    const querySnapshot = await db
-      .collection(index)
-      .doc(uid)
-      .collection(key === "home" ? "follows" : key)
-      .where("active", "==", true)
-      .orderBy("updateAt", "desc")
-      .withConverter(converter<Firestore.Post | Firestore.User>())
-      .get()
-      .catch(() => {});
+  await Promise.allSettled(
+    Object.keys(collections).map(async (key) => {
+      const querySnapshot = await db
+        .collection(index)
+        .doc(uid)
+        .collection(key === "home" ? "follows" : key)
+        .where("active", "==", true)
+        .orderBy("updateAt", "desc")
+        .withConverter(converter<Firestore.Post | Firestore.User>())
+        .get()
+        .catch(() => {});
 
-    if (!querySnapshot) {
-      continue;
-    }
+      if (!querySnapshot) return;
 
-    querySnapshot.forEach((doc) => {
-      const collection = collections[key];
-      const data = doc.data();
+      querySnapshot.forEach((doc) => {
+        const collection = collections[key];
+        const data = doc.data();
 
-      if (collection instanceof Array) {
-        if ("objectID" in data) {
-          const objectID = data.objectID;
-
-          Object.assign(collections, {
-            [key]: [...collection, objectID],
-          });
-        } else {
-          const uid = data.uid;
-
-          if ("home" in data) {
-            const home = data.home;
-
-            if (home) {
-              Object.assign(collections, {
-                [key]: [...collection, uid],
-              });
-            }
-          } else {
-            Object.assign(collections, {
-              [key]: [...collection, uid],
-            });
-          }
-        }
-      } else {
-        if (key !== "requests") {
-          const index = data.index;
-
+        if (collection instanceof Array) {
           if ("objectID" in data) {
             const objectID = data.objectID;
 
-            Object.assign(collections[key], {
-              [index]: [...collection[index], objectID],
+            Object.assign(collections, {
+              [key]: [...collection, objectID],
             });
           } else {
             const uid = data.uid;
 
-            Object.assign(collections[key], {
-              [index]: [...collection[index], uid],
-            });
-          }
-        } else if ("status" in data) {
-          const status = data.status;
-          const uid = data.uid;
+            if ("home" in data) {
+              const home = data.home;
 
-          if (status) {
-            Object.assign(collections[key], {
-              [status]: [...collection[status], uid],
-            });
+              if (home) {
+                Object.assign(collections, {
+                  [key]: [...collection, uid],
+                });
+              }
+            } else {
+              Object.assign(collections, {
+                [key]: [...collection, uid],
+              });
+            }
+          }
+        } else {
+          if (key !== "requests") {
+            const index = data.index;
+
+            if ("objectID" in data) {
+              const objectID = data.objectID;
+
+              Object.assign(collections[key], {
+                [index]: [...collection[index], objectID],
+              });
+            } else {
+              const uid = data.uid;
+
+              Object.assign(collections[key], {
+                [index]: [...collection[index], uid],
+              });
+            }
+          } else if ("status" in data) {
+            const status = data.status;
+            const uid = data.uid;
+
+            if (status) {
+              Object.assign(collections[key], {
+                [status]: [...collection[status], uid],
+              });
+            }
           }
         }
-      }
-    });
-  }
+      });
+    })
+  );
 
   return collections;
 };

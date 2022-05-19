@@ -114,63 +114,65 @@ const fetchCollections = async (
     requests: { enable: [], hold: [], disable: [] },
   };
 
-  for (const key of Object.keys(collections)) {
-    const querySnapshot = await db
-      .collection("persons")
-      .doc(context.auth.uid)
-      .collection(key === "home" ? "follows" : key)
-      .where("active", "==", true)
-      .orderBy("updateAt", "desc")
-      .withConverter(converter<Firestore.Post | Firestore.User>())
-      .get()
-      .catch(() => {});
+  const { uid } = context.auth;
 
-    if (!querySnapshot) {
-      continue;
-    }
+  await Promise.allSettled(
+    Object.keys(collections).map(async (key) => {
+      const querySnapshot = await db
+        .collection("persons")
+        .doc(uid)
+        .collection(key === "home" ? "follows" : key)
+        .where("active", "==", true)
+        .orderBy("updateAt", "desc")
+        .withConverter(converter<Firestore.Post | Firestore.User>())
+        .get()
+        .catch(() => {});
 
-    querySnapshot.forEach((doc) => {
-      const collection = collections[key];
-      const data = doc.data();
+      if (!querySnapshot) return;
 
-      if (collection instanceof Array) {
-        if ("objectID" in data) {
-          const objectID = data.objectID;
+      querySnapshot.forEach((doc) => {
+        const collection = collections[key];
+        const data = doc.data();
 
-          Object.assign(collections, {
-            [key]: [...collection, objectID],
-          });
-        } else {
-          const uid = data.uid;
+        if (collection instanceof Array) {
+          if ("objectID" in data) {
+            const objectID = data.objectID;
 
-          if ("home" in data) {
-            const home = data.home;
+            Object.assign(collections, {
+              [key]: [...collection, objectID],
+            });
+          } else {
+            const uid = data.uid;
 
-            if (home) {
+            if ("home" in data) {
+              const home = data.home;
+
+              if (home) {
+                Object.assign(collections, {
+                  [key]: [...collection, uid],
+                });
+              }
+            } else {
               Object.assign(collections, {
                 [key]: [...collection, uid],
               });
             }
-          } else {
-            Object.assign(collections, {
-              [key]: [...collection, uid],
-            });
           }
-        }
-      } else {
-        if ("status" in data) {
-          const status = data.status;
-          const uid = data.uid;
+        } else {
+          if ("status" in data) {
+            const status = data.status;
+            const uid = data.uid;
 
-          if (status) {
-            Object.assign(collections[key], {
-              [status]: [...collection[status], uid],
-            });
+            if (status) {
+              Object.assign(collections[key], {
+                [status]: [...collection[status], uid],
+              });
+            }
           }
         }
-      }
-    });
-  }
+      });
+    })
+  );
 
   return collections;
 };

@@ -106,7 +106,8 @@ export const time: Time = (t = "day") => {
 
   switch (t) {
     case "month": {
-      const start = new Date(new Date().setDate(1)).setHours(0, 0, 0, 0);
+      const start =
+        new Date(new Date().setDate(1)).setHours(0, 0, 0, 0) - timeZone;
 
       return { start, end };
     }
@@ -127,7 +128,7 @@ export const time: Time = (t = "day") => {
       return { start, end };
     }
     default: {
-      const start = new Date().setHours(0, 0, 0, 0);
+      const start = new Date().setHours(0, 0, 0, 0) - timeZone;
 
       return { start, end };
     }

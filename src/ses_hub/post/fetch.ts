@@ -59,6 +59,7 @@ export const fetchPosts = functions
     const status = await userAuthenticated({
       context,
       index: data.index,
+      canceled: true,
     });
 
     const { posts, hit } = await fetchAlgolia.search(context, data);

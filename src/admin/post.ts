@@ -18,6 +18,7 @@ export const editPost = functions
     await userAuthenticated(context);
 
     await editAlgolia(data);
+    await updateFirestore({ data, edit: true });
 
     return;
   });
@@ -28,8 +29,9 @@ export const deletePost = functions
   .https.onCall(async (data: Data, context) => {
     await userAuthenticated(context);
 
-    await deleteFirestore(data);
     await deleteAlgolia(data);
+    await updateFirestore({ data });
+    await updateCollectionGroup(data);
 
     return;
   });
@@ -63,12 +65,18 @@ const editAlgolia = async (data: Data): Promise<void> => {
     });
 };
 
-const deleteFirestore = async (data: Data): Promise<void> => {
+const updateFirestore = async ({
+  data,
+  edit,
+}: {
+  data: Data;
+  edit?: boolean;
+}): Promise<void> => {
   const timestamp = Date.now();
 
-  const collection = db
-    .collection("companys")
-    .doc(data.post.uid)
+  const ref = db.collection("companys").doc(data.post.uid);
+
+  const collection = ref
     .collection("posts")
     .withConverter(converter<Firestore.Post>());
 
@@ -86,22 +94,55 @@ const deleteFirestore = async (data: Data): Promise<void> => {
 
   const doc = querySnapshot.docs[0];
 
-  if (doc) {
-    await doc.ref
-      .set(
-        { active: false, display: "private", deleteAt: timestamp },
-        { merge: true }
-      )
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          "data-loss",
-          "データの更新に失敗しました",
-          "firebase"
-        );
-      });
-  }
+  await doc.ref
+    .set(
+      edit
+        ? { display: data.post.display, updateAt: timestamp }
+        : { active: false, display: "private", deleteAt: timestamp },
+      {
+        merge: true,
+      }
+    )
+    .catch(() => {
+      throw new functions.https.HttpsError(
+        "data-loss",
+        "データの更新に失敗しました",
+        "firebase"
+      );
+    });
 
   return;
+};
+
+const updateCollectionGroup = async (data: Data) => {
+  const collections = ["likes", "outputs", "entries", "histories"];
+
+  await Promise.allSettled(
+    collections.map(async (collection) => {
+      const querySnapshot = await db
+        .collectionGroup(collection)
+        .withConverter(converter<Firestore.Post>())
+        .where("index", "==", data.index)
+        .where("objectID", "==", data.post.objectID)
+        .orderBy("createAt", "desc")
+        .get()
+        .catch(() => {});
+
+      const timestamp = Date.now();
+
+      if (!querySnapshot) {
+        return;
+      }
+
+      querySnapshot?.forEach(async (doc) => {
+        if (doc) {
+          await doc.ref
+            .set({ active: false, updateAt: timestamp }, { merge: true })
+            .catch(() => {});
+        }
+      });
+    })
+  );
 };
 
 const deleteAlgolia = async (data: Data): Promise<void> => {

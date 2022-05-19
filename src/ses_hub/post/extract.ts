@@ -17,7 +17,7 @@ type Data = {
 export const extractPosts = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data, context) => {
+  .https.onCall(async (data: Data, context) => {
     const status = await userAuthenticated({
       context,
       index: data.index,
@@ -27,7 +27,7 @@ export const extractPosts = functions
 
     const { posts, hit } = await fetchAlgolia(context, data, status);
 
-    if (posts?.length) await fetchFirestore(context, data.index, posts, status);
+    if (posts?.length) await fetchFirestore(context, data, posts, status);
 
     await log({
       auth: { collection: "companys", doc: context.auth?.uid },
@@ -140,13 +140,15 @@ const fetchAlgolia = async (
 
 const fetchFirestore = async (
   context: functions.https.CallableContext,
-  index: Data["index"],
+  data: Data,
   posts:
     | (Algolia.Matter | undefined)[]
     | (Algolia.Resource | undefined)[]
     | Algolia.PersonItem[],
   status: boolean
 ): Promise<void> => {
+  const { index, type } = data;
+
   const demo = checkDemo(context);
 
   if (!context.auth) {
@@ -157,9 +159,17 @@ const fetchFirestore = async (
     );
   }
 
+  const { uid } = context.auth;
+
   await Promise.allSettled(
     posts.map(async (_, i) => {
       const post = posts[i];
+
+      if (!status && type !== "entries" && post?.uid !== uid) {
+        posts[i] = undefined;
+
+        return;
+      }
 
       if (!post) return;
 
@@ -283,6 +293,7 @@ const fetchActivity = {
 
     return { ...collections };
   },
+
   user: async (
     context: functions.https.CallableContext,
     index: "persons",

@@ -257,15 +257,15 @@ const fetchCollectionGroup = async (
     }
 
     case "today": {
-      const today = time("day");
+      const { start, end } = time("day");
 
       return await db
         .collectionGroup(collection)
         .withConverter(converter<Firestore.Post>())
         .where("index", "==", data.index)
         .where("objectID", "==", data.post.objectID)
-        .where("createAt", ">=", today.start)
-        .where("createAt", "<=", today.end)
+        .where("createAt", ">=", start)
+        .where("createAt", "<=", end)
         .orderBy("createAt", "desc")
         .get()
         .catch(() => {});

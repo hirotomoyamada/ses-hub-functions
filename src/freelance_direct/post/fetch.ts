@@ -35,7 +35,7 @@ export const fetchPost = functions
       objectID: post.objectID,
     });
 
-    return { post: post, bests: bests };
+    return { post: post, bests: bests?.filter((post) => post !== undefined) };
   });
 
 export const fetchPosts = functions
@@ -61,7 +61,11 @@ export const fetchPosts = functions
         ?.filter((post): post is string => post !== undefined),
     });
 
-    return { index: data.index, posts: posts, hit: hit };
+    return {
+      index: data.index,
+      posts: (posts as any[]).filter((post) => post !== undefined),
+      hit: hit,
+    };
   });
 
 const fetchAlgolia = {

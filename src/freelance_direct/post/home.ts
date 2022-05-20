@@ -34,7 +34,11 @@ export const homePosts = functions
         ?.filter((post): post is string => post !== undefined),
     });
 
-    return { index: data.index, posts: posts, hit: hit };
+    return {
+      index: data.index,
+      posts: (posts as any[]).filter((post) => post !== undefined),
+      hit: hit,
+    };
   });
 
 const fetchAlgolia = async (

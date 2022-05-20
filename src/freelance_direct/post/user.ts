@@ -32,7 +32,7 @@ export const userPosts = functions
         ?.filter((post): post is string => post !== undefined),
     });
 
-    return { posts: posts, hit: hit };
+    return { posts: posts.filter((post) => post !== undefined), hit: hit };
   });
 
 const checkUser = async (uid: Data["uid"]): Promise<void> => {

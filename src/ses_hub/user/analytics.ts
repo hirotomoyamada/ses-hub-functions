@@ -33,6 +33,7 @@ type Analytics = {
     label: string;
     self?: number;
     others?: number;
+    [key: string]: string | number | undefined;
   }[];
 };
 
@@ -64,41 +65,37 @@ export const fetchAnalytics = functions
     const analysis: Analytics[] = [];
 
     if (!demo) {
-      await Promise.allSettled(
-        collections.map(async ({ collection, label }) => {
-          const analytics: Analytics = {
-            active: true,
-            key: collection,
-            label: label,
-            self: undefined,
-            others: undefined,
-            log: [],
-          };
+      for await (const { collection, label } of collections) {
+        const analytics: Analytics = {
+          active: true,
+          key: collection,
+          label: label,
+          self: undefined,
+          others: undefined,
+          log: [],
+        };
 
-          await fetchTotal(analytics, collection, data);
+        await fetchTotal(analytics, collection, data);
 
-          await fetchLog(analytics, collection, data);
+        await fetchLog(analytics, collection, data);
 
-          analysis.push(analytics);
-        })
-      );
+        analysis.push(analytics);
+      }
     } else {
-      await Promise.allSettled(
-        collections.map(async ({ collection, label }) => {
-          const analytics: Analytics = {
-            active: true,
-            key: collection,
-            label,
-            self: undefined,
-            others: undefined,
-            log: [],
-          };
+      for await (const { collection, label } of collections) {
+        const analytics: Analytics = {
+          active: true,
+          key: collection,
+          label,
+          self: undefined,
+          others: undefined,
+          log: [],
+        };
 
-          createDummy(analytics, collection, data);
+        createDummy(analytics, collection, data);
 
-          analysis.push(analytics);
-        })
-      );
+        analysis.push(analytics);
+      }
     }
 
     await log({
@@ -116,42 +113,53 @@ const createDummy = (
   collection: Collection,
   data: Data
 ): Analytics => {
+  const posts = collection === "posts";
   const distribution = collection === "distribution";
   const approval = collection === "approval";
 
-  if (!distribution && !approval) {
-    const span = data.span;
-    const day = span === "day";
-    const max = day ? 7 : 6;
+  const span = data.span;
+  const day = span === "day";
+  const max = day ? 7 : 6;
 
-    analytics.self = dummy.num(99, 999);
+  analytics.self = dummy.num(99, 999);
+
+  if (!posts && !distribution && !approval)
     analytics.others = dummy.num(99, 999);
 
-    for (let i = 0; i < max; i++) {
-      const { label } = timestamp(i, span);
+  for (let i = 0; i < max; i++) {
+    const { label } = timestamp(i, span);
 
-      const log: Analytics["log"][number] = {
-        label: label,
-        self: dummy.num(99),
-        others: dummy.num(99),
-      };
+    const log: Analytics["log"][number] = (() => {
+      switch (true) {
+        case distribution:
+          return {
+            label,
+            プライム: dummy.num(99),
+            二次請け: dummy.num(99),
+            三次請け: dummy.num(99),
+            営業支援: dummy.num(99),
+            その他: dummy.num(99),
+          };
 
-      analytics.log.push(log);
-    }
-  } else {
-    const labels = distribution
-      ? ["プライム", "二次請け", "三次請け", "営業支援", "その他"]
-      : ["当日中", "翌営業日1日以内", "翌営業日3日以内", "不明"];
+        case approval:
+          return {
+            label,
+            当日中: dummy.num(99),
+            翌営業日1日以内: dummy.num(99),
+            翌営業日3日以内: dummy.num(99),
+            不明: dummy.num(99),
+          };
 
-    for (const label of labels) {
-      const log: Analytics["log"][number] = {
-        label: label,
-        self: dummy.num(99),
-        others: dummy.num(99),
-      };
+        default:
+          return {
+            label,
+            self: dummy.num(99),
+            others: !posts ? dummy.num(99) : undefined,
+          };
+      }
+    })();
 
-      analytics.log.push(log);
-    }
+    analytics.log.push(log);
   }
 
   return analytics;
@@ -165,8 +173,6 @@ const fetchLog = async (
   const distribution = collection === "distribution";
   const approval = collection === "approval";
 
-  if (distribution || approval) return;
-
   const span = data.span;
   const day = span === "day";
   const max = day ? 7 : 6;
@@ -175,23 +181,54 @@ const fetchLog = async (
     const { label, time } = timestamp(i, span);
 
     switch (collection) {
-      case "posts": {
-        const querySnapshot = await fetchCollectionGroup({
+      case "posts":
+      case "distribution":
+      case "approval": {
+        const querySnapshot = await fetchCollectionGroup<Firestore.Post>({
           collection,
           sort: "self",
           uid: data.uid,
           time,
         });
 
-        const self = querySnapshot ? querySnapshot.docs.length : 0;
+        if (!distribution && !approval) {
+          const self = querySnapshot ? querySnapshot.docs.length : 0;
 
-        const log: Analytics["log"][number] = {
-          label,
-          self,
-          others: undefined,
-        };
+          const log: Analytics["log"][number] = {
+            label,
+            self,
+            others: undefined,
+          };
 
-        analytics.log.push(log);
+          analytics.log.push(log);
+        } else {
+          const log: { [key: string]: number } = distribution
+            ? {
+                プライム: 0,
+                二次請け: 0,
+                三次請け: 0,
+                営業支援: 0,
+                その他: 0,
+              }
+            : {
+                当日中: 0,
+                翌営業1日以内: 0,
+                翌営業3日以内: 0,
+                不明: 0,
+              };
+
+          querySnapshot?.forEach((doc) => {
+            const data = doc.data();
+
+            const key = data[collection];
+
+            if (!key || Object.keys(log).indexOf(key) < 0) return;
+
+            log[key] += 1;
+          });
+
+          analytics.log.push({ label, ...log });
+        }
 
         continue;
       }
@@ -204,6 +241,7 @@ const fetchLog = async (
             uid: data.uid,
             time,
           }),
+
           others: await fetchCollectionGroup({
             collection,
             sort: "others",
@@ -242,11 +280,15 @@ const fetchTotal = async (
 
   const sorts: Sort[] = ["self", "others"];
 
+  if (distribution || approval) return;
+
   await Promise.allSettled(
     sorts.map(async (sort) => {
-      if (sort === "others") if (posts || distribution || approval) return;
+      if (sort === "others") if (posts) return;
 
-      const querySnapshot = await fetchCollectionGroup({
+      const querySnapshot = await fetchCollectionGroup<
+        Firestore.Post | Firestore.User
+      >({
         collection,
         sort,
         uid: data.uid,
@@ -255,47 +297,14 @@ const fetchTotal = async (
 
       if (!querySnapshot) return;
 
-      if (!distribution && !approval) {
-        const count = querySnapshot.docs.length;
+      const count = querySnapshot.docs.length;
 
-        analytics[sort] = count;
-      } else {
-        const labels = distribution
-          ? ["プライム", "二次請け", "三次請け", "営業支援", "その他"]
-          : ["当日中", "翌営業日1日以内", "翌営業日3日以内", "不明"];
-
-        for (const label of labels) {
-          const self = querySnapshot.docs
-            .map((doc) => {
-              const data = doc.data();
-
-              if (!("objectID" in data)) return;
-
-              return label ===
-                (collection === "distribution"
-                  ? data.distribution
-                  : data.approval)
-                ? data.objectID
-                : undefined;
-            })
-            ?.filter(
-              (objectID): objectID is string => objectID !== undefined
-            )?.length;
-
-          const log: Analytics["log"][number] = {
-            label,
-            self,
-            others: undefined,
-          };
-
-          analytics.log.push(log);
-        }
-      }
+      analytics[sort] = count;
     })
   );
 };
 
-const fetchCollectionGroup = async ({
+const fetchCollectionGroup = async <T>({
   collection,
   sort,
   uid,
@@ -307,9 +316,7 @@ const fetchCollectionGroup = async ({
   uid: Data["uid"];
   span?: Data["span"];
   time?: Timestamp["time"];
-}): Promise<void | FirebaseFirestore.QuerySnapshot<
-  Firestore.Post | Firestore.User
->> => {
+}): Promise<void | FirebaseFirestore.QuerySnapshot<T>> => {
   switch (sort) {
     case "self": {
       const doc = db.collection("companys").doc(uid);
@@ -322,7 +329,7 @@ const fetchCollectionGroup = async ({
             case "total": {
               return await doc
                 .collection("posts")
-                .withConverter(converter<Firestore.Post>())
+                .withConverter(converter<T>())
                 .orderBy("createAt", "desc")
                 .get()
                 .catch(() => {});
@@ -331,7 +338,7 @@ const fetchCollectionGroup = async ({
             default: {
               return await doc
                 .collection("posts")
-                .withConverter(converter<Firestore.Post>())
+                .withConverter(converter<T>())
                 .where(
                   "createAt",
                   ">=",
@@ -357,7 +364,7 @@ const fetchCollectionGroup = async ({
                 case "histories": {
                   return await doc
                     .collection(collection)
-                    .withConverter(converter<Firestore.Post | Firestore.User>())
+                    .withConverter(converter<T>())
                     .where("index", "in", ["matters", "resources"])
                     .orderBy("createAt", "desc")
                     .get()
@@ -367,7 +374,7 @@ const fetchCollectionGroup = async ({
                 default: {
                   return await doc
                     .collection(collection)
-                    .withConverter(converter<Firestore.Post | Firestore.User>())
+                    .withConverter(converter<T>())
                     .orderBy("createAt", "desc")
                     .get()
                     .catch(() => {});
@@ -381,7 +388,7 @@ const fetchCollectionGroup = async ({
                 case "histories": {
                   return await doc
                     .collection(collection)
-                    .withConverter(converter<Firestore.Post | Firestore.User>())
+                    .withConverter(converter<T>())
                     .where("index", "in", ["matters", "resources"])
                     .where(
                       "createAt",
@@ -405,7 +412,7 @@ const fetchCollectionGroup = async ({
                 default: {
                   return await doc
                     .collection(collection)
-                    .withConverter(converter<Firestore.Post | Firestore.User>())
+                    .withConverter(converter<T>())
                     .where(
                       "createAt",
                       ">=",
@@ -440,7 +447,7 @@ const fetchCollectionGroup = async ({
             case "likes":
             case "histories": {
               return await collectionGroup
-                .withConverter(converter<Firestore.Post | Firestore.User>())
+                .withConverter(converter<T>())
                 .where("index", "in", ["matters", "resources"])
                 .where("uid", "==", uid)
                 .orderBy("createAt", "desc")
@@ -450,7 +457,7 @@ const fetchCollectionGroup = async ({
 
             default: {
               return await collectionGroup
-                .withConverter(converter<Firestore.Post | Firestore.User>())
+                .withConverter(converter<T>())
                 .where("uid", "==", uid)
                 .orderBy("createAt", "desc")
                 .get()
@@ -464,7 +471,7 @@ const fetchCollectionGroup = async ({
             case "likes":
             case "histories": {
               return await collectionGroup
-                .withConverter(converter<Firestore.Post | Firestore.User>())
+                .withConverter(converter<T>())
                 .where("index", "in", ["matters", "resources"])
                 .where("uid", "==", uid)
                 .where(
@@ -484,7 +491,7 @@ const fetchCollectionGroup = async ({
 
             default: {
               return await collectionGroup
-                .withConverter(converter<Firestore.Post | Firestore.User>())
+                .withConverter(converter<T>())
                 .where("uid", "==", uid)
                 .where(
                   "createAt",

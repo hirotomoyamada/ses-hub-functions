@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions";
 import { storage, location, runtime, timeZone } from "../_firebase";
-import { algolia } from "../_algolia";
+import { algolia, ObjectWithObjectID } from "../_algolia";
 
 type i = "matters" | "resources" | "companys" | "persons";
 
@@ -33,23 +33,15 @@ export const persons = functions
   .onRun(async () => saveBucket("persons"));
 
 const encodeJson = async (i: i): Promise<string> => {
-  let json: string | null = null;
+  const data: ObjectWithObjectID[] = [];
 
   const index = algolia.initIndex(i);
 
   await index.browseObjects({
-    batch: (t) => {
-      json = JSON.stringify(t, null, 2);
-    },
+    batch: (hits) => data.push(...hits),
   });
 
-  if (!json) {
-    throw new functions.https.HttpsError(
-      "data-loss",
-      "データが存在しません",
-      "json"
-    );
-  }
+  const json = JSON.stringify(data, null, 2);
 
   return json;
 };

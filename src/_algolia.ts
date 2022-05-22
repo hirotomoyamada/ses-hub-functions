@@ -5,5 +5,5 @@ export const algolia = algoliasearch(
   functions.config().algolia.application_id,
   functions.config().algolia.admin_api_key
 );
-export { SearchOptions } from "@algolia/client-search";
+export { SearchOptions, ObjectWithObjectID } from "@algolia/client-search";
 export { RequestOptions } from "@algolia/transporter";

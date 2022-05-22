@@ -21,7 +21,7 @@ type Results = Algolia.Matter | Algolia.CompanyItem;
 export const extractPosts = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data, context) => {
+  .https.onCall(async (data: Data, context) => {
     await userAuthenticated(context);
     const demo = checkDemo(context);
 
@@ -43,7 +43,7 @@ export const extractPosts = functions
 
     return {
       index: data.index,
-      type: data.type,
+      kind: data.type,
       posts: (posts as any[]).filter((post) => post !== undefined),
       hit: hit,
     };

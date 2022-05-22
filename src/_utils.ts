@@ -14,6 +14,8 @@ import { randomBytes } from "crypto";
 
 export type Log = ({
   index,
+  kind,
+  search,
   run,
   code,
   uid,
@@ -26,6 +28,8 @@ export type Log = ({
 export const log: Log = async ({
   auth,
   index,
+  kind,
+  search,
   run,
   code,
   objectID,
@@ -79,6 +83,8 @@ export const log: Log = async ({
         payment,
       },
       ...(index ? { index } : {}),
+      ...(kind ? { kind } : {}),
+      ...(search ? { search } : {}),
       ...(uid ? { uid } : {}),
       ...(objectID ? { objectID } : {}),
       ...(message ? { message } : {}),

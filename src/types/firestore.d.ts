@@ -134,6 +134,8 @@ export interface User {
 
 export interface Log {
   index?: "matters" | "resources" | "companys" | "persons";
+  kind?: "likes" | "outputs" | "entries" | "requests" | "histories";
+  search?: string;
   run: string;
   code: number;
   objectID?: string | string[];

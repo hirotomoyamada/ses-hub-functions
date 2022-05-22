@@ -81,6 +81,7 @@ export const fetchPosts = functions
 
     return {
       index: data.index,
+      search: data.value,
       posts: (posts as any[]).filter((post) => post !== undefined),
       hit: hit,
     };

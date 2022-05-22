@@ -43,7 +43,7 @@ export const extractPosts = functions
 
     return {
       index: data.index,
-      type: data.type,
+      kind: data.type,
       posts: (posts as any[]).filter((post) => post !== undefined),
       hit: hit,
     };

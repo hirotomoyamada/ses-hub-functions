@@ -277,7 +277,7 @@ const fetchCollectionGroup = async (
         .withConverter(converter<Firestore.Post>())
         .where("index", "==", data.index)
         .where("objectID", "==", data.post.objectID)
-        .where("payment", "!=", null)
+        .where("payment", "in", ["canceled", "active", "trialing"])
         .orderBy("createAt", "desc")
         .get()
         .catch(() => {});

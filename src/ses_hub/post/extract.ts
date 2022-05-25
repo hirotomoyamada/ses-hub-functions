@@ -33,6 +33,7 @@ export const extractPosts = functions
       auth: { collection: "companys", doc: context.auth?.uid },
       run: "extractPosts",
       index: data.index,
+      kind: data.type,
       code: 200,
       objectID: posts
         ?.map((post) =>
@@ -43,7 +44,7 @@ export const extractPosts = functions
 
     return {
       index: data.index,
-      kind: data.type,
+      type: data.type,
       posts: (posts as any[]).filter((post) => post !== undefined),
       hit: hit,
     };

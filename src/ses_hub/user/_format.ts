@@ -309,7 +309,8 @@ export const editAlgolia = ({
   const timestamp = Date.now();
 
   return {
-    objectID: context.auth.uid,
+    objectID:
+      context.auth.uid === data.uid ? context.auth.uid : (data.uid as string),
     name: data.name,
     person: data.person,
     body: data.body,

@@ -179,27 +179,27 @@ const updateFirestore = async ({
 }): Promise<void> => {
   await updateDoc({
     uid: context.params.uid,
-    type: type,
-    status: status,
-    price: price,
-    start: start,
-    end: end,
-    parent: parent,
-    account: account,
+    type,
+    status,
+    price,
+    start,
+    end,
+    parent,
+    account,
   });
 
   if (children?.length) {
     for await (const uid of children) {
       await updateDoc({
-        uid: uid,
-        type: type,
-        status: status,
-        price: price,
-        start: start,
-        end: end,
-        parent: parent,
+        uid,
+        type,
+        status,
+        price,
+        start,
+        end,
+        parent,
         child: true,
-        account: account,
+        account,
       });
     }
   }
@@ -265,9 +265,9 @@ const updateDoc = async ({
                 }
               : individual
               ? {
-                  status: status,
-                  price: price,
-                  start: start,
+                  status,
+                  price,
+                  start,
                   end: end,
                   trial: false,
                   cancel: false,
@@ -275,12 +275,12 @@ const updateDoc = async ({
                   load: false,
                 }
               : {
-                  status: status,
-                  price: price,
+                  status,
+                  price,
                   account: Number(account),
-                  children: children,
-                  start: start,
-                  end: end,
+                  children,
+                  start,
+                  end,
                   trial: false,
                   cancel: false,
                   notice: false,

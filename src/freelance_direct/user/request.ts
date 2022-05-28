@@ -135,7 +135,6 @@ const updateFirestore = async ({
         await doc.ref
           .set(
             {
-              uid: person ? user.uid : selectUser.uid,
               status: status,
               updateAt: timestamp,
             },

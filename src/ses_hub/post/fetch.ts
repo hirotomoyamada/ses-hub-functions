@@ -399,8 +399,6 @@ const fetchFirestore = {
       | Algolia.PersonItem[],
     status: boolean
   ): Promise<void> => {
-    const demo = checkDemo(context);
-
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
@@ -450,17 +448,6 @@ const fetchFirestore = {
                   icon: data?.icon,
                   type: data?.type,
                   status: data?.payment.status,
-                  profile: {
-                    name: !demo ? data?.profile.name : dummy.name(),
-                    person: !demo
-                      ? data?.profile.person
-                        ? data?.profile.person
-                        : "名無しさん"
-                      : dummy.person(),
-                    body: data?.profile.body,
-                    email: !demo ? data?.profile.email : undefined,
-                    social: !demo && status ? data?.profile.social : undefined,
-                  },
                 };
 
                 if (status) {

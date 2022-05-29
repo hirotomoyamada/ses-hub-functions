@@ -7,6 +7,7 @@ import { userAuthenticated } from "./_userAuthenticated";
 type Data = {
   uid: string;
   span: "total" | "day" | "week" | "month";
+  demo: boolean;
 };
 
 type Collection =
@@ -41,15 +42,16 @@ export const fetchAnalytics = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({
-      uid: data.uid,
-      context,
-      canceled: true,
-      child: true,
-      option: "analytics",
-    });
+    if (!data.demo)
+      await userAuthenticated({
+        uid: data.uid,
+        context,
+        canceled: true,
+        child: true,
+        option: "analytics",
+      });
 
-    const demo = checkDemo(context);
+    const demo = checkDemo(context) || data.demo;
 
     const collections: { collection: Collection; label: string }[] = [
       { collection: "posts", label: "投稿" },

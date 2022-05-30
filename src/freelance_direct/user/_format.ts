@@ -21,7 +21,7 @@ export const createFirestore = ({
   }
 
   const timestamp = context.auth.token.auth_time * 1000;
-  const icon = Math.floor(Math.random() * (36 - 17 + 1) + 17 + 1);
+  const icon = Math.floor(Math.random() * (35 - 17) + 17 + 1);
   const cover = Math.floor(Math.random() * 18 + 1);
 
   const profile: Firestore.Person["profile"] = {

@@ -172,7 +172,7 @@ export const dummy: Dummy = {
   icon: (i) =>
     i === "companys"
       ? `icon${Math.floor(Math.random() * 17 + 1)}`
-      : `icon${Math.floor(Math.random() * (36 - 17 + 1) + 17 + 1)}`,
+      : `icon${Math.floor(Math.random() * (35 - 17) + 17 + 1)}`,
   name: () => company[Math.floor(Math.random() * company.length)],
   person: () =>
     `${lastName[Math.floor(Math.random() * lastName.length)]}${

@@ -5,7 +5,7 @@ import * as Firestore from "../../types/firestore";
 import { log } from "../../_utils";
 
 type Products = {
-  [T in string]: {
+  [key: string]: {
     id: string;
     name: string | null;
     account: number | null;
@@ -56,7 +56,15 @@ const verificationActive = async (
     .doc(context.auth.uid)
     .get();
 
-  const type = doc.data()?.type ? doc.data()?.type : "individual";
+  const type = doc.data()?.type || "individual";
+
+  if (!type || type === "child") {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "認証されていないユーザーではログインできません",
+      "auth"
+    );
+  }
 
   const collection = await db
     .collection("products")
@@ -64,29 +72,31 @@ const verificationActive = async (
     .get();
 
   collection?.forEach((doc) => {
-    if (
-      doc.data().active &&
-      (doc.data().metadata.type === type ||
-        doc.data().metadata.name === "option")
-    ) {
-      const key = doc.data().metadata.name;
+    const { active, metadata, name, description } = doc.data();
 
-      if (!key) {
-        return;
-      }
+    switch (true) {
+      case !active:
+      case metadata.type !== type && metadata.name !== "option":
+      case type === "parent" && metadata.type === "analytics":
+        delete products[doc.id];
 
-      delete Object.assign(products, {
-        [key]: {
-          id: doc.id,
-          name: doc.data().name,
-          type: doc.data().metadata.type,
-          desc: doc.data().description,
-          prices: products[doc.id],
-        },
-      })[doc.id];
-    } else {
-      delete products[doc.id];
+        break;
+
+      default:
+        if (!metadata.type) return delete products[doc.id];
+
+        delete Object.assign(products, {
+          [metadata.type]: {
+            id: doc.id,
+            name,
+            type: metadata.type,
+            desc: description,
+            prices: products[doc.id],
+          },
+        })[doc.id];
     }
+
+    return;
   });
 };
 
@@ -113,9 +123,7 @@ const fetchPrices = async (products: Products): Promise<void> => {
 
     const key = doc.ref.parent.parent?.path?.replace("products/", "");
 
-    if (!key) {
-      return;
-    }
+    if (!key) return;
 
     if (!products[key]) {
       products[key] = [product];

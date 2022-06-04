@@ -110,7 +110,7 @@ const updateAlgolia = async (
   children?: string[],
   type?: string
 ): Promise<void> => {
-  await partialUpdateObject(context.params.uid);
+  await partialUpdateObject(context.params.uid, type);
 
   if (children?.length) {
     for await (const uid of children) {

@@ -3,12 +3,15 @@ import { converter, db, location, runtime } from "../_firebase";
 import { algolia } from "../_algolia";
 import { userAuthenticated } from "./_userAuthenticated";
 import * as Firestore from "../types/firestore";
+import * as Algolia from "../types/algolia";
+import { NestedPartial } from "../types/utils";
 
 type Data = {
   uid: string;
-  status: string;
+  status: "active" | "trialing" | "canceled";
   account?: number;
-  option?: string;
+  freelanceDirect?: string;
+  analytics?: string;
 }[];
 
 export const updateAccount = functions
@@ -22,12 +25,14 @@ export const updateAccount = functions
         const children = await updateFirestore(user);
         await updateAlgolia(user);
 
-        if (children?.length) {
-          for await (const child of children) {
+        if (!children?.length) return;
+
+        await Promise.allSettled(
+          children.map(async (child) => {
             await updateFirestore(user, child);
             await updateAlgolia(user, child);
-          }
-        }
+          })
+        );
       })
     );
 
@@ -64,48 +69,34 @@ const updateFirestore = async (
 
   const children = payment.children;
 
-  const status = !parent
-    ? {
-        status: user?.status,
-      }
-    : !children
-    ? {
-        status: user?.status,
-        account: !user?.account ? 0 : user?.account,
-        children: [],
-      }
-    : {
-        status: user?.status,
-        account: !user?.account ? 0 : user?.account,
-      };
+  const newPayment: Firestore.Company["payment"] = {
+    ...payment,
+    status: user?.status,
+  };
 
-  const option = !parent
-    ? {
-        status: user?.status,
-        option: {
-          freelanceDirect: user?.option === "enable" ? true : false,
-        },
-      }
-    : !children
-    ? {
-        status: user?.status,
-        option: {
-          freelanceDirect: user?.option === "enable" ? true : false,
-        },
-        account: !user?.account ? 0 : user?.account,
-        children: [],
-      }
-    : {
-        status: user?.status,
-        option: {
-          freelanceDirect: user?.option === "enable" ? true : false,
-        },
-        account: !user?.account ? 0 : user?.account,
-      };
+  if (parent) {
+    newPayment.account = user.account || 0;
+
+    if (!children) {
+      newPayment.children = [];
+    }
+  }
+
+  if (user.freelanceDirect) {
+    const freelanceDirect = user.freelanceDirect === "enable" ? true : false;
+
+    newPayment.option = { freelanceDirect };
+  }
+
+  if (user.analytics) {
+    const analytics = user.analytics === "enable" ? true : false;
+
+    newPayment.option = { analytics };
+  }
 
   await doc.ref
     .set(
-      { payment: Object.assign(payment, !user?.option ? status : option) },
+      { payment: newPayment },
       {
         merge: true,
       }
@@ -127,22 +118,23 @@ const updateAlgolia = async (
 ): Promise<void> => {
   const index = algolia.initIndex("companys");
 
+  const object: NestedPartial<Algolia.Company> = {
+    objectID: !child ? user.uid : child,
+    plan: user.status !== "canceled" ? "enable" : "disable",
+  };
+
+  if (user.freelanceDirect) {
+    object.freelanceDirect = user.freelanceDirect;
+  }
+
+  if (user.analytics) {
+    object.analytics = user.analytics;
+  }
+
   await index
-    .partialUpdateObject(
-      user.option
-        ? {
-            objectID: !child ? user?.uid : child,
-            plan: user?.status !== "canceled" ? "enable" : "disable",
-            freelanceDirect: user?.option,
-          }
-        : {
-            objectID: user?.uid,
-            plan: user?.status !== "canceled" ? "enable" : "disable",
-          },
-      {
-        createIfNotExists: false,
-      }
-    )
+    .partialUpdateObject(object, {
+      createIfNotExists: false,
+    })
     .catch(() => {
       throw new functions.https.HttpsError(
         "data-loss",

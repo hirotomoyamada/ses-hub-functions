@@ -158,6 +158,7 @@ export interface Company {
   updateAt?: number;
   lastLogin?: number;
   freelanceDirect?: string;
+  analytics?: string;
   plan?: string;
 }
 

@@ -91,7 +91,7 @@ const updateFirestore = async (
   if (user.analytics) {
     const analytics = user.analytics === "enable" ? true : false;
 
-    newPayment.option = { analytics };
+    newPayment.option = { ...newPayment.option, analytics };
   }
 
   await doc.ref

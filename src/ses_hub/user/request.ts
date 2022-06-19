@@ -141,7 +141,7 @@ const updateFirestore = async (
         await subCollection
           .add({
             index: person ? "companys" : "persons",
-            uid: person ? selectUser.uid : user.uid,
+            uid: person ? user.uid : selectUser.uid,
             status: "hold",
             active: true,
             type,

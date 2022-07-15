@@ -64,7 +64,7 @@ const fetchUser = async (
     await updateAlgolia(context, timestamp);
 
     if (doc.data()?.provider.length !== data.providerData.length) {
-      await updateProvider(doc, data, timestamp);
+      await updateProvider(context, doc, data, timestamp);
       await loginAuthenticated({ doc });
 
       const collections = await fetchCollections(context);
@@ -74,7 +74,7 @@ const fetchUser = async (
         ...collections,
       };
     } else {
-      await updateLogin(doc, timestamp);
+      await updateLogin(context, doc, timestamp);
       await loginAuthenticated({ doc });
 
       const collections = await fetchCollections(context);
@@ -186,11 +186,13 @@ const fetchCollections = async (
 };
 
 const updateLogin = async (
+  context: functions.https.CallableContext,
   doc: FirebaseFirestore.DocumentSnapshot<Firestore.Company>,
   timestamp: number
 ): Promise<void> => {
   await doc.ref.set(
     {
+      ip: context.rawRequest.headers["x-appengine-user-ip"],
       lastLogin: timestamp,
     },
     { merge: true }
@@ -198,6 +200,7 @@ const updateLogin = async (
 };
 
 const updateProvider = async (
+  context: functions.https.CallableContext,
   doc: FirebaseFirestore.DocumentSnapshot<Firestore.Company>,
   data: Data,
   timestamp: number
@@ -205,6 +208,7 @@ const updateProvider = async (
   await doc.ref
     .set(
       {
+        ip: context.rawRequest.headers["x-appengine-user-ip"],
         provider: data.providerData.map((provider) => provider.providerId),
         updateAt: timestamp,
         lastLogin: timestamp,

@@ -1,9 +1,11 @@
 import { NestedPartial } from "./utils";
 import { Timestamp } from "firebase/firestore";
 import { Matter, Resource } from "./algolia";
+import { AuthData } from "firebase-functions";
 
 export interface Company {
   uid?: string;
+  ip?: string | string[] | undefined;
   type: "individual" | "parent" | "child" | "office" | "none";
   icon: string;
   cover: string;

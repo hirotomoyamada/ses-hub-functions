@@ -39,3 +39,4 @@ export { extractPosts } from "./post/extract";
 export { homePosts } from "./post/home";
 export { fetchActivity } from "./post/activity";
 export { createPost, editPost, deletePost, sendPost } from "./post/post";
+export { getUserAgent } from "./user/agent";

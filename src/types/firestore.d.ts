@@ -1,12 +1,12 @@
-import { NestedPartial } from "./utils";
-import { Timestamp } from "firebase/firestore";
-import { Matter, Resource } from "./algolia";
-import { AuthData } from "firebase-functions";
+import { NestedPartial } from './utils';
+import { Timestamp } from 'firebase/firestore';
+import { Matter, Resource } from './algolia';
+import { AuthData } from 'firebase-functions';
 
 export interface Company {
   uid?: string;
   ip?: string | string[] | undefined;
-  type: "individual" | "parent" | "child" | "office" | "none";
+  type: 'individual' | 'parent' | 'child' | 'office' | 'none';
   icon: string;
   cover: string;
   provider: string[];
@@ -32,7 +32,7 @@ export interface Company {
     };
   };
   payment: {
-    status: "active" | "trialing" | "canceled";
+    status: 'active' | 'trialing' | 'canceled';
     trial: boolean;
     limit: number;
     notice: boolean;
@@ -52,7 +52,7 @@ export interface Company {
     activity?: {
       active: string[];
       order: string[];
-      layout: "line" | "number" | "none";
+      layout: 'line' | 'number' | 'none';
       color: {
         self: string;
         others: string;
@@ -87,7 +87,7 @@ export interface Person {
       month: number | null;
     };
     costs: {
-      display: "public" | "private";
+      display: 'public' | 'private';
       type: string;
       min: number | null;
       max: number | null;
@@ -110,39 +110,39 @@ export interface Person {
 }
 
 export interface Post extends NestedPartial<Matter>, NestedPartial<Resource> {
-  index: "matters" | "resources";
+  index: 'matters' | 'resources';
   objectID: string;
   uid: string;
   active: boolean;
-  type: "individual" | "parent" | "child" | "office" | "none" | null;
-  payment: "active" | "trialing" | "canceled" | null;
+  type: 'individual' | 'parent' | 'child' | 'office' | 'none' | null;
+  payment: 'active' | 'trialing' | 'canceled' | null;
   createAt: number;
-  display?: "public" | "private";
+  display?: 'public' | 'private';
   updateAt?: number;
   deleteAt?: number;
 }
 
 export interface User {
-  index: "companys" | "persons";
+  index: 'companys' | 'persons';
   uid: string;
   active: boolean;
   home?: boolean;
-  type: "individual" | "parent" | "child" | "office" | "none" | null;
-  payment: "active" | "trialing" | "canceled" | null;
-  status?: "enable" | "hold" | "disable";
+  type: 'individual' | 'parent' | 'child' | 'office' | 'none' | null;
+  payment: 'active' | 'trialing' | 'canceled' | null;
+  status?: 'enable' | 'hold' | 'disable';
   createAt: number;
   updateAt?: number;
 }
 
 export interface Log {
-  index?: "matters" | "resources" | "companys" | "persons";
-  kind?: "likes" | "outputs" | "entries" | "requests" | "histories";
+  index?: 'matters' | 'resources' | 'companys' | 'persons';
+  kind?: 'likes' | 'outputs' | 'entries' | 'requests' | 'histories';
   search?: string;
   run: string;
   code: number;
   objectID?: string | string[];
-  type: "individual" | "parent" | "child" | "office" | "none" | null;
-  payment: "active" | "trialing" | "canceled" | null;
+  type: 'individual' | 'parent' | 'child' | 'office' | 'none' | null;
+  payment: 'active' | 'trialing' | 'canceled' | null;
   uid?: string | string[];
   message?: string;
   createAt: number;

@@ -1,34 +1,36 @@
-import * as functions from "firebase-functions";
-import { algolia } from "../../_algolia";
-import { db, location, runtime, converter } from "../../_firebase";
-import { userAuthenticated } from "./_userAuthenticated";
-import * as Firestore from "../../types/firestore";
-import { log } from "../../_utils";
+import * as functions from 'firebase-functions';
+import { algolia } from '../../_algolia';
+import { db, location, runtime, converter } from '../../_firebase';
+import { userAuthenticated } from './_userAuthenticated';
+import * as Firestore from '../../types/firestore';
+import { log } from '../../_utils';
+import { send } from '../../_sendgrid';
+import * as body from '../mail';
 
-type Status = "active" | "trialing" | "canceled";
+type Status = 'active' | 'trialing' | 'canceled';
 
 export const updatePlan = functions
   .region(location)
   .runWith(runtime)
-  .firestore.document("customers/{uid}/subscriptions/{sub}")
+  .firestore.document('customers/{uid}/subscriptions/{sub}')
   .onUpdate(async (change, context) => {
     await userAuthenticated(context.params.uid);
 
     const subscription = change.after.data() as Firestore.Subscription;
 
     const status: Status =
-      subscription.status === "active" || subscription.status === "trialing"
+      subscription.status === 'active' || subscription.status === 'trialing'
         ? subscription.status
-        : "canceled";
+        : 'canceled';
     const price = subscription.items[0].plan.id;
     const start = subscription.current_period_start.seconds * 1000;
     const end = subscription.current_period_end.seconds * 1000;
     const cancel = subscription.canceled_at ? true : false;
     const remove = subscription.ended_at ? true : false;
 
-    const plan = subscription.items[0].price.product.metadata.name === "plan";
+    const plan = subscription.items[0].price.product.metadata.name === 'plan';
     const parent =
-      subscription.items[0].price.product.metadata.type === "parent";
+      subscription.items[0].price.product.metadata.type === 'parent';
     const account = subscription.items[0].price.metadata.account;
 
     checkPlan(plan);
@@ -37,7 +39,7 @@ export const updatePlan = functions
 
     const children = parent ? await fetchChildren(context) : undefined;
 
-    await updateFirestore({
+    const { users } = await updateFirestore({
       context,
       status,
       cancel,
@@ -49,13 +51,18 @@ export const updatePlan = functions
       children,
     });
 
-    status === "canceled" && (await updateAlgolia(context, children));
+    if (status === 'canceled') {
+      await updateAlgolia(context, children);
+    }
 
-    remove && deletePlan(context);
+    if (remove) {
+      await deletePlan(context);
+      await sendMail({ subscription, users });
+    }
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "updatePlan",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'updatePlan',
       code: 200,
     });
 
@@ -65,21 +72,21 @@ export const updatePlan = functions
 export const updateOption = functions
   .region(location)
   .runWith(runtime)
-  .firestore.document("customers/{uid}/subscriptions/{sub}")
+  .firestore.document('customers/{uid}/subscriptions/{sub}')
   .onUpdate(async (change, context) => {
     await userAuthenticated(context.params.uid);
 
     const subscription = change.after.data() as Firestore.Subscription;
 
     const status: Status =
-      subscription.status === "active" || subscription.status === "trialing"
+      subscription.status === 'active' || subscription.status === 'trialing'
         ? subscription.status
-        : "canceled";
+        : 'canceled';
     const price = subscription.items[0].plan.id;
     const remove = subscription.ended_at ? true : false;
 
     const metadata = subscription.items[0].price.product.metadata;
-    const option = metadata.name === "option";
+    const option = metadata.name === 'option';
     const type = metadata.type;
 
     checkOption(option);
@@ -89,33 +96,71 @@ export const updateOption = functions
 
     const children = await fetchChildren(context);
 
-    await updateFirestore({ context, type, children });
+    const { users } = await updateFirestore({ context, type, children });
     await updateAlgolia(context, children, type);
 
-    remove && (await deleteOption(context));
+    if (remove) {
+      await deleteOption(context);
+      await sendMail({ subscription, users });
+    }
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "updateOption",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'updateOption',
       code: 200,
     });
 
     return;
   });
 
+const sendMail = async ({
+  subscription,
+  users,
+}: {
+  subscription: Firestore.Subscription;
+  users: Firestore.Company[];
+}) => {
+  const metadata = subscription.items[0].price.product.metadata;
+  const type = metadata.name;
+  const name =
+    type === 'plan'
+      ? subscription.items[0].price.nickname
+      : metadata.type === 'analytics'
+      ? 'アナリティクス'
+      : 'フリーランスダイレクト';
+  const start = subscription.current_period_start;
+  const end = subscription.current_period_end;
+
+  const to = functions.config().admin.ses_hub as string;
+  const from = `SES_HUB <${functions.config().admin.ses_hub}>`;
+  const subject = `SES_HUB ${
+    type === 'plan' ? 'プラン' : 'オプション'
+  }解約のお知らせ`;
+  const text = body.pay.admin('解約', type, name, start, end, users);
+
+  const mail = {
+    to,
+    from,
+    subject,
+    text,
+  };
+
+  await send(mail);
+};
+
 const fetchChildren = async (
-  context: functions.EventContext
+  context: functions.EventContext,
 ): Promise<string[] | undefined> => {
   const doc = await db
-    .collection("companys")
+    .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(context.params.uid)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
-        "firebase"
+        'not-found',
+        'ユーザーの取得に失敗しました',
+        'firebase',
       );
     });
 
@@ -130,18 +175,18 @@ const fetchChildren = async (
 
 const deletePlan = async (context: functions.EventContext): Promise<void> => {
   await db
-    .collection("customers")
+    .collection('customers')
     .withConverter(converter<Firestore.Customer>())
     .doc(context.params.uid)
-    .collection("subscriptions")
+    .collection('subscriptions')
     .withConverter(converter<Firestore.Subscription>())
     .doc(context.params.sub)
     .delete()
     .catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "ドキュメントの削除に失敗しました",
-        "firebase"
+        'data-loss',
+        'ドキュメントの削除に失敗しました',
+        'firebase',
       );
     });
 
@@ -150,16 +195,16 @@ const deletePlan = async (context: functions.EventContext): Promise<void> => {
 
 const deleteOption = async (context: functions.EventContext): Promise<void> => {
   await db
-    .collection("customers")
+    .collection('customers')
     .doc(context.params.uid)
-    .collection("subscriptions")
+    .collection('subscriptions')
     .doc(context.params.sub)
     .delete()
     .catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "ドキュメントの削除に失敗しました",
-        "firebase"
+        'data-loss',
+        'ドキュメントの削除に失敗しました',
+        'firebase',
       );
     });
 
@@ -169,7 +214,7 @@ const deleteOption = async (context: functions.EventContext): Promise<void> => {
 const updateAlgolia = async (
   context: functions.EventContext,
   children?: string[],
-  type?: string
+  type?: string,
 ): Promise<void> => {
   await partialUpdateObject(context.params.uid, type);
 
@@ -184,9 +229,9 @@ const updateAlgolia = async (
 
 const partialUpdateObject = async (
   uid: string,
-  type?: string
+  type?: string,
 ): Promise<void> => {
-  const index = algolia.initIndex("companys");
+  const index = algolia.initIndex('companys');
   const timestamp = Date.now();
 
   await index
@@ -194,23 +239,23 @@ const partialUpdateObject = async (
       !type
         ? {
             objectID: uid,
-            plan: "disable",
+            plan: 'disable',
             updateAt: timestamp,
           }
         : {
             objectID: uid,
-            [type]: "disable",
+            [type]: 'disable',
             updateAt: timestamp,
           },
       {
         createIfNotExists: false,
-      }
+      },
     )
     .catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "プロフィールの更新に失敗しました",
-        "algolia"
+        'data-loss',
+        'プロフィールの更新に失敗しました',
+        'algolia',
       );
     });
 
@@ -239,8 +284,10 @@ const updateFirestore = async ({
   end?: number;
   account?: string;
   children?: string[];
-}): Promise<void> => {
-  await updateDoc({
+}): Promise<{ users: Firestore.Company[] }> => {
+  const users: Firestore.Company[] = [];
+
+  const user = await updateDoc({
     uid: context.params.uid,
     type: type,
     status: status,
@@ -252,9 +299,11 @@ const updateFirestore = async ({
     account: account,
   });
 
+  if (user) users.push(user);
+
   if (children?.length) {
     for await (const uid of children) {
-      await updateDoc({
+      const user = await updateDoc({
         uid: uid,
         type: type,
         status: status,
@@ -266,10 +315,12 @@ const updateFirestore = async ({
         child: true,
         account: account,
       });
+
+      if (user) users.push(user);
     }
   }
 
-  return;
+  return { users };
 };
 
 const updateDoc = async ({
@@ -294,24 +345,24 @@ const updateDoc = async ({
   parent?: boolean;
   child?: boolean;
   account?: string;
-}): Promise<void> => {
+}): Promise<Firestore.Company | void> => {
   const doc = await db
-    .collection("companys")
+    .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(uid)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
-        "firebase"
+        'not-found',
+        'ユーザーの取得に失敗しました',
+        'firebase',
       );
     });
 
   if (doc.exists) {
     const payment = doc.data()?.payment;
     const individual = !parent || child;
-    const canceled = status === "canceled";
+    const canceled = status === 'canceled';
 
     const option = type
       ? Object.assign(payment?.option ? payment.option : {}, {
@@ -323,7 +374,7 @@ const updateDoc = async ({
       .set(
         {
           payment: Object.assign(
-            payment,
+            payment ?? {},
             option
               ? {
                   option: option,
@@ -335,7 +386,7 @@ const updateDoc = async ({
                     status: status,
                     price: null,
                     start: null,
-                    limit: payment?.status !== "active" ? payment?.limit : 10,
+                    limit: payment?.status !== 'active' ? payment?.limit : 10,
                     end: null,
                     cancel: false,
                     notice: !child ? true : false,
@@ -364,18 +415,20 @@ const updateDoc = async ({
                   start: start,
                   end: end,
                   cancel: cancel,
-                }
+                },
           ),
-        },
-        { merge: true }
+        } as Partial<Firestore.Company>,
+        { merge: true },
       )
       .catch(() => {
         throw new functions.https.HttpsError(
-          "data-loss",
-          "プロフィールの更新に失敗しました",
-          "firebase"
+          'data-loss',
+          'プロフィールの更新に失敗しました',
+          'firebase',
         );
       });
+
+    return doc.data() as Firestore.Company;
   }
 
   return;
@@ -385,13 +438,13 @@ const checkDuplicate = async (
   context: functions.EventContext,
   remove: boolean,
   price: string,
-  type?: string
+  type?: string,
 ): Promise<void> => {
   const subscriptions = await db
-    .collection("customers")
+    .collection('customers')
     .withConverter(converter<Firestore.Customer>())
     .doc(context.params.uid)
-    .collection("subscriptions")
+    .collection('subscriptions')
     .withConverter(converter<Firestore.Subscription>())
     .get();
 
@@ -399,48 +452,48 @@ const checkDuplicate = async (
   const doc = !type
     ? subscriptions?.docs?.filter(
         (doc) =>
-          (doc.data().status === "active" ||
-            doc.data().status === "trialing") &&
+          (doc.data().status === 'active' ||
+            doc.data().status === 'trialing') &&
           doc.data().items[0].price.id !== price &&
-          doc.data().items[0].price.product.metadata.name === "plan"
+          doc.data().items[0].price.product.metadata.name === 'plan',
       ).length
     : subscriptions?.docs?.filter(
         (doc) =>
-          (doc.data().status === "active" ||
-            doc.data().status === "trialing") &&
+          (doc.data().status === 'active' ||
+            doc.data().status === 'trialing') &&
           doc.data().items[0].price.id !== price &&
-          doc.data().items[0].price.product.metadata.name === "option" &&
-          doc.data().items[0].price.product.metadata.type === type
+          doc.data().items[0].price.product.metadata.name === 'option' &&
+          doc.data().items[0].price.product.metadata.type === type,
       ).length;
 
   if (docs > 1 && doc && remove) {
     await db
-      .collection("customers")
+      .collection('customers')
       .withConverter(converter<Firestore.Customer>())
       .doc(context.params.uid)
-      .collection("subscriptions")
+      .collection('subscriptions')
       .withConverter(converter<Firestore.Subscription>())
       .doc(context.params.sub)
       .delete()
       .then(() => {
         throw new functions.https.HttpsError(
-          "cancelled",
-          "ドキュメントを削除しました",
-          "firebase"
+          'cancelled',
+          'ドキュメントを削除しました',
+          'firebase',
         );
       })
       .catch(() => {
         throw new functions.https.HttpsError(
-          "data-loss",
-          "ドキュメントの削除に失敗しました",
-          "firebase"
+          'data-loss',
+          'ドキュメントの削除に失敗しました',
+          'firebase',
         );
       });
   } else if (docs > 1 && doc) {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "他のプランが有効のため処理中止",
-      "firebase"
+      'cancelled',
+      '他のプランが有効のため処理中止',
+      'firebase',
     );
   }
 };
@@ -448,9 +501,9 @@ const checkDuplicate = async (
 const checkPlan = (plan: boolean): void => {
   if (!plan) {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "プランの更新では無いので処理中止",
-      "firebase"
+      'cancelled',
+      'プランの更新では無いので処理中止',
+      'firebase',
     );
   }
 
@@ -460,9 +513,9 @@ const checkPlan = (plan: boolean): void => {
 const checkOption = (option: boolean): void => {
   if (!option) {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "オプションの更新では無いので処理中止",
-      "firebase"
+      'cancelled',
+      'オプションの更新では無いので処理中止',
+      'firebase',
     );
   }
 
@@ -470,11 +523,11 @@ const checkOption = (option: boolean): void => {
 };
 
 const checkCancel = (status: Status): void => {
-  if (status !== "canceled") {
+  if (status !== 'canceled') {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "更新が無いので処理中止",
-      "firebase"
+      'cancelled',
+      '更新が無いので処理中止',
+      'firebase',
     );
   }
 

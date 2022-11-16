@@ -386,7 +386,7 @@ const updateDoc = async ({
                     status: status,
                     price: null,
                     start: null,
-                    limit: payment?.status !== 'active' ? payment?.limit : 10,
+                    limit: payment?.status !== 'active' ? payment?.limit : 5,
                     end: null,
                     cancel: false,
                     notice: !child ? true : false,

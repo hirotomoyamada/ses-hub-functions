@@ -1,24 +1,24 @@
-import * as functions from "firebase-functions";
-import { converter, db, location, runtime, timeZone } from "../../_firebase";
-import * as Firestore from "../../types/firestore";
+import * as functions from 'firebase-functions';
+import { converter, db, location, runtime, timeZone } from '../../_firebase';
+import * as Firestore from '../../types/firestore';
 
 export const updateNotice = functions
   .region(location)
   .runWith(runtime)
-  .pubsub.schedule("0 0 */3 * *")
+  .pubsub.schedule('0 0 */3 * *')
   .timeZone(timeZone)
   .onRun(async () => {
     const querySnapshot = await db
-      .collection("companys")
+      .collection('companys')
       .withConverter(converter<Firestore.Company>())
-      .where("type", "!=", "child")
-      .where("payment.status", "==", "canceled")
+      .where('type', '!=', 'child')
+      .where('payment.status', '==', 'canceled')
       .get()
       .catch(() => {
         throw new functions.https.HttpsError(
-          "not-found",
-          "ユーザーの取得に失敗しました",
-          "firebase"
+          'not-found',
+          'ユーザーの取得に失敗しました',
+          'firebase',
         );
       });
 
@@ -30,13 +30,13 @@ export const updateNotice = functions
               notice: true,
             }),
           },
-          { merge: true }
+          { merge: true },
         )
         .catch(() => {
           throw new functions.https.HttpsError(
-            "data-loss",
-            "プロフィールの更新に失敗しました",
-            "firebase"
+            'data-loss',
+            'プロフィールの更新に失敗しました',
+            'firebase',
           );
         });
     });
@@ -47,18 +47,18 @@ export const updateNotice = functions
 export const updateLimit = functions
   .region(location)
   .runWith(runtime)
-  .pubsub.schedule("0 0 1 * *")
+  .pubsub.schedule('0 0 1 * *')
   .timeZone(timeZone)
   .onRun(async () => {
     const querySnapshot = await db
-      .collection("companys")
+      .collection('companys')
       .withConverter(converter<Firestore.Company>())
       .get()
       .catch(() => {
         throw new functions.https.HttpsError(
-          "not-found",
-          "ユーザーの取得に失敗しました",
-          "firebase"
+          'not-found',
+          'ユーザーの取得に失敗しました',
+          'firebase',
         );
       });
 
@@ -67,16 +67,16 @@ export const updateLimit = functions
         .set(
           {
             payment: Object.assign(doc.data().payment, {
-              limit: 10,
+              limit: 5,
             }),
           },
-          { merge: true }
+          { merge: true },
         )
         .catch(() => {
           throw new functions.https.HttpsError(
-            "data-loss",
-            "プロフィールの更新に失敗しました",
-            "firebase"
+            'data-loss',
+            'プロフィールの更新に失敗しました',
+            'firebase',
           );
         });
     });

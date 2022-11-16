@@ -1,8 +1,8 @@
-import * as functions from "firebase-functions";
-import { Parent } from "./child";
-import { Data, Customer } from "./profile";
-import * as Firestore from "../../types/firestore";
-import * as Algolia from "../../types/algolia";
+import * as functions from 'firebase-functions';
+import { Parent } from './child';
+import { Data, Customer } from './profile';
+import * as Firestore from '../../types/firestore';
+import * as Algolia from '../../types/algolia';
 
 export const createFirestore = ({
   context,
@@ -10,14 +10,14 @@ export const createFirestore = ({
   customer,
 }: {
   context: functions.https.CallableContext;
-  data: Data["create"];
+  data: Data['create'];
   customer: Customer;
 }): Firestore.Company => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
@@ -25,7 +25,7 @@ export const createFirestore = ({
   const icon = Math.floor(Math.random() * 17 + 1);
   const cover = Math.floor(Math.random() * 18 + 1);
 
-  const profile: Firestore.Company["profile"] = {
+  const profile: Firestore.Company['profile'] = {
     name: data.name,
     person: data.person,
     position: data.position,
@@ -40,12 +40,12 @@ export const createFirestore = ({
     social: { twitter: null, instagram: null, line: null, linkedIn: null },
   };
 
-  const payment: Firestore.Company["payment"] = {
+  const payment: Firestore.Company['payment'] = {
     id: customer.stripeId,
     link: customer.stripeLink,
-    status: "canceled",
-    trial: data.type !== "parent" ? true : false,
-    limit: 10,
+    status: 'canceled',
+    trial: data.type !== 'parent' ? true : false,
+    limit: 5,
     notice: true,
     // ======= ver 2.X.X 削除予定 =======
     option: { freelanceDirect: true },
@@ -56,7 +56,7 @@ export const createFirestore = ({
 
   return {
     provider: [data.provider],
-    status: "hold",
+    status: 'hold',
     type: data.type,
     agree: data.agree,
     icon: `icon${icon}`,
@@ -78,17 +78,17 @@ export const createChildFirestore = ({
 }): Firestore.Company => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   if (!parent.profile || !parent.payment) {
     throw new functions.https.HttpsError(
-      "data-loss",
-      "親アカウントの情報に不備があります",
-      "parent"
+      'data-loss',
+      '親アカウントの情報に不備があります',
+      'parent',
     );
   }
 
@@ -115,7 +115,7 @@ export const createChildFirestore = ({
     ? {
         status: parent.payment?.status,
         trial: parent.payment?.trial,
-        limit: 10,
+        limit: 5,
         notice: parent.payment?.notice,
         option: parent.payment?.option,
         cancel: parent.payment?.cancel ? parent.payment?.cancel : false,
@@ -128,7 +128,7 @@ export const createChildFirestore = ({
     : {
         status: parent.payment?.status,
         trial: parent.payment?.trial,
-        limit: 10,
+        limit: 5,
         notice: parent.payment?.notice,
         cancel: parent.payment?.cancel ? parent.payment?.cancel : false,
         load: parent.payment?.load ? parent.payment?.load : false,
@@ -141,10 +141,10 @@ export const createChildFirestore = ({
   const setting = {};
 
   return {
-    provider: ["password"],
-    status: "enable",
-    type: "child",
-    agree: "enable",
+    provider: ['password'],
+    status: 'enable',
+    type: 'child',
+    agree: 'enable',
     icon: `icon${icon}`,
     cover: `cover${cover}`,
     profile: profile,
@@ -160,13 +160,13 @@ export const createAlgolia = ({
   data,
 }: {
   context: functions.https.CallableContext;
-  data: Data["create"];
+  data: Data['create'];
 }): Algolia.Company => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
@@ -175,10 +175,10 @@ export const createAlgolia = ({
   return {
     objectID: context.auth.uid,
     uid: context.auth.uid,
-    status: "hold",
+    status: 'hold',
     type: data.type,
     // ======= ver 2.X.X 削除予定 =======
-    freelanceDirect: "enable",
+    freelanceDirect: 'enable',
     // ================================
     name: data.name,
     person: data.person,
@@ -206,17 +206,17 @@ export const createChildAlgolia = ({
 }): Algolia.Company => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   if (!parent.profile || !parent.payment) {
     throw new functions.https.HttpsError(
-      "data-loss",
-      "親アカウントの情報に不備があります",
-      "parent"
+      'data-loss',
+      '親アカウントの情報に不備があります',
+      'parent',
     );
   }
 
@@ -225,12 +225,12 @@ export const createChildAlgolia = ({
   return {
     objectID: context.auth.uid,
     uid: context.auth.uid,
-    status: "enable",
-    type: "child",
-    plan: parent.payment.status !== "canceled" ? "enable" : "disable",
+    status: 'enable',
+    type: 'child',
+    plan: parent.payment.status !== 'canceled' ? 'enable' : 'disable',
     freelanceDirect: parent.payment.option?.freelanceDirect
-      ? "enable"
-      : "disable",
+      ? 'enable'
+      : 'disable',
     name: parent.profile.name,
     person: null,
     body: null,
@@ -254,14 +254,14 @@ export const editFirestore = ({
   doc,
 }: {
   context: functions.https.CallableContext;
-  data: Data["edit"];
+  data: Data['edit'];
   doc: FirebaseFirestore.DocumentSnapshot<Firestore.Company>;
-}): Pick<Firestore.Company, "icon" | "cover" | "profile" | "updateAt"> => {
+}): Pick<Firestore.Company, 'icon' | 'cover' | 'profile' | 'updateAt'> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
@@ -293,16 +293,16 @@ export const editAlgolia = ({
   data,
 }: {
   context: functions.https.CallableContext;
-  data: Data["edit"];
+  data: Data['edit'];
 }): Omit<
   Algolia.Company,
-  "uid" | "status" | "position" | "createAt" | "type" | "email"
+  'uid' | 'status' | 'position' | 'createAt' | 'type' | 'email'
 > => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 

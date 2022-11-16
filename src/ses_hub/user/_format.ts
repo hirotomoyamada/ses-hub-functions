@@ -283,7 +283,10 @@ export const editFirestore = ({
   return {
     icon: data.icon,
     cover: data.cover,
-    profile: Object.assign(doc.data()?.profile, profile),
+    profile: Object.assign(
+      (doc.data()?.profile ?? {}) as Firestore.Company['profile'],
+      profile,
+    ),
     updateAt: timestamp,
   };
 };

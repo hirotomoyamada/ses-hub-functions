@@ -14,19 +14,19 @@ export const matter = (
     return handles?.[0] ? `${handles.join('')}\n` : `\n`;
   })();
 
-  const industry = post?.industry ? post.industry : ``;
   const position = post?.position ? post.position : ``;
 
+  const industry = post?.industry ? `業界：${post.industry}\n` : ``;
   const period = post.period
-    ? `開始：${post?.period?.year}年 ${post?.period?.month}月`
+    ? `開始：${post.period.year}年 ${post.period.month}月`
     : ``;
 
   const location = post?.location?.area
-    ? `場所：${post?.location?.area}${
-        post?.location?.place && ` ${post?.location?.place}`
+    ? `場所：${post.location.area}${
+        post?.location?.place && ` ${post.location.place}`
       }`
     : ``;
-  const remote = post?.remote ? `遠隔：${post?.remote}` : ``;
+  const remote = post?.remote ? `遠隔：${post.remote}` : ``;
 
   const times = post?.times
     ? `時間：${post.times.start} 〜 ${post.times.end}`
@@ -49,7 +49,7 @@ export const matter = (
     ? `面談：${post.interviews.type} ${post.interviews.count}`
     : ``;
 
-  return `${title}\n${handles}\n${industry}\n${position}\n\n${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\nURL：${url}`;
+  return `${title}\n${handles}\n${position}\n\n${industry}${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\nURL：${url}`;
 };
 
 export const resource = (

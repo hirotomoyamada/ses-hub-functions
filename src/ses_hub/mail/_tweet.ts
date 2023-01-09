@@ -15,14 +15,15 @@ export const matter = (post: Algolia.Matter, url: string): string => {
       : `\n`;
   })();
 
-  const industry = post?.industry ? post.industry : ``;
   const position = post?.position ? post.position : ``;
 
+  const industry = post?.industry ? `業界：${post.industry}\n` : ``;
+
   const period = post.period
-    ? `開始：${post?.period?.year}年 ${post?.period?.month}月`
+    ? `開始：${post.period.year}年 ${post.period.month}月`
     : ``;
 
-  const location = post?.location?.area ? `場所：${post?.location?.area}` : ``;
+  const location = post?.location?.area ? `場所：${post.location.area}` : ``;
   const remote = post?.remote ? `遠隔：${post?.remote}` : ``;
 
   const times = post?.times
@@ -46,7 +47,7 @@ export const matter = (post: Algolia.Matter, url: string): string => {
     ? `面談：${post.interviews.type} ${post.interviews.count}`
     : ``;
 
-  return `${title}\n${handles}\n${industry}\n${position}\n\n${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\n${url}`;
+  return `${title}\n${handles}\n${position}\n\n${industry}${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\n${url}`;
 };
 
 export const resource = (post: Algolia.Resource, url: string): string => {

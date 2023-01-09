@@ -36,6 +36,9 @@ export const matter = ({
       costs: {
         min: post.costs?.min ? Number(post.costs?.min) : null,
         max: post.costs?.max ? Number(post.costs?.max) : null,
+        mid: !post.costs?.min
+          ? Number(post.costs?.max)
+          : (Number(post.costs?.min) + Number(post.costs?.max)) / 2,
         contract: post.costs?.contract ? Number(post.costs?.contract) : null,
         display: post.costs?.display,
         type: post.costs?.type,
@@ -72,6 +75,9 @@ export const matter = ({
       costs: {
         min: post.costs?.min ? Number(post.costs?.min) : null,
         max: post.costs?.max ? Number(post.costs?.max) : null,
+        mid: !post.costs?.min
+          ? Number(post.costs?.max)
+          : (Number(post.costs?.min) + Number(post.costs?.max)) / 2,
         contract: post.costs?.contract ? Number(post.costs?.contract) : null,
         display: post.costs?.display,
         type: post.costs?.type,
@@ -133,6 +139,9 @@ export const resource = ({
       costs: {
         min: post.costs?.min ? Number(post.costs?.min) : null,
         max: post.costs?.max ? Number(post.costs?.max) : null,
+        mid: !post.costs?.min
+          ? Number(post.costs?.max)
+          : (Number(post.costs?.min) + Number(post.costs?.max)) / 2,
         contract: post.costs?.contract ? Number(post.costs?.contract) : null,
         display: post.costs?.display,
         type: post.costs?.type,
@@ -164,6 +173,9 @@ export const resource = ({
       costs: {
         min: post.costs?.min ? Number(post.costs?.min) : null,
         max: post.costs?.max ? Number(post.costs?.max) : null,
+        mid: !post.costs?.min
+          ? Number(post.costs?.max)
+          : (Number(post.costs?.min) + Number(post.costs?.max)) / 2,
         contract: post.costs?.contract ? Number(post.costs?.contract) : null,
         display: post.costs?.display,
         type: post.costs?.type,

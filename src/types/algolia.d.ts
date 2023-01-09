@@ -27,6 +27,7 @@ export interface Matter {
     display: 'public' | 'private';
     type?: string;
     min?: number | null;
+    mid?: number | null;
     max?: number | null;
     contract?: number | null;
   };
@@ -97,6 +98,7 @@ export interface Resource {
     display: 'public' | 'private';
     type?: string;
     min?: number | null;
+    mid?: number | null;
     max?: number | null;
     contract?: number | null;
   };

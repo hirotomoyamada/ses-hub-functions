@@ -1,9 +1,9 @@
-import * as functions from "firebase-functions";
-import { dummy } from "../../_utils";
-import * as Firestore from "../../types/firestore";
-import * as Algolia from "../../types/algolia";
-import { Hit } from "@algolia/client-search";
-import { NestedPartial } from "../../types/utils";
+import * as functions from 'firebase-functions';
+import { dummy } from '../../_utils';
+import * as Firestore from '../../types/firestore';
+import * as Algolia from '../../types/algolia';
+import { Hit } from '@algolia/client-search';
+import { NestedPartial } from '../../types/utils';
 
 export const company = {
   item: (hit: Algolia.Company, demo: boolean): Algolia.CompanyItem => {
@@ -14,14 +14,14 @@ export const company = {
           ? hit.name
           : hit.objectID !== functions.config().demo.ses_hub.uid
           ? dummy.name()
-          : "Hit me up株式会社",
+          : 'Hit me up株式会社',
         person: !demo
           ? hit.person
             ? hit.person
-            : "名無しさん"
+            : '名無しさん'
           : hit.objectID !== functions.config().demo.ses_hub.uid
           ? dummy.person()
-          : "羽生太郎",
+          : '羽生太郎',
         body: hit.body,
       },
       createAt: hit.createAt,
@@ -30,7 +30,7 @@ export const company = {
 
   supplementary: (
     doc: FirebaseFirestore.DocumentSnapshot<Firestore.Company>,
-    demo?: boolean
+    demo?: boolean,
   ): NestedPartial<Firestore.Company> => {
     return {
       uid: doc.id,
@@ -41,14 +41,14 @@ export const company = {
           ? doc.data()?.profile.name
           : doc.id !== functions.config().demo.ses_hub.uid
           ? dummy.name()
-          : "Hit me up株式会社",
+          : 'Hit me up株式会社',
         person: !demo
           ? doc.data()?.profile.person
             ? doc.data()?.profile.person
-            : "名無しさん"
+            : '名無しさん'
           : doc.id !== functions.config().demo.ses_hub.uid
           ? dummy.person()
-          : "羽生太郎",
+          : '羽生太郎',
         body: doc.data()?.profile.body,
         email: !demo ? doc.data()?.profile.email : undefined,
         social: !demo ? doc.data()?.profile.social : undefined,
@@ -59,11 +59,11 @@ export const company = {
   office: (demo?: boolean): NestedPartial<Firestore.Company> => {
     return {
       uid: undefined,
-      icon: "freelanceDirect",
-      type: "office",
+      icon: 'freelanceDirect',
+      type: 'office',
       profile: {
-        name: "Hit me up株式会社",
-        person: "Freelance Direct 事務局",
+        name: 'Hit me up株式会社',
+        person: 'Freelance Direct 事務局',
         body: undefined,
         email: !demo ? functions.config().admin.contact : undefined,
         social: undefined,
@@ -74,11 +74,11 @@ export const company = {
   none: (): NestedPartial<Firestore.Company> => {
     return {
       uid: undefined,
-      icon: "none",
-      type: "none",
+      icon: 'none',
+      type: 'none',
       profile: {
         name: undefined,
-        person: "存在しないユーザー",
+        person: '存在しないユーザー',
         body: undefined,
       },
     };
@@ -89,12 +89,13 @@ export const matter = (hit: Algolia.Matter): Algolia.Matter => {
   return {
     objectID: hit.objectID,
     title: hit.title,
+    industry: hit.industry,
     position: hit.position,
     body: hit.body,
     location: hit.location,
     period: hit.period,
     costs:
-      hit.costs.display === "public"
+      hit.costs.display === 'public'
         ? {
             display: hit.costs.display,
             min: hit.costs.min,
@@ -116,7 +117,7 @@ export const matter = (hit: Algolia.Matter): Algolia.Matter => {
     span: hit.span,
     approval: hit.approval,
     note: hit.note,
-    status: hit.status === "成約" ? hit.status : undefined,
+    status: hit.status === '成約' ? hit.status : undefined,
     uid: hit.uid,
     createAt: hit.createAt,
     updateAt: hit.updateAt,
@@ -124,7 +125,7 @@ export const matter = (hit: Algolia.Matter): Algolia.Matter => {
 };
 
 export const promotion = (
-  hit: Hit<Algolia.Matter>
+  hit: Hit<Algolia.Matter>,
 ): Algolia.MatterPromotion => {
   return {
     objectID: hit.objectID,
@@ -133,7 +134,7 @@ export const promotion = (
     body: hit.body,
     location: hit.location,
     costs:
-      hit.costs.display === "public"
+      hit.costs.display === 'public'
         ? {
             display: hit.costs.display,
             min: hit.costs.min,

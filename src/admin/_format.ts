@@ -1,17 +1,18 @@
-import * as Algolia from "../types/algolia";
-import * as Firestore from "../types/firestore";
-import { NestedPartial } from "../types/utils";
-import { Company, Person } from "./user";
+import * as Algolia from '../types/algolia';
+import * as Firestore from '../types/firestore';
+import { NestedPartial } from '../types/utils';
+import { Company, Person } from './user';
 
 export const matter = (
-  post: Algolia.Matter
-): Omit<Algolia.Matter, "uid" | "createAt"> => {
+  post: Algolia.Matter,
+): Omit<Algolia.Matter, 'uid' | 'createAt'> => {
   const timestamp = Date.now();
 
   return {
     display: post.display,
     objectID: post.objectID,
     title: post.title,
+    industry: post.industry,
     position: post.position,
     body: post.body,
     location: post.location,
@@ -45,8 +46,8 @@ export const matter = (
 };
 
 export const resource = (
-  post: Algolia.Resource
-): Omit<Algolia.Resource, "uid" | "createAt"> => {
+  post: Algolia.Resource,
+): Omit<Algolia.Resource, 'uid' | 'createAt'> => {
   const timestamp = Date.now();
 
   return {
@@ -107,8 +108,8 @@ export const company = {
   },
 
   algolia: (
-    user: Company
-  ): Omit<Algolia.Company, "uid" | "email" | "position" | "createAt"> => {
+    user: Company,
+  ): Omit<Algolia.Company, 'uid' | 'email' | 'position' | 'createAt'> => {
     const timestamp = Date.now();
 
     return {
@@ -170,8 +171,8 @@ export const person = {
   },
 
   algolia: (
-    user: Person
-  ): Omit<Algolia.Person, "uid" | "email" | "createAt"> => {
+    user: Person,
+  ): Omit<Algolia.Person, 'uid' | 'email' | 'createAt'> => {
     const timestamp = Date.now();
 
     return {

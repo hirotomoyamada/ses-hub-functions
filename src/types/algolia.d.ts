@@ -12,6 +12,7 @@ export interface Matter {
   display?: 'public' | 'private';
   status?: string;
   title: string;
+  industry: string;
   position: string;
   body: string;
   location: {

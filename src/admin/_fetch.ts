@@ -1,13 +1,14 @@
-import * as Algolia from "../types/algolia";
-import * as Firestore from "../types/firestore";
-import * as Auth from "../types/auth";
-import { NestedPartial } from "../types/utils";
+import * as Algolia from '../types/algolia';
+import * as Firestore from '../types/firestore';
+import * as Auth from '../types/auth';
+import { NestedPartial } from '../types/utils';
 
 export const matter = (hit: Algolia.Matter): Algolia.Matter => {
   return {
     display: hit.display,
     objectID: hit.objectID,
     title: hit.title,
+    industry: hit.industry,
     position: hit.position,
     body: hit.body,
     location: hit.location,
@@ -125,7 +126,7 @@ export const company = {
   },
 
   itemSupplementary: (
-    data: Firestore.Company
+    data: Firestore.Company,
   ): NestedPartial<Firestore.Company> => {
     return {
       icon: data.icon,
@@ -141,11 +142,11 @@ export const company = {
   none: (): NestedPartial<Firestore.Company> => {
     return {
       uid: undefined,
-      icon: "none",
-      type: "none",
+      icon: 'none',
+      type: 'none',
       profile: {
         name: undefined,
-        person: "存在しないユーザー",
+        person: '存在しないユーザー',
         body: undefined,
       },
     };

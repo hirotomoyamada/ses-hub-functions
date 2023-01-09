@@ -1,6 +1,6 @@
-import * as functions from "firebase-functions";
-import * as Algolia from "../../types/algolia";
-import { NestedPartial } from "../../types/utils";
+import * as functions from 'firebase-functions';
+import * as Algolia from '../../types/algolia';
+import { NestedPartial } from '../../types/utils';
 
 export const matter = ({
   post,
@@ -13,9 +13,9 @@ export const matter = ({
 }): NestedPartial<Algolia.Matter> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
@@ -25,6 +25,7 @@ export const matter = ({
     return {
       display: post.display,
       title: post.title,
+      industry: post.industry,
       position: post.position,
       body: post.body,
       location: post.location,
@@ -60,6 +61,7 @@ export const matter = ({
     return {
       display: post.display,
       title: post.title,
+      industry: post.industry,
       position: post.position,
       body: post.body,
       location: post.location,
@@ -106,9 +108,9 @@ export const resource = ({
 }): NestedPartial<Algolia.Resource> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 

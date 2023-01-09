@@ -1,6 +1,6 @@
-import { dummy } from "../../_utils";
-import * as Algolia from "../../types/algolia";
-import { Hit } from "@algolia/client-search";
+import { dummy } from '../../_utils';
+import * as Algolia from '../../types/algolia';
+import { Hit } from '@algolia/client-search';
 
 export const auth = {
   matter: (hit: Algolia.Matter): Algolia.Matter => {
@@ -8,6 +8,7 @@ export const auth = {
       display: hit.display,
       objectID: hit.objectID,
       title: hit.title,
+      industry: hit.industry,
       position: hit.position,
       body: hit.body,
       location: hit.location,
@@ -64,12 +65,13 @@ export const other = {
     return {
       objectID: hit.objectID,
       title: hit.title,
+      industry: hit.industry,
       position: hit.position,
       body: hit.body,
       location: hit.location,
       period: hit.period,
       costs:
-        hit.costs.display === "public"
+        hit.costs.display === 'public'
           ? {
               display: hit.costs.display,
               min: hit.costs.min,
@@ -91,7 +93,7 @@ export const other = {
       span: hit.span,
       approval: hit.approval,
       note: hit.note,
-      status: hit.status === "成約" ? hit.status : undefined,
+      status: hit.status === '成約' ? hit.status : undefined,
       uid: hit.uid,
       createAt: hit.createAt,
       updateAt: hit.updateAt,
@@ -113,7 +115,7 @@ export const other = {
       station: hit.station,
       period: hit.period,
       costs:
-        hit.costs.display === "public"
+        hit.costs.display === 'public'
           ? {
               display: hit.costs.display,
               min: hit.costs.min,
@@ -129,7 +131,7 @@ export const other = {
       parallel: hit.parallel,
       note: hit.note,
       uid: hit.uid,
-      status: hit.status === "成約" ? hit.status : undefined,
+      status: hit.status === '成約' ? hit.status : undefined,
       createAt: hit.createAt,
       updateAt: hit.updateAt,
     };
@@ -145,7 +147,7 @@ export const other = {
         person: !demo
           ? hit.person
             ? hit.person
-            : "名無しさん"
+            : '名無しさん'
           : dummy.person(),
         body: hit.body,
       },
@@ -183,7 +185,7 @@ export const promotion = {
       body: hit.body,
       location: hit.location,
       costs:
-        hit.costs.display === "public"
+        hit.costs.display === 'public'
           ? {
               display: hit.costs.display,
               min: hit.costs.min,
@@ -215,7 +217,7 @@ export const promotion = {
       station: hit.station,
       period: hit.period,
       costs:
-        hit.costs.display === "public"
+        hit.costs.display === 'public'
           ? {
               display: hit.costs.display,
               min: hit.costs.min,

@@ -14,6 +14,7 @@ export const matter = (
     return handles?.[0] ? `${handles.join('')}\n` : ``;
   })();
 
+  const industry = post?.industry ? post.industry : ``;
   const position = post?.position ? post.position : ``;
 
   const period = post.period
@@ -48,7 +49,7 @@ export const matter = (
     ? `面談：${post.interviews.type} ${post.interviews.count}`
     : ``;
 
-  return `${title}\n${handles}\n${position}\n\n${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\nURL：${url}`;
+  return `${title}\n${handles}\n${industry}\n\n${position}\n\n${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\nURL：${url}`;
 };
 
 export const resource = (

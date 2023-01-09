@@ -1,5 +1,5 @@
-import { NestedPartial } from "./utils";
-import * as Firestore from "./firestore";
+import { NestedPartial } from './utils';
+import * as Firestore from './firestore';
 
 export interface Hit {
   currentPage: number;
@@ -9,7 +9,7 @@ export interface Hit {
 
 export interface Matter {
   objectID: string;
-  display?: "public" | "private";
+  display?: 'public' | 'private';
   status?: string;
   title: string;
   position: string;
@@ -23,7 +23,7 @@ export interface Matter {
     month: number;
   };
   costs: {
-    display: "public" | "private";
+    display: 'public' | 'private';
     type?: string;
     min?: number | null;
     max?: number | null;
@@ -41,6 +41,7 @@ export interface Matter {
   interviews: {
     type: string;
     count: string;
+    setting: string;
   };
   remote: string;
   distribution: string;
@@ -59,23 +60,23 @@ export interface Matter {
 
 export type MatterPromotion = Pick<
   Matter,
-  | "objectID"
-  | "title"
-  | "position"
-  | "body"
-  | "location"
-  | "costs"
-  | "adjustment"
-  | "times"
-  | "handles"
-  | "remote"
-  | "uid"
-  | "createAt"
+  | 'objectID'
+  | 'title'
+  | 'position'
+  | 'body'
+  | 'location'
+  | 'costs'
+  | 'adjustment'
+  | 'times'
+  | 'handles'
+  | 'remote'
+  | 'uid'
+  | 'createAt'
 >;
 
 export interface Resource {
   objectID: string;
-  display?: "public" | "private";
+  display?: 'public' | 'private';
   status?: string;
   roman: {
     firstName: string;
@@ -92,7 +93,7 @@ export interface Resource {
     month: number;
   };
   costs: {
-    display: "public" | "private";
+    display: 'public' | 'private';
     type?: string;
     min?: number | null;
     max?: number | null;
@@ -119,24 +120,24 @@ export interface Resource {
 
 export type ResourcePromotion = Pick<
   Resource,
-  | "objectID"
-  | "roman"
-  | "position"
-  | "body"
-  | "belong"
-  | "station"
-  | "period"
-  | "costs"
-  | "handles"
-  | "uid"
-  | "createAt"
+  | 'objectID'
+  | 'roman'
+  | 'position'
+  | 'body'
+  | 'belong'
+  | 'station'
+  | 'period'
+  | 'costs'
+  | 'handles'
+  | 'uid'
+  | 'createAt'
 >;
 
 export interface Company {
   objectID: string;
   uid: string;
   status: string;
-  type: "individual" | "parent" | "child" | "office" | "none";
+  type: 'individual' | 'parent' | 'child' | 'office' | 'none';
   name: string;
   person: string | null;
   body: string | null;
@@ -202,7 +203,7 @@ export interface Person {
   costs: {
     min: number | null;
     max: number | null;
-    display: "public" | "private";
+    display: 'public' | 'private';
     type: string;
   };
   createAt: number;

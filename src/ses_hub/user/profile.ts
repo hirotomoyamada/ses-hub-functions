@@ -1,15 +1,15 @@
-import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../../_firebase";
-import { algolia } from "../../_algolia";
-import { userAuthenticated } from "./_userAuthenticated";
-import * as format from "./_format";
-import * as Firestore from "../../types/firestore";
-import * as Algolia from "../../types/algolia";
-import { log } from "../../_utils";
+import * as functions from 'firebase-functions';
+import { converter, db, location, runtime } from '../../_firebase';
+import { algolia } from '../../_algolia';
+import { userAuthenticated } from './_userAuthenticated';
+import * as format from './_format';
+import * as Firestore from '../../types/firestore';
+import * as Algolia from '../../types/algolia';
+import { log } from '../../_utils';
 
 export type Data = {
   create: {
-    type: "individual" | "parent" | "child";
+    type: 'individual' | 'parent' | 'child';
     name: string;
     person: string;
     position: string | null;
@@ -26,6 +26,7 @@ export type Data = {
     name: string;
     person: string;
     body: string | null;
+    invoice: { type: string; no: string | undefined } | null;
     more: string[];
     region: string[];
     postal: string | null;
@@ -50,14 +51,14 @@ export type Customer = {
 export const createProfile = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data: Data["create"], context) => {
+  .https.onCall(async (data: Data['create'], context) => {
     const customer = await fetchStripe(context);
     await createFirestore(context, data, customer);
     await createAlgolia(context, data);
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "createProfile",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'createProfile',
       code: 200,
       uid: context.auth?.uid,
     });
@@ -78,8 +79,8 @@ export const editProfile = functions
       await editAlgolia(context, data);
 
       await log({
-        auth: { collection: "companys", doc: context.auth?.uid },
-        run: "editProfile",
+        auth: { collection: 'companys', doc: context.auth?.uid },
+        run: 'editProfile',
         code: 200,
         uid: data.uid,
       });
@@ -89,18 +90,18 @@ export const editProfile = functions
   });
 
 const fetchStripe = async (
-  context: functions.https.CallableContext
+  context: functions.https.CallableContext,
 ): Promise<Customer> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   const doc = await db
-    .collection("customers")
+    .collection('customers')
     .withConverter(converter<Firestore.Customer>())
     .doc(context.auth.uid)
     .get();
@@ -110,9 +111,9 @@ const fetchStripe = async (
 
   if (!stripeId || !stripeLink) {
     throw new functions.https.HttpsError(
-      "not-found",
-      "ユーザーの取得に失敗しました",
-      "firebase"
+      'not-found',
+      'ユーザーの取得に失敗しました',
+      'firebase',
     );
   }
 
@@ -121,52 +122,52 @@ const fetchStripe = async (
 
 const fetchChild = async (
   context: functions.https.CallableContext,
-  data: Data["edit"]
+  data: Data['edit'],
 ): Promise<string | boolean | undefined> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   const doc = await db
-    .collection("companys")
+    .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
     .get();
 
   return (
     doc.exists &&
-    doc.data()?.type === "parent" &&
+    doc.data()?.type === 'parent' &&
     doc.data()?.payment?.children?.find((uid) => uid === data.uid)
   );
 };
 
 const createFirestore = async (
   context: functions.https.CallableContext,
-  data: Data["create"],
-  customer: Customer
+  data: Data['create'],
+  customer: Customer,
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   const doc = await db
-    .collection("companys")
+    .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
-        "firebase"
+        'not-found',
+        'ユーザーの取得に失敗しました',
+        'firebase',
       );
     });
 
@@ -178,18 +179,18 @@ const createFirestore = async (
 
   if (!profile) {
     throw new functions.https.HttpsError(
-      "data-loss",
-      "プロフィールの作成に失敗しました",
-      "algolia"
+      'data-loss',
+      'プロフィールの作成に失敗しました',
+      'algolia',
     );
   }
 
   if (!doc.exists) {
     await doc.ref.set(profile).catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "プロフィールの作成に失敗しました",
-        "firebase"
+        'data-loss',
+        'プロフィールの作成に失敗しました',
+        'firebase',
       );
     });
   }
@@ -197,28 +198,28 @@ const createFirestore = async (
 
 const editFirestore = async (
   context: functions.https.CallableContext,
-  data: Data["edit"]
+  data: Data['edit'],
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   const doc = await db
-    .collection("companys")
+    .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(
-      context.auth.uid === data.uid ? context.auth.uid : (data.uid as string)
+      context.auth.uid === data.uid ? context.auth.uid : (data.uid as string),
     )
     .get()
     .catch(() => {
       throw new functions.https.HttpsError(
-        "not-found",
-        "ユーザーの取得に失敗しました",
-        "firebase"
+        'not-found',
+        'ユーザーの取得に失敗しました',
+        'firebase',
       );
     });
 
@@ -231,9 +232,9 @@ const editFirestore = async (
   if (doc.exists && profile) {
     await doc.ref.set(profile, { merge: true }).catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "プロフィールの更新に失敗しました",
-        "firebase"
+        'data-loss',
+        'プロフィールの更新に失敗しました',
+        'firebase',
       );
     });
   }
@@ -241,9 +242,9 @@ const editFirestore = async (
 
 const createAlgolia = async (
   context: functions.https.CallableContext,
-  data: Data["create"]
+  data: Data['create'],
 ): Promise<void> => {
-  const index = algolia.initIndex("companys");
+  const index = algolia.initIndex('companys');
 
   const profile: Algolia.Company = format.createAlgolia({
     context,
@@ -252,9 +253,9 @@ const createAlgolia = async (
 
   if (!profile) {
     throw new functions.https.HttpsError(
-      "data-loss",
-      "プロフィールの作成に失敗しました",
-      "algolia"
+      'data-loss',
+      'プロフィールの作成に失敗しました',
+      'algolia',
     );
   }
 
@@ -264,18 +265,18 @@ const createAlgolia = async (
     })
     .catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "プロフィールの作成に失敗しました",
-        "algolia"
+        'data-loss',
+        'プロフィールの作成に失敗しました',
+        'algolia',
       );
     });
 };
 
 const editAlgolia = async (
   context: functions.https.CallableContext,
-  data: Data["edit"]
+  data: Data['edit'],
 ): Promise<void> => {
-  const index = algolia.initIndex("companys");
+  const index = algolia.initIndex('companys');
 
   const profile: Partial<Algolia.Company> = format.editAlgolia({
     context,
@@ -284,9 +285,9 @@ const editAlgolia = async (
 
   if (!profile) {
     throw new functions.https.HttpsError(
-      "data-loss",
-      "プロフィールの作成に失敗しました",
-      "algolia"
+      'data-loss',
+      'プロフィールの作成に失敗しました',
+      'algolia',
     );
   }
 
@@ -296,9 +297,9 @@ const editAlgolia = async (
     })
     .catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "プロフィールの更新に失敗しました",
-        "algolia"
+        'data-loss',
+        'プロフィールの更新に失敗しました',
+        'algolia',
       );
     });
 };

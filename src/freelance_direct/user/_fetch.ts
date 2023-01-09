@@ -1,8 +1,8 @@
-import * as functions from "firebase-functions";
-import { dummy } from "../../_utils";
-import * as Firestore from "../../types/firestore";
-import * as Algolia from "../../types/algolia";
-import { Data } from "./login";
+import * as functions from 'firebase-functions';
+import { dummy } from '../../_utils';
+import * as Firestore from '../../types/firestore';
+import * as Algolia from '../../types/algolia';
+import { Data } from './login';
 
 export const login = ({
   context,
@@ -15,9 +15,9 @@ export const login = ({
 }) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
@@ -38,7 +38,7 @@ export const login = ({
 
 export const company = (
   hit: Algolia.Company,
-  demo?: boolean
+  demo?: boolean,
 ): Algolia.CompanyItem => {
   return {
     uid: hit.objectID,
@@ -47,15 +47,16 @@ export const company = (
         ? hit.name
         : hit.objectID !== functions.config().demo.ses_hub.uid
         ? dummy.name()
-        : "Hit me up株式会社",
+        : 'Hit me up株式会社',
       person: !demo
         ? hit.person
           ? hit.person
-          : "名無しさん"
+          : '名無しさん'
         : hit.objectID !== functions.config().demo.ses_hub.uid
         ? dummy.person()
-        : "羽生太郎",
+        : '羽生太郎',
       body: hit.body,
+      invoice: hit.invoice,
       postal: hit.postal,
       address: hit.address,
       email: !demo ? hit.email : undefined,

@@ -1,9 +1,9 @@
-import * as functions from "firebase-functions";
-import { dummy } from "../../_utils";
-import * as Firestore from "../../types/firestore";
-import * as Algolia from "../../types/algolia";
-import { Data } from "./login";
-import { Hit } from "@algolia/client-search";
+import * as functions from 'firebase-functions';
+import { dummy } from '../../_utils';
+import * as Firestore from '../../types/firestore';
+import * as Algolia from '../../types/algolia';
+import { Data } from './login';
+import { Hit } from '@algolia/client-search';
 
 export const login = ({
   context,
@@ -16,9 +16,9 @@ export const login = ({
 }): Partial<Firestore.Company> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
@@ -51,9 +51,10 @@ export const company = {
         person: !demo
           ? hit.person
             ? hit.person
-            : "名無しさん"
+            : '名無しさん'
           : dummy.person(),
         body: hit.body,
+        invoice: hit.invoice,
         postal: hit.postal,
         address: hit.address,
         tel: !demo ? hit.tel : undefined,
@@ -77,7 +78,7 @@ export const company = {
         person: !demo
           ? hit.person
             ? hit.person
-            : "名無しさん"
+            : '名無しさん'
           : dummy.person(),
         body: hit.body,
         email: !demo ? hit.email : dummy.email(),
@@ -91,7 +92,7 @@ export const company = {
 
 export const person = (
   hit: Algolia.Person,
-  demo?: boolean
+  demo?: boolean,
 ): Algolia.PersonItem => {
   return {
     uid: hit.objectID,

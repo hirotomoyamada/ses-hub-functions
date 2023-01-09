@@ -16,6 +16,7 @@ export interface Company {
     name: string;
     person: string | null;
     body: string | null;
+    invoice: { type: string; no: string | undefined } | null;
     position: string | null;
     postal: string | null;
     address: string | null;

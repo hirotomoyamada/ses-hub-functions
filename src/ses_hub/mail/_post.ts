@@ -11,7 +11,7 @@ export const matter = (
   const handles = (() => {
     const handles = post?.handles?.map((handle) => handle && `【${handle}】`);
 
-    return handles?.[0] ? `${handles.join('')}\n` : ``;
+    return handles?.[0] ? `${handles.join('')}\n` : `\n`;
   })();
 
   const industry = post?.industry ? post.industry : ``;
@@ -49,7 +49,7 @@ export const matter = (
     ? `面談：${post.interviews.type} ${post.interviews.count}`
     : ``;
 
-  return `${title}\n${handles}\n${industry}\n\n${position}\n\n${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\nURL：${url}`;
+  return `${title}\n${handles}\n${industry}\n${position}\n\n${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\nURL：${url}`;
 };
 
 export const resource = (

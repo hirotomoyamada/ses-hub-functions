@@ -1,9 +1,9 @@
-import * as functions from "firebase-functions";
-import * as Firestore from "../../types/firestore";
+import * as functions from 'firebase-functions';
+import * as Firestore from '../../types/firestore';
 
 export const admin = (
-  user: Firestore.Company["profile"],
-  url: string
+  user: Firestore.Company['profile'],
+  url: string,
 ): string => {
   return `
 以下のユーザーが承認を待っています。
@@ -18,18 +18,20 @@ ${
     ? `
 役職：
 ${user.position}
-
 `
     : ``
 }
 住所：
-${user.postal && user.address ? `〒${user.postal} ${user.address}` : "記入なし"}
+${user.postal && user.address ? `〒${user.postal} ${user.address}` : '記入なし'}
 
 電話番号：
-${user.tel ? user.tel : "記入無し"}
+${user.tel ? user.tel : '記入無し'}
 
 メールアドレス：
 ${user.email}
+
+適格請求書発行事業者：
+${user.invoice?.type}${user.invoice?.no ? `：T` : ``}${user.invoice?.no}
 
 SES_HUB 管理画面
 URL : ${url}
@@ -37,8 +39,8 @@ URL : ${url}
 };
 
 export const user = (
-  user: Firestore.Company["profile"],
-  url: string
+  user: Firestore.Company['profile'],
+  url: string,
 ): string => {
   return `
 ${user.name} ${user.person} 様
@@ -60,18 +62,20 @@ ${
     ? `
 役職：
 ${user.position}
-
 `
     : ``
 }
 住所：
-${user.postal && user.address ? `〒${user.postal} ${user.address}` : "記入なし"}
+${user.postal && user.address ? `〒${user.postal} ${user.address}` : '記入なし'}
 
 電話番号：
-${user.tel ? user.tel : "記入無し"}
+${user.tel ? user.tel : '記入無し'}
 
 メールアドレス：
 ${user.email}
+
+適格請求書発行事業者：
+${user.invoice?.type}${user.invoice?.no ? `：T` : ``}${user.invoice?.no}
 
 ※ ユーザー登録にお心当たりの無い場合は、このメールを破棄してください。
 ※ 翌３営業日以上、承認が無い場合はお手数ですが下記のメールアドレスへお問い合わせください。

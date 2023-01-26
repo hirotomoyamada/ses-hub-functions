@@ -17,6 +17,7 @@ export type Data = {
     address: string;
     tel: string;
     agree: string;
+    invoice: { type: string; no: string };
     provider: string;
     fetch: boolean;
   };

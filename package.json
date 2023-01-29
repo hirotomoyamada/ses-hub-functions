@@ -7,7 +7,7 @@
     "start": "npm run shell",
     "test": "mocha --reporter spec",
     "deploy": "firebase use dev && firebase deploy --only",
-    "deploy-prod": "firebase use prod && firebase deploy --only",
+    "deploy:prod": "firebase use prod && firebase deploy --only",
     "logs": "firebase functions:log"
   },
   "engines": {

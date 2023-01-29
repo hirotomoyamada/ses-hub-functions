@@ -41,13 +41,11 @@ export const matter = (post: Algolia.Matter, url: string): string => {
       }`
     : ``;
 
-  const distribution = post?.distribution ? `商流：${post.distribution}` : ``;
-
   const interviews = post?.interviews
     ? `面談：${post.interviews.type} ${post.interviews.count}`
     : ``;
 
-  return `${title}\n${handles}\n${position}\n\n${industry}${period}\n${location}\n${remote}\n\n${times}\n${adjustment}\n\n${costs}\n\n${distribution}\n${interviews}\n\n${url}`;
+  return `${title}\n${handles}\n${position}\n\n${industry}${period}\n${location}\n${remote}\n${times}\n${adjustment}\n${costs}\n${interviews}\n\n${url}`;
 };
 
 export const resource = (post: Algolia.Resource, url: string): string => {
@@ -94,5 +92,5 @@ export const resource = (post: Algolia.Resource, url: string): string => {
     return skills?.[0] ? `スキル：\n${skills.join('\n')}\n\n` : ``;
   })();
 
-  return `${title}\n${position}\n\n${belong}\n${sex}\n${age}\n\n${period}\n${station}\n\n${costs}\n\n${skills}${url}`;
+  return `${title}\n${position}\n\n${belong}\n${sex}\n${age}\n${period}\n${station}\n${costs}\n\n${skills}${url}`;
 };

@@ -48,9 +48,6 @@ export const createFirestore = ({
     trial: data.type !== 'parent' ? true : false,
     limit: 5,
     notice: true,
-    // ======= ver 2.X.X 削除予定 =======
-    option: { freelanceDirect: true },
-    // ================================
   };
 
   const setting = {};
@@ -179,9 +176,6 @@ export const createAlgolia = ({
     uid: context.auth.uid,
     status: 'hold',
     type: data.type,
-    // ======= ver 2.X.X 削除予定 =======
-    freelanceDirect: 'enable',
-    // ================================
     name: data.name,
     person: data.person,
     body: null,

@@ -7,7 +7,7 @@ export { updatePlan, updateOption } from './pay/update';
 export { disableNotice } from './pay/notice';
 export { updateNotice, updateLimit } from './pay/schedule';
 export { enableAgree, disableAgree } from './user/agree';
-export { enableRemind, disableRemind } from './user/remind';
+export { sendRemind, enableRemind, disableRemind } from './user/remind';
 export { login } from './user/login';
 export {
   createUser,

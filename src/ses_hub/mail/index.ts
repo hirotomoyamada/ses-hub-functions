@@ -9,3 +9,4 @@ export * as tweet from './_tweet';
 export * as request from './_request';
 export * as type from './_type';
 export * as pay from './_pay';
+export * as remind from './_remind';

@@ -11,7 +11,7 @@ export interface Company {
   cover: string;
   provider: string[];
   agree: string;
-  remind?: { app?: string; mail?: number };
+  remind?: string;
   status: string;
   profile: {
     name: string;

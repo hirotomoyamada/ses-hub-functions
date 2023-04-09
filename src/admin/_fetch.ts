@@ -69,6 +69,7 @@ export const company = {
       payment: data.payment,
       type: data.type,
       agree: data.agree,
+      remind: data.remind,
       provider: data.provider,
       application: data.application,
       createAt: data.createAt,
@@ -97,6 +98,7 @@ export const company = {
     post.provider = data.provider;
     post.type = data.type;
     post.agree = data.agree;
+    post.remind = data.remind;
     post.payment = data.payment;
     post.createAt = data.createAt;
     post.updateAt = data.updateAt;

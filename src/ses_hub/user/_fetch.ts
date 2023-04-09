@@ -33,6 +33,7 @@ export const login = ({
     type: doc.data()?.type,
     application: doc.data()?.application,
     agree: doc.data()?.agree,
+    remind: doc.data()?.remind,
     payment: doc.data()?.payment,
     setting: doc.data()?.setting,
     createAt: doc.data()?.createAt,

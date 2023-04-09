@@ -1,14 +1,15 @@
-export { contactPromotion } from "./mail/contact";
-export { fetchProducts } from "./pay/fetch";
-export { createCheckout } from "./pay/checkout";
-export { updateTaxBehavior } from "./pay/TaxBehavior";
-export { createPlan, createOption } from "./pay/create";
-export { updatePlan, updateOption } from "./pay/update";
-export { disableNotice } from "./pay/notice";
-export { updateNotice, updateLimit } from "./pay/schedule";
-export { enableAgree } from "./user/agree";
-export { disableAgree } from "./user/agree";
-export { login } from "./user/login";
+export { contactPromotion } from './mail/contact';
+export { fetchProducts } from './pay/fetch';
+export { createCheckout } from './pay/checkout';
+export { updateTaxBehavior } from './pay/TaxBehavior';
+export { createPlan, createOption } from './pay/create';
+export { updatePlan, updateOption } from './pay/update';
+export { disableNotice } from './pay/notice';
+export { updateNotice, updateLimit } from './pay/schedule';
+export { enableAgree } from './user/agree';
+export { disableAgree } from './user/agree';
+export { disableRemind } from './user/remind';
+export { login } from './user/login';
 export {
   createUser,
   enableUser,
@@ -16,27 +17,27 @@ export {
   declineUser,
   goBackUser,
   deleteUser,
-} from "./user/automation";
-export { verificationUser } from "./user/verification";
-export { createProfile, editProfile } from "./user/profile";
-export { createChild } from "./user/child";
-export { changeEmail } from "./user/email";
-export { addProvider } from "./user/provider";
-export { updateSetting } from "./user/setting";
-export { applicationType } from "./user/application";
-export { fetchUser } from "./user/fetch";
-export { addLike, removeLike } from "./user/like";
-export { addOutput, removeOutput } from "./user/output";
-export { addFollow, removeFollow } from "./user/follow";
-export { updateHome } from "./user/home";
-export { addEntry } from "./user/entry";
-export { addRequest } from "./user/request";
-export { fetchAnalytics } from "./user/analytics";
-export { promotionPosts } from "./post/promotion";
-export { fetchPost, fetchPosts } from "./post/fetch";
-export { userPosts } from "./post/user";
-export { extractPosts } from "./post/extract";
-export { homePosts } from "./post/home";
-export { fetchActivity } from "./post/activity";
-export { createPost, editPost, deletePost, sendPost } from "./post/post";
-export { getUserAgent } from "./user/agent";
+} from './user/automation';
+export { verificationUser } from './user/verification';
+export { createProfile, editProfile } from './user/profile';
+export { createChild } from './user/child';
+export { changeEmail } from './user/email';
+export { addProvider } from './user/provider';
+export { updateSetting } from './user/setting';
+export { applicationType } from './user/application';
+export { fetchUser } from './user/fetch';
+export { addLike, removeLike } from './user/like';
+export { addOutput, removeOutput } from './user/output';
+export { addFollow, removeFollow } from './user/follow';
+export { updateHome } from './user/home';
+export { addEntry } from './user/entry';
+export { addRequest } from './user/request';
+export { fetchAnalytics } from './user/analytics';
+export { promotionPosts } from './post/promotion';
+export { fetchPost, fetchPosts } from './post/fetch';
+export { userPosts } from './post/user';
+export { extractPosts } from './post/extract';
+export { homePosts } from './post/home';
+export { fetchActivity } from './post/activity';
+export { createPost, editPost, deletePost, sendPost } from './post/post';
+export { getUserAgent } from './user/agent';

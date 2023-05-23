@@ -85,7 +85,7 @@ export const createChildFirestore = ({
   if (!parent.profile || !parent.payment) {
     throw new functions.https.HttpsError(
       'data-loss',
-      '親アカウントの情報に不備があります',
+      'メインアカウントの情報に不備があります',
       'parent',
     );
   }
@@ -212,7 +212,7 @@ export const createChildAlgolia = ({
   if (!parent.profile || !parent.payment) {
     throw new functions.https.HttpsError(
       'data-loss',
-      '親アカウントの情報に不備があります',
+      'メインアカウントの情報に不備があります',
       'parent',
     );
   }

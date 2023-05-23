@@ -1,10 +1,10 @@
-import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../../_firebase";
-import { send } from "../../_sendgrid";
-import { userAuthenticated } from "./_userAuthenticated";
-import * as Firestore from "../../types/firestore";
-import * as body from "../mail";
-import { log } from "../../_utils";
+import * as functions from 'firebase-functions';
+import { converter, db, location, runtime } from '../../_firebase';
+import { send } from '../../_sendgrid';
+import { userAuthenticated } from './_userAuthenticated';
+import * as Firestore from '../../types/firestore';
+import * as body from '../mail';
+import { log } from '../../_utils';
 
 export const applicationType = functions
   .region(location)
@@ -17,24 +17,24 @@ export const applicationType = functions
 
     if (!context.auth) {
       throw new functions.https.HttpsError(
-        "unauthenticated",
-        "認証されていないユーザーではログインできません",
-        "auth"
+        'unauthenticated',
+        '認証されていないユーザーではログインできません',
+        'auth',
       );
     }
 
     const timestamp = Date.now();
 
     const doc = await db
-      .collection("companys")
+      .collection('companys')
       .withConverter(converter<Firestore.Company>())
       .doc(context.auth.uid)
       .get()
       .catch(() => {
         throw new functions.https.HttpsError(
-          "not-found",
-          "ユーザーの取得に失敗しました",
-          "firebase"
+          'not-found',
+          'ユーザーの取得に失敗しました',
+          'firebase',
         );
       });
 
@@ -47,7 +47,7 @@ export const applicationType = functions
             application: true,
             updateAt: timestamp,
           },
-          { merge: true }
+          { merge: true },
         )
         .then(async () => {
           const adminUrl: string = functions.config().admin.url;
@@ -55,16 +55,16 @@ export const applicationType = functions
 
           if (!profile) {
             throw new functions.https.HttpsError(
-              "not-found",
-              "ユーザーの取得に失敗しました",
-              "firebase"
+              'not-found',
+              'ユーザーの取得に失敗しました',
+              'firebase',
             );
           }
 
           const adminMail = {
             to: functions.config().admin.ses_hub as string,
             from: `SES_HUB <${functions.config().admin.ses_hub}>`,
-            subject: "【法人】申請されたメンバー",
+            subject: '【グループ】申請されたメンバー',
             text: body.type.admin(profile, adminUrl),
           };
 
@@ -72,16 +72,16 @@ export const applicationType = functions
         })
         .catch(() => {
           throw new functions.https.HttpsError(
-            "data-loss",
-            "申請の変更に失敗しました",
-            "firebase"
+            'data-loss',
+            '申請の変更に失敗しました',
+            'firebase',
           );
         });
     }
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "applicationType",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'applicationType',
       code: 200,
     });
 
@@ -89,48 +89,48 @@ export const applicationType = functions
   });
 
 const userVarification = (
-  doc: FirebaseFirestore.DocumentSnapshot<Firestore.Company>
+  doc: FirebaseFirestore.DocumentSnapshot<Firestore.Company>,
 ): void => {
   if (doc.data()?.application) {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "すでに申請済みのため、処理中止",
-      "firebase"
+      'cancelled',
+      'すでに申請済みのため、処理中止',
+      'firebase',
     );
   }
 
-  if (doc.data()?.type !== "individual") {
+  if (doc.data()?.type !== 'individual') {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "法人アカウントのため、処理中止",
-      "firebase"
+      'cancelled',
+      'グループアカウントのため、処理中止',
+      'firebase',
     );
   }
 
   if (doc.data()?.payment?.price) {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "プランを契約しているため、処理中止",
-      "firebase"
+      'cancelled',
+      'プランを契約しているため、処理中止',
+      'firebase',
     );
   }
 
   if (doc.data()?.payment?.children?.length) {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "グループアカウントを保有しているため、処理中止",
-      "firebase"
+      'cancelled',
+      'グループアカウントを保有しているため、処理中止',
+      'firebase',
     );
   }
 
   if (
     !doc.data()?.payment?.price &&
-    doc.data()?.payment?.status !== "canceled"
+    doc.data()?.payment?.status !== 'canceled'
   ) {
     throw new functions.https.HttpsError(
-      "cancelled",
-      "特殊なアカウントのため、処理中止",
-      "firebase"
+      'cancelled',
+      '特殊なアカウントのため、処理中止',
+      'firebase',
     );
   }
 };

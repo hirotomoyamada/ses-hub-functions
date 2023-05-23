@@ -22,7 +22,7 @@ export const admin = (
 
 【${type === 'plan' ? 'プラン' : 'オプション'}】
 名前：
-${name} (${user.type === 'individual' ? '個人' : '法人'})
+${name} (${user.type === 'individual' ? '個人' : 'グループ'})
 
 開始：
 ${start.getFullYear()}年${start.getMonth() + 1}月${start.getDate()}日

@@ -1,16 +1,16 @@
-import * as functions from "firebase-functions";
-import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
-import { converter, db, location, runtime } from "../../_firebase";
-import { userAuthenticated } from "./_userAuthenticated";
-import * as fetch from "./_fetch";
-import * as Firestore from "../../types/firestore";
-import * as Algolia from "../../types/algolia";
-import { dummy, log } from "../../_utils";
+import * as functions from 'firebase-functions';
+import { algolia, SearchOptions, RequestOptions } from '../../_algolia';
+import { converter, db, location, runtime } from '../../_firebase';
+import { userAuthenticated } from './_userAuthenticated';
+import * as fetch from './_fetch';
+import * as Firestore from '../../types/firestore';
+import * as Algolia from '../../types/algolia';
+import { dummy, log } from '../../_utils';
 
 type Data = {
-  post: { index: "matters" | "resources"; objectID: string };
+  post: { index: 'matters' | 'resources'; objectID: string };
   posts: {
-    index: "matters" | "resources" | "companys" | "persons";
+    index: 'matters' | 'resources' | 'companys' | 'persons';
     target?: string;
     value?: string;
     type?: string;
@@ -29,7 +29,7 @@ type Posts =
 export const fetchPost = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data: Data["post"], context) => {
+  .https.onCall(async (data: Data['post'], context) => {
     const status = await userAuthenticated({
       context,
       canceled: true,
@@ -42,8 +42,8 @@ export const fetchPost = functions
     await addHistory(context, data, post);
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "fetchPost",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'fetchPost',
       index: data.index,
       code: 200,
       objectID: data.objectID,
@@ -55,7 +55,7 @@ export const fetchPost = functions
 export const fetchPosts = functions
   .region(location)
   .runWith(runtime)
-  .https.onCall(async (data: Data["posts"], context) => {
+  .https.onCall(async (data: Data['posts'], context) => {
     const status = await userAuthenticated({
       context,
       index: data.index,
@@ -68,13 +68,13 @@ export const fetchPosts = functions
       await fetchFirestore.search(context, data.index, posts, status);
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "fetchPosts",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'fetchPosts',
       index: data.index,
       code: 200,
       objectID: posts
         ?.map((post) =>
-          post ? ("objectID" in post && post.objectID) || post.uid : undefined
+          post ? ('objectID' in post && post.objectID) || post.uid : undefined,
         )
         ?.filter((post): post is string => post !== undefined),
     });
@@ -90,44 +90,44 @@ export const fetchPosts = functions
 const fetchAlgolia = {
   post: async (
     context: functions.https.CallableContext,
-    data: Data["post"],
-    status: boolean
+    data: Data['post'],
+    status: boolean,
   ): Promise<Post> => {
     const index = algolia.initIndex(data.index);
 
     const hit = await index.getObject<Post>(data.objectID).catch(() => {
       throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "notFound"
+        'not-found',
+        '投稿の取得に失敗しました',
+        'notFound',
       );
     });
 
     const post = (() => {
       switch (data.index) {
-        case "matters":
+        case 'matters':
           if (hit.uid === context.auth?.uid) {
             return fetch.auth.matter(hit as Algolia.Matter);
           }
 
-          if (hit.display === "public") {
+          if (hit.display === 'public') {
             return fetch.other.matter(hit as Algolia.Matter);
           }
 
-        case "resources":
+        case 'resources':
           if (hit.uid === context.auth?.uid) {
             return fetch.auth.resource(hit as Algolia.Resource);
           }
 
-          if (hit.display === "public") {
+          if (hit.display === 'public') {
             return fetch.other.resource(hit as Algolia.Resource);
           }
 
         default:
           throw new functions.https.HttpsError(
-            "not-found",
-            "投稿の取得に失敗しました",
-            "notFound"
+            'not-found',
+            '投稿の取得に失敗しました',
+            'notFound',
           );
       }
     })();
@@ -141,7 +141,7 @@ const fetchAlgolia = {
 
   search: async (
     context: functions.https.CallableContext,
-    data: Data["posts"]
+    data: Data['posts'],
   ): Promise<{
     posts:
       | Algolia.Matter[]
@@ -153,35 +153,35 @@ const fetchAlgolia = {
     const demo = checkDemo(context);
 
     const index = algolia.initIndex(
-      !data.target || data.target === "createAt"
+      !data.target || data.target === 'createAt'
         ? data.index
-        : `${data.index}_${data.target}_${data.type}`
+        : `${data.index}_${data.target}_${data.type}`,
     );
 
     const hit: Algolia.Hit = {
       currentPage: data.page ? data.page : 0,
     };
 
-    const query = data.value ? data.value : "";
+    const query = data.value ? data.value : '';
 
     const options: (RequestOptions & SearchOptions) | undefined = (() => {
       switch (data.index) {
-        case "matters":
-        case "resources":
+        case 'matters':
+        case 'resources':
           return {
-            filters: "display:public",
+            filters: 'display:public',
             page: hit.currentPage,
           };
 
-        case "companys":
+        case 'companys':
           return {
-            filters: "status:enable AND (plan:enable OR type:individual)",
+            filters: 'status:enable AND (plan:enable OR type:individual)',
             page: hit.currentPage,
           };
 
-        case "persons":
+        case 'persons':
           return {
-            filters: "status:enable",
+            filters: 'status:enable',
             page: hit.currentPage,
           };
 
@@ -194,9 +194,9 @@ const fetchAlgolia = {
       .search<Posts>(query, options)
       .catch(() => {
         throw new functions.https.HttpsError(
-          "not-found",
-          "投稿の取得に失敗しました",
-          "algolia"
+          'not-found',
+          '投稿の取得に失敗しました',
+          'algolia',
         );
       });
 
@@ -205,7 +205,7 @@ const fetchAlgolia = {
 
     const posts = (() => {
       switch (data.index) {
-        case "matters":
+        case 'matters':
           return hits.map((hit) => {
             if (hit.uid === context.auth?.uid) {
               return fetch.auth.matter(<Algolia.Matter>hit);
@@ -214,7 +214,7 @@ const fetchAlgolia = {
             }
           });
 
-        case "resources":
+        case 'resources':
           return hits.map((hit) => {
             if (hit.uid === context.auth?.uid) {
               return fetch.auth.resource(<Algolia.Resource>hit);
@@ -223,7 +223,7 @@ const fetchAlgolia = {
             }
           });
 
-        case "companys":
+        case 'companys':
           return hits
             .map((hit) => {
               if ((hit as Algolia.Company).person)
@@ -233,7 +233,7 @@ const fetchAlgolia = {
             })
             ?.filter((post): post is Algolia.CompanyItem => post !== undefined);
 
-        case "persons":
+        case 'persons':
           return hits
             .map((hit) => {
               if ((hit as Algolia.Person).nickName)
@@ -245,9 +245,9 @@ const fetchAlgolia = {
 
         default:
           throw new functions.https.HttpsError(
-            "not-found",
-            "投稿の取得に失敗しました",
-            "algolia"
+            'not-found',
+            '投稿の取得に失敗しました',
+            'algolia',
           );
       }
     })();
@@ -257,30 +257,30 @@ const fetchAlgolia = {
 
   bests: async (
     context: functions.https.CallableContext,
-    data: Data["post"],
+    data: Data['post'],
     post: Algolia.Matter | Algolia.Resource,
-    status: boolean
+    status: boolean,
   ): Promise<Algolia.Matter[] | Algolia.Resource[]> => {
     const index = algolia.initIndex(data.index);
 
     const options: (RequestOptions & SearchOptions) | undefined = {
-      queryLanguages: ["ja", "en"],
-      similarQuery: post?.handles?.join(" "),
-      filters: "display:public",
+      queryLanguages: ['ja', 'en'],
+      similarQuery: post?.handles?.join(' '),
+      filters: 'display:public',
       hitsPerPage: 100,
     };
 
-    const { hits } = await index.search<Post>("", options).catch(() => {
+    const { hits } = await index.search<Post>('', options).catch(() => {
       throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "algolia"
+        'not-found',
+        '投稿の取得に失敗しました',
+        'algolia',
       );
     });
 
     const bests = (() => {
       switch (data.index) {
-        case "matters":
+        case 'matters':
           return hits
             ?.map((hit) => {
               if (hit.objectID !== post.objectID)
@@ -294,7 +294,7 @@ const fetchAlgolia = {
             })
             ?.filter((post): post is Algolia.Matter => post !== undefined);
 
-        case "resources":
+        case 'resources':
           return hits
             ?.map((hit) => {
               if (hit.objectID !== post.objectID)
@@ -310,9 +310,9 @@ const fetchAlgolia = {
 
         default:
           throw new functions.https.HttpsError(
-            "not-found",
-            "投稿の取得に失敗しました",
-            "algolia"
+            'not-found',
+            '投稿の取得に失敗しました',
+            'algolia',
           );
       }
     })();
@@ -327,22 +327,22 @@ const fetchAlgolia = {
 const fetchFirestore = {
   post: async (
     context: functions.https.CallableContext,
-    index: Data["post"]["index"],
+    index: Data['post']['index'],
     post: Post,
-    status: boolean
+    status: boolean,
   ): Promise<void> => {
     const demo = checkDemo(context);
 
     const doc = await db
-      .collection("companys")
+      .collection('companys')
       .withConverter(converter<Firestore.Company>())
       .doc(post.uid)
       .get()
       .catch(() => {
         throw new functions.https.HttpsError(
-          "not-found",
-          "ユーザーの取得に失敗しました",
-          "notFound"
+          'not-found',
+          'ユーザーの取得に失敗しました',
+          'notFound',
         );
       });
 
@@ -350,11 +350,11 @@ const fetchFirestore = {
 
     const data = doc.data();
 
-    if (data?.type !== "individual" && data?.payment.status === "canceled") {
+    if (data?.type !== 'individual' && data?.payment.status === 'canceled') {
       throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "notFound"
+        'not-found',
+        '投稿の取得に失敗しました',
+        'notFound',
       );
     }
 
@@ -368,7 +368,7 @@ const fetchFirestore = {
         person: !demo
           ? data?.profile.person
             ? data?.profile.person
-            : "名無しさん"
+            : '名無しさん'
           : dummy.person(),
         body: data?.profile.body,
         email: !demo ? data?.profile.email : undefined,
@@ -380,7 +380,7 @@ const fetchFirestore = {
       const { likes, outputs, entries } = await fetchActivity.post(
         context,
         index,
-        post
+        post,
       );
 
       post.likes = likes;
@@ -391,19 +391,19 @@ const fetchFirestore = {
 
   search: async (
     context: functions.https.CallableContext,
-    index: Data["posts"]["index"],
+    index: Data['posts']['index'],
     posts:
       | (Algolia.Matter | undefined)[]
       | (Algolia.Resource | undefined)[]
       | Algolia.CompanyItem[]
       | Algolia.PersonItem[],
-    status: boolean
+    status: boolean,
   ): Promise<void> => {
     if (!context.auth) {
       throw new functions.https.HttpsError(
-        "unauthenticated",
-        "認証されていないユーザーではログインできません",
-        "auth"
+        'unauthenticated',
+        '認証されていないユーザーではログインできません',
+        'auth',
       );
     }
 
@@ -415,31 +415,31 @@ const fetchFirestore = {
 
         const doc = await db
           .collection(
-            index === "matters" || index === "resources" ? "companys" : index
+            index === 'matters' || index === 'resources' ? 'companys' : index,
           )
           .withConverter(converter<Firestore.Company | Firestore.Person>())
           .doc(post.uid)
           .get()
           .catch(() => {
             throw new functions.https.HttpsError(
-              "not-found",
-              "ユーザーの取得に失敗しました",
-              "firebase"
+              'not-found',
+              'ユーザーの取得に失敗しました',
+              'firebase',
             );
           });
 
         if (!doc.exists) return;
 
         switch (index) {
-          case "matters":
-          case "resources":
+          case 'matters':
+          case 'resources':
             {
-              if (!("objectID" in post)) return;
+              if (!('objectID' in post)) return;
               const data = doc.data() as Firestore.Company;
 
               if (
-                data.type !== "individual" &&
-                data.payment.status === "canceled"
+                data.type !== 'individual' &&
+                data.payment.status === 'canceled'
               ) {
                 posts[i] = undefined;
               } else {
@@ -454,7 +454,7 @@ const fetchFirestore = {
                   const { likes, outputs, entries } = await fetchActivity.post(
                     context,
                     index,
-                    post
+                    post,
                   );
 
                   post.likes = likes;
@@ -465,9 +465,9 @@ const fetchFirestore = {
             }
             break;
 
-          case "companys":
+          case 'companys':
             {
-              if (!("type" in post)) return;
+              if (!('type' in post)) return;
               const data = doc.data() as Firestore.Company;
 
               post.icon = data.icon;
@@ -476,15 +476,15 @@ const fetchFirestore = {
             }
             break;
 
-          case "persons":
+          case 'persons':
             {
-              if (!("request" in post)) return;
+              if (!('request' in post)) return;
               const data = doc.data() as Firestore.Person;
 
               const { likes, requests } = await fetchActivity.user(
                 context,
                 index,
-                post
+                post,
               );
 
               post.icon = data.icon;
@@ -496,7 +496,7 @@ const fetchFirestore = {
           default:
             return;
         }
-      })
+      }),
     );
   },
 };
@@ -504,8 +504,8 @@ const fetchFirestore = {
 const fetchActivity = {
   post: async (
     context: functions.https.CallableContext,
-    index: "matters" | "resources",
-    post: Algolia.Matter | Algolia.Resource
+    index: 'matters' | 'resources',
+    post: Algolia.Matter | Algolia.Resource,
   ): Promise<{ likes: number; outputs: number; entries: number }> => {
     const demo = checkDemo(context);
 
@@ -523,14 +523,14 @@ const fetchActivity = {
           const { docs } = await db
             .collectionGroup(collection)
             .withConverter(converter<Firestore.Post>())
-            .where("index", "==", index)
-            .where("objectID", "==", post.objectID)
-            .where("active", "==", true)
-            .orderBy("createAt", "desc")
+            .where('index', '==', index)
+            .where('objectID', '==', post.objectID)
+            .where('active', '==', true)
+            .orderBy('createAt', 'desc')
             .get();
 
           collections[collection as keyof Collections] = docs.length;
-        })
+        }),
       );
 
     return { ...collections };
@@ -538,27 +538,27 @@ const fetchActivity = {
 
   user: async (
     context: functions.https.CallableContext,
-    index: "persons",
-    post: Algolia.PersonItem
+    index: 'persons',
+    post: Algolia.PersonItem,
   ): Promise<{ likes: number; requests: string }> => {
     const demo = checkDemo(context);
 
     const collections = {
       likes: !demo ? 0 : dummy.num(99, 999),
-      requests: "none",
+      requests: 'none',
     };
 
     if (!demo)
       await Promise.allSettled(
         Object.keys(collections).map(async (collection) => {
-          if (collection === "likes") {
+          if (collection === 'likes') {
             const { docs } = await db
               .collectionGroup(collection)
               .withConverter(converter<Firestore.Post>())
-              .where("index", "==", index)
-              .where("uid", "==", post.uid)
-              .where("active", "==", true)
-              .orderBy("createAt", "desc")
+              .where('index', '==', index)
+              .where('uid', '==', post.uid)
+              .where('active', '==', true)
+              .orderBy('createAt', 'desc')
               .get();
 
             collections.likes = docs.length;
@@ -569,15 +569,15 @@ const fetchActivity = {
               .doc(post.uid)
               .collection(collection)
               .withConverter(converter<Firestore.User>())
-              .where("uid", "==", context.auth?.uid)
+              .where('uid', '==', context.auth?.uid)
               .get();
 
             const status = docs.length && docs[0].data().status;
 
             collections.requests =
-              status === "enable" ? "enable" : status ? "hold" : "none";
+              status === 'enable' ? 'enable' : status ? 'hold' : 'none';
           }
-        })
+        }),
       );
 
     return { ...collections };
@@ -585,32 +585,41 @@ const fetchActivity = {
 };
 
 const updateLimit = async (
-  context: functions.https.CallableContext
+  context: functions.https.CallableContext,
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   const doc = await db
-    .collection("companys")
+    .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
     .get();
 
   const data = doc.data();
 
-  if (doc.exists && data?.payment.status === "canceled") {
+  if (doc.exists && data?.payment.status === 'canceled') {
+    const location = new Date().toLocaleString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+    });
+    const timeZone = 60 * 60 * 9 * 1000;
+    const runningTime = 60 * 60 * 24 * 90 * 1000;
+    const limitedTime =
+      new Date(location).setHours(0, 0, 0, 0) - runningTime - timeZone;
+
+    const createAt = data.createAt;
     const limit = data.payment.limit;
 
-    if (!limit || limit <= 0) {
+    if (!limit || limit <= 0 || createAt < limitedTime) {
       throw new functions.https.HttpsError(
-        "cancelled",
-        "閲覧回数の上限を超えたため、閲覧することができません",
-        "limit"
+        'cancelled',
+        '閲覧回数の上限を超えたため、閲覧することができません',
+        'limit',
       );
     } else {
       await doc.ref
@@ -620,13 +629,13 @@ const updateLimit = async (
               limit: limit ? limit - 1 : 0,
             }),
           },
-          { merge: true }
+          { merge: true },
         )
         .catch(() => {
           throw new functions.https.HttpsError(
-            "data-loss",
-            "閲覧回数の更新に失敗しました",
-            "firebase"
+            'data-loss',
+            '閲覧回数の更新に失敗しました',
+            'firebase',
           );
         });
     }
@@ -637,14 +646,14 @@ const updateLimit = async (
 
 const addHistory = async (
   context: functions.https.CallableContext,
-  data: Data["post"],
-  post: Post
+  data: Data['post'],
+  post: Post,
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
@@ -655,26 +664,26 @@ const addHistory = async (
   const timestamp = Date.now();
 
   const ref = db
-    .collection("companys")
+    .collection('companys')
     .doc(context.auth.uid)
     .withConverter(converter<Firestore.Company>());
 
   const collection = ref
-    .collection("histories")
+    .collection('histories')
     .withConverter(converter<Firestore.Post>());
 
   const doc = await ref.get().catch(() => {
     throw new functions.https.HttpsError(
-      "not-found",
-      "データの取得に失敗しました",
-      "firebase"
+      'not-found',
+      'データの取得に失敗しました',
+      'firebase',
     );
   });
 
   const querySnapshot = await collection
-    .where("index", "==", data.index)
-    .where("objectID", "==", post.objectID)
-    .orderBy("createAt", "desc")
+    .where('index', '==', data.index)
+    .where('objectID', '==', post.objectID)
+    .orderBy('createAt', 'desc')
     .get()
     .catch(() => {});
 
@@ -703,9 +712,9 @@ const addHistory = async (
     })
     .catch(() => {
       throw new functions.https.HttpsError(
-        "data-loss",
-        "データの追加に失敗しました",
-        "firebase"
+        'data-loss',
+        'データの追加に失敗しました',
+        'firebase',
       );
     });
 

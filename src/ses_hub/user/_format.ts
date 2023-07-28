@@ -46,7 +46,7 @@ export const createFirestore = ({
     link: customer.stripeLink,
     status: 'canceled',
     trial: data.type !== 'parent' ? true : false,
-    limit: 5,
+    limit: 3,
     notice: true,
   };
 
@@ -114,7 +114,7 @@ export const createChildFirestore = ({
     ? {
         status: parent.payment?.status,
         trial: parent.payment?.trial,
-        limit: 5,
+        limit: 3,
         notice: parent.payment?.notice,
         option: parent.payment?.option,
         cancel: parent.payment?.cancel ? parent.payment?.cancel : false,
@@ -127,7 +127,7 @@ export const createChildFirestore = ({
     : {
         status: parent.payment?.status,
         trial: parent.payment?.trial,
-        limit: 5,
+        limit: 3,
         notice: parent.payment?.notice,
         cancel: parent.payment?.cancel ? parent.payment?.cancel : false,
         load: parent.payment?.load ? parent.payment?.load : false,

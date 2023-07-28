@@ -67,7 +67,7 @@ export const updateLimit = functions
         .set(
           {
             payment: Object.assign(doc.data().payment, {
-              limit: 5,
+              limit: 3,
             }),
           },
           { merge: true },

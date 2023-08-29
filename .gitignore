@@ -1,4 +1,5 @@
 **.log
+prompt.*
 
 .env*
 .DS_Store
@@ -6,4 +7,3 @@
 /libs
 /typings
 /node_modules
-

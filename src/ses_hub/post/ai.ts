@@ -21,7 +21,8 @@ import {
   approval,
   sex,
   belong,
-  handleOrTool,
+  handle,
+  tool,
   parallel,
 } from '../../_constant';
 
@@ -161,8 +162,11 @@ const formatPost = ({ index, post }: { index: 'matters' | 'resources'; post: any
           break;
 
         case 'handles':
+          post[key] = (post[key] as any[]).filter((v) => handle.includes(v));
+          break;
+
         case 'tools':
-          post[key] = (post[key] as any[]).filter((v) => handleOrTool.includes(v));
+          post[key] = (post[key] as any[]).filter((v) => tool.includes(v));
           break;
 
         case 'interviews':
@@ -209,8 +213,11 @@ const formatPost = ({ index, post }: { index: 'matters' | 'resources'; post: any
           break;
 
         case 'handles':
+          post[key] = (post[key] as any[]).filter((v) => handle.includes(v));
+          break;
+
         case 'tools':
-          post[key] = (post[key] as any[]).filter((v) => handleOrTool.includes(v));
+          post[key] = (post[key] as any[]).filter((v) => tool.includes(v));
           break;
 
         case 'costs':

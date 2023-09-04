@@ -163,6 +163,9 @@ const formatPost = ({ index, post }: { index: 'matters' | 'resources'; post: any
 
         case 'handles':
           post[key] = (post[key] as any[]).filter((v) => handle.includes(v));
+
+          if (!(post[key] as any[]).length) post[key] = ['その他'];
+
           break;
 
         case 'tools':
@@ -214,6 +217,9 @@ const formatPost = ({ index, post }: { index: 'matters' | 'resources'; post: any
 
         case 'handles':
           post[key] = (post[key] as any[]).filter((v) => handle.includes(v));
+
+          if (!(post[key] as any[]).length) post[key] = ['その他'];
+
           break;
 
         case 'tools':

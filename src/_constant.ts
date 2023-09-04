@@ -201,6 +201,7 @@ export const handle = [
   'BAT',
   'VBS',
   'MATLAB',
+  'その他',
 ];
 
 export const tool = [
@@ -281,6 +282,7 @@ export const tool = [
   'TrendMicro',
   'Android Studio',
   'Eclips',
+  'その他',
 ];
 
 export const interviews = {

@@ -20,11 +20,7 @@ type Data = {
 
 type Post = Algolia.Matter | Algolia.Resource;
 
-type Posts =
-  | Algolia.Matter
-  | Algolia.Resource
-  | Algolia.Company
-  | Algolia.Person;
+type Posts = Algolia.Matter | Algolia.Resource | Algolia.Company | Algolia.Person;
 
 export const fetchPost = functions
   .region(location)
@@ -64,8 +60,7 @@ export const fetchPosts = functions
 
     const { posts, hit } = await fetchAlgolia.search(context, data);
 
-    if (posts.length)
-      await fetchFirestore.search(context, data.index, posts, status);
+    if (posts.length) await fetchFirestore.search(context, data.index, posts, status);
 
     await log({
       auth: { collection: 'companys', doc: context.auth?.uid },
@@ -73,9 +68,7 @@ export const fetchPosts = functions
       index: data.index,
       code: 200,
       objectID: posts
-        ?.map((post) =>
-          post ? ('objectID' in post && post.objectID) || post.uid : undefined,
-        )
+        ?.map((post) => (post ? ('objectID' in post && post.objectID) || post.uid : undefined))
         ?.filter((post): post is string => post !== undefined),
     });
 
@@ -96,11 +89,7 @@ const fetchAlgolia = {
     const index = algolia.initIndex(data.index);
 
     const hit = await index.getObject<Post>(data.objectID).catch(() => {
-      throw new functions.https.HttpsError(
-        'not-found',
-        '投稿の取得に失敗しました',
-        'notFound',
-      );
+      throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'notFound');
     });
 
     const post = (() => {
@@ -124,11 +113,7 @@ const fetchAlgolia = {
           }
 
         default:
-          throw new functions.https.HttpsError(
-            'not-found',
-            '投稿の取得に失敗しました',
-            'notFound',
-          );
+          throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'notFound');
       }
     })();
 
@@ -143,11 +128,7 @@ const fetchAlgolia = {
     context: functions.https.CallableContext,
     data: Data['posts'],
   ): Promise<{
-    posts:
-      | Algolia.Matter[]
-      | Algolia.Resource[]
-      | Algolia.CompanyItem[]
-      | Algolia.PersonItem[];
+    posts: Algolia.Matter[] | Algolia.Resource[] | Algolia.CompanyItem[] | Algolia.PersonItem[];
     hit: Algolia.Hit;
   }> => {
     const demo = checkDemo(context);
@@ -190,15 +171,9 @@ const fetchAlgolia = {
       }
     })();
 
-    const { hits, nbHits, nbPages } = await index
-      .search<Posts>(query, options)
-      .catch(() => {
-        throw new functions.https.HttpsError(
-          'not-found',
-          '投稿の取得に失敗しました',
-          'algolia',
-        );
-      });
+    const { hits, nbHits, nbPages } = await index.search<Posts>(query, options).catch(() => {
+      throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'algolia');
+    });
 
     hit.posts = nbHits;
     hit.pages = nbPages;
@@ -236,19 +211,14 @@ const fetchAlgolia = {
         case 'persons':
           return hits
             .map((hit) => {
-              if ((hit as Algolia.Person).nickName)
-                return fetch.other.person(<Algolia.Person>hit);
+              if ((hit as Algolia.Person).nickName) return fetch.other.person(<Algolia.Person>hit);
 
               return;
             })
             ?.filter((post): post is Algolia.PersonItem => post !== undefined);
 
         default:
-          throw new functions.https.HttpsError(
-            'not-found',
-            '投稿の取得に失敗しました',
-            'algolia',
-          );
+          throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'algolia');
       }
     })();
 
@@ -271,11 +241,7 @@ const fetchAlgolia = {
     };
 
     const { hits } = await index.search<Post>('', options).catch(() => {
-      throw new functions.https.HttpsError(
-        'not-found',
-        '投稿の取得に失敗しました',
-        'algolia',
-      );
+      throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'algolia');
     });
 
     const bests = (() => {
@@ -309,16 +275,11 @@ const fetchAlgolia = {
             ?.filter((post): post is Algolia.Resource => post !== undefined);
 
         default:
-          throw new functions.https.HttpsError(
-            'not-found',
-            '投稿の取得に失敗しました',
-            'algolia',
-          );
+          throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'algolia');
       }
     })();
 
-    if (bests.length)
-      await fetchFirestore.search(context, data.index, bests, status);
+    if (bests.length) await fetchFirestore.search(context, data.index, bests, status);
 
     return bests;
   },
@@ -351,11 +312,7 @@ const fetchFirestore = {
     const data = doc.data();
 
     if (data?.type !== 'individual' && data?.payment.status === 'canceled') {
-      throw new functions.https.HttpsError(
-        'not-found',
-        '投稿の取得に失敗しました',
-        'notFound',
-      );
+      throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'notFound');
     }
 
     post.user = {
@@ -377,11 +334,7 @@ const fetchFirestore = {
     };
 
     if (status) {
-      const { likes, outputs, entries } = await fetchActivity.post(
-        context,
-        index,
-        post,
-      );
+      const { likes, outputs, entries } = await fetchActivity.post(context, index, post);
 
       post.likes = likes;
       post.outputs = outputs;
@@ -414,9 +367,7 @@ const fetchFirestore = {
         if (!post) return;
 
         const doc = await db
-          .collection(
-            index === 'matters' || index === 'resources' ? 'companys' : index,
-          )
+          .collection(index === 'matters' || index === 'resources' ? 'companys' : index)
           .withConverter(converter<Firestore.Company | Firestore.Person>())
           .doc(post.uid)
           .get()
@@ -437,10 +388,7 @@ const fetchFirestore = {
               if (!('objectID' in post)) return;
               const data = doc.data() as Firestore.Company;
 
-              if (
-                data.type !== 'individual' &&
-                data.payment.status === 'canceled'
-              ) {
+              if (data.type !== 'individual' && data.payment.status === 'canceled') {
                 posts[i] = undefined;
               } else {
                 post.user = {
@@ -481,11 +429,7 @@ const fetchFirestore = {
               if (!('request' in post)) return;
               const data = doc.data() as Firestore.Person;
 
-              const { likes, requests } = await fetchActivity.user(
-                context,
-                index,
-                post,
-              );
+              const { likes, requests } = await fetchActivity.user(context, index, post);
 
               post.icon = data.icon;
               post.likes = likes;
@@ -574,8 +518,7 @@ const fetchActivity = {
 
             const status = docs.length && docs[0].data().status;
 
-            collections.requests =
-              status === 'enable' ? 'enable' : status ? 'hold' : 'none';
+            collections.requests = status === 'enable' ? 'enable' : status ? 'hold' : 'none';
           }
         }),
       );
@@ -584,9 +527,7 @@ const fetchActivity = {
   },
 };
 
-const updateLimit = async (
-  context: functions.https.CallableContext,
-): Promise<void> => {
+const updateLimit = async (context: functions.https.CallableContext): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       'unauthenticated',
@@ -608,9 +549,8 @@ const updateLimit = async (
       timeZone: 'Asia/Tokyo',
     });
     const timeZone = 60 * 60 * 9 * 1000;
-    const runningTime = 60 * 60 * 24 * 90 * 1000;
-    const limitedTime =
-      new Date(location).setHours(0, 0, 0, 0) - runningTime - timeZone;
+    const runningTime = 60 * 60 * 24 * 60 * 1000;
+    const limitedTime = new Date(location).setHours(0, 0, 0, 0) - runningTime - timeZone;
 
     const createAt = data.createAt;
     const limit = data.payment.limit;
@@ -668,16 +608,10 @@ const addHistory = async (
     .doc(context.auth.uid)
     .withConverter(converter<Firestore.Company>());
 
-  const collection = ref
-    .collection('histories')
-    .withConverter(converter<Firestore.Post>());
+  const collection = ref.collection('histories').withConverter(converter<Firestore.Post>());
 
   const doc = await ref.get().catch(() => {
-    throw new functions.https.HttpsError(
-      'not-found',
-      'データの取得に失敗しました',
-      'firebase',
-    );
+    throw new functions.https.HttpsError('not-found', 'データの取得に失敗しました', 'firebase');
   });
 
   const querySnapshot = await collection
@@ -711,11 +645,7 @@ const addHistory = async (
       updateAt: timestamp,
     })
     .catch(() => {
-      throw new functions.https.HttpsError(
-        'data-loss',
-        'データの追加に失敗しました',
-        'firebase',
-      );
+      throw new functions.https.HttpsError('data-loss', 'データの追加に失敗しました', 'firebase');
     });
 
   return;

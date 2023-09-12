@@ -297,7 +297,7 @@ export const costs = {
 
 export const adjustment = ['140h 〜 180h', '160h 〜 200h', '140h 〜 200h', 'その他'];
 
-export const distribution = ['プライム', '二次請け', '三次請け', '営業支援', 'その他'];
+export const distribution = ['プライム', '二次請け', '三次請け', '営業支援', 'SIer案件', 'その他'];
 
 export const span = ['30', '35', '40', '45', '50', '60', 'その他'];
 

@@ -1,26 +1,26 @@
-import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../../_firebase";
-import * as Firestore from "../../types/firestore";
-import { dummy, log, time as calcTime } from "../../_utils";
-import { userAuthenticated } from "./_userAuthenticated";
+import * as functions from 'firebase-functions';
+import { converter, db, location, runtime } from '../../_firebase';
+import * as Firestore from '../../types/firestore';
+import { dummy, log, time as calcTime } from '../../_utils';
+import { userAuthenticated } from './_userAuthenticated';
 
 type Data = {
   uid: string;
-  span: "total" | "day" | "week" | "month";
+  span: 'total' | 'day' | 'week' | 'month';
   demo: boolean;
 };
 
 type Collection =
-  | "posts"
-  | "histories"
-  | "likes"
-  | "outputs"
-  | "entries"
-  | "follows"
-  | "distribution"
-  | "approval";
+  | 'posts'
+  | 'histories'
+  | 'likes'
+  | 'outputs'
+  | 'entries'
+  | 'follows'
+  | 'distribution'
+  | 'approval';
 
-type Sort = "self" | "others";
+type Sort = 'self' | 'others';
 
 type Timestamp = { label: string; time: { start: number; end: number } };
 
@@ -48,20 +48,20 @@ export const fetchAnalytics = functions
         context,
         canceled: true,
         child: true,
-        option: "analytics",
+        option: 'analytics',
       });
 
     const demo = checkDemo(context) || data.demo;
 
     const collections: { collection: Collection; label: string }[] = [
-      { collection: "posts", label: "投稿" },
-      { collection: "histories", label: "閲覧" },
-      { collection: "likes", label: "いいね" },
-      { collection: "outputs", label: "出力" },
-      { collection: "entries", label: "お問い合わせ" },
-      { collection: "follows", label: "フォロー" },
-      { collection: "distribution", label: "商流" },
-      { collection: "approval", label: "稟議速度" },
+      { collection: 'posts', label: '投稿' },
+      { collection: 'histories', label: '閲覧' },
+      { collection: 'likes', label: 'いいね' },
+      { collection: 'outputs', label: '出力' },
+      { collection: 'entries', label: 'お問い合わせ' },
+      { collection: 'follows', label: 'フォロー' },
+      { collection: 'distribution', label: '商流' },
+      { collection: 'approval', label: '稟議速度' },
     ];
 
     const analysis: Analytics[] = [];
@@ -101,8 +101,8 @@ export const fetchAnalytics = functions
     }
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "fetchAnalytics",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'fetchAnalytics',
       code: 200,
       uid: data.uid,
     });
@@ -110,28 +110,23 @@ export const fetchAnalytics = functions
     return analysis;
   });
 
-const createDummy = (
-  analytics: Analytics,
-  collection: Collection,
-  data: Data
-): Analytics => {
-  const posts = collection === "posts";
-  const distribution = collection === "distribution";
-  const approval = collection === "approval";
+const createDummy = (analytics: Analytics, collection: Collection, data: Data): Analytics => {
+  const posts = collection === 'posts';
+  const distribution = collection === 'distribution';
+  const approval = collection === 'approval';
 
   const span = data.span;
-  const day = span === "day";
+  const day = span === 'day';
   const max = day ? 7 : 6;
 
   analytics.self = dummy.num(99, 999);
 
-  if (!posts && !distribution && !approval)
-    analytics.others = dummy.num(99, 999);
+  if (!posts && !distribution && !approval) analytics.others = dummy.num(99, 999);
 
   for (let i = 0; i < max; i++) {
     const { label } = timestamp(i, span);
 
-    const log: Analytics["log"][number] = (() => {
+    const log: Analytics['log'][number] = (() => {
       switch (true) {
         case distribution:
           return {
@@ -140,6 +135,7 @@ const createDummy = (
             二次請け: dummy.num(99),
             三次請け: dummy.num(99),
             営業支援: dummy.num(99),
+            SIer案件: dummy.num(99),
             その他: dummy.num(99),
           };
 
@@ -170,25 +166,25 @@ const createDummy = (
 const fetchLog = async (
   analytics: Analytics,
   collection: Collection,
-  data: Data
+  data: Data,
 ): Promise<void> => {
-  const distribution = collection === "distribution";
-  const approval = collection === "approval";
+  const distribution = collection === 'distribution';
+  const approval = collection === 'approval';
 
   const span = data.span;
-  const day = span === "day";
+  const day = span === 'day';
   const max = day ? 7 : 6;
 
   for (let i = 0; i < max; i++) {
     const { label, time } = timestamp(i, span);
 
     switch (collection) {
-      case "posts":
-      case "distribution":
-      case "approval": {
+      case 'posts':
+      case 'distribution':
+      case 'approval': {
         const querySnapshot = await fetchCollectionGroup<Firestore.Post>({
           collection,
-          sort: "self",
+          sort: 'self',
           uid: data.uid,
           time,
         });
@@ -196,7 +192,7 @@ const fetchLog = async (
         if (!distribution && !approval) {
           const self = querySnapshot ? querySnapshot.docs.length : 0;
 
-          const log: Analytics["log"][number] = {
+          const log: Analytics['log'][number] = {
             label,
             self,
             others: undefined,
@@ -210,6 +206,7 @@ const fetchLog = async (
                 二次請け: 0,
                 三次請け: 0,
                 営業支援: 0,
+                SIer案件: 0,
                 その他: 0,
               }
             : {
@@ -239,25 +236,23 @@ const fetchLog = async (
         const querySnapshot = {
           self: await fetchCollectionGroup({
             collection,
-            sort: "self",
+            sort: 'self',
             uid: data.uid,
             time,
           }),
 
           others: await fetchCollectionGroup({
             collection,
-            sort: "others",
+            sort: 'others',
             uid: data.uid,
             time,
           }),
         };
 
         const self = querySnapshot.self ? querySnapshot.self.docs.length : 0;
-        const others = querySnapshot.others
-          ? querySnapshot.others.docs.length
-          : 0;
+        const others = querySnapshot.others ? querySnapshot.others.docs.length : 0;
 
-        const log: Analytics["log"][number] = {
+        const log: Analytics['log'][number] = {
           label: label,
           self,
           others,
@@ -274,23 +269,21 @@ const fetchLog = async (
 const fetchTotal = async (
   analytics: Analytics,
   collection: Collection,
-  data: Data
+  data: Data,
 ): Promise<void> => {
-  const posts = collection === "posts";
-  const distribution = collection === "distribution";
-  const approval = collection === "approval";
+  const posts = collection === 'posts';
+  const distribution = collection === 'distribution';
+  const approval = collection === 'approval';
 
-  const sorts: Sort[] = ["self", "others"];
+  const sorts: Sort[] = ['self', 'others'];
 
   if (distribution || approval) return;
 
   await Promise.allSettled(
     sorts.map(async (sort) => {
-      if (sort === "others") if (posts) return;
+      if (sort === 'others') if (posts) return;
 
-      const querySnapshot = await fetchCollectionGroup<
-        Firestore.Post | Firestore.User
-      >({
+      const querySnapshot = await fetchCollectionGroup<Firestore.Post | Firestore.User>({
         collection,
         sort,
         uid: data.uid,
@@ -302,7 +295,7 @@ const fetchTotal = async (
       const count = querySnapshot.docs.length;
 
       analytics[sort] = count;
-    })
+    }),
   );
 };
 
@@ -315,43 +308,39 @@ const fetchCollectionGroup = async <T>({
 }: {
   collection: Collection;
   sort: Sort;
-  uid: Data["uid"];
-  span?: Data["span"];
-  time?: Timestamp["time"];
+  uid: Data['uid'];
+  span?: Data['span'];
+  time?: Timestamp['time'];
 }): Promise<void | FirebaseFirestore.QuerySnapshot<T>> => {
   switch (sort) {
-    case "self": {
-      const doc = db.collection("companys").doc(uid);
+    case 'self': {
+      const doc = db.collection('companys').doc(uid);
 
       switch (collection) {
-        case "posts":
-        case "distribution":
-        case "approval": {
+        case 'posts':
+        case 'distribution':
+        case 'approval': {
           switch (span) {
-            case "total": {
+            case 'total': {
               return await doc
-                .collection("posts")
+                .collection('posts')
                 .withConverter(converter<T>())
-                .orderBy("createAt", "desc")
+                .orderBy('createAt', 'desc')
                 .get()
                 .catch(() => {});
             }
 
             default: {
               return await doc
-                .collection("posts")
+                .collection('posts')
                 .withConverter(converter<T>())
                 .where(
-                  "createAt",
-                  ">=",
-                  span ? calcTime(span).start : time ? time.start : undefined
+                  'createAt',
+                  '>=',
+                  span ? calcTime(span).start : time ? time.start : undefined,
                 )
-                .where(
-                  "createAt",
-                  "<=",
-                  span ? calcTime(span).end : time ? time.end : undefined
-                )
-                .orderBy("createAt", "desc")
+                .where('createAt', '<=', span ? calcTime(span).end : time ? time.end : undefined)
+                .orderBy('createAt', 'desc')
                 .get()
                 .catch(() => {});
             }
@@ -360,15 +349,15 @@ const fetchCollectionGroup = async <T>({
 
         default: {
           switch (span) {
-            case "total": {
+            case 'total': {
               switch (collection) {
-                case "likes":
-                case "histories": {
+                case 'likes':
+                case 'histories': {
                   return await doc
                     .collection(collection)
                     .withConverter(converter<T>())
-                    .where("index", "in", ["matters", "resources"])
-                    .orderBy("createAt", "desc")
+                    .where('index', 'in', ['matters', 'resources'])
+                    .orderBy('createAt', 'desc')
                     .get()
                     .catch(() => {});
                 }
@@ -377,7 +366,7 @@ const fetchCollectionGroup = async <T>({
                   return await doc
                     .collection(collection)
                     .withConverter(converter<T>())
-                    .orderBy("createAt", "desc")
+                    .orderBy('createAt', 'desc')
                     .get()
                     .catch(() => {});
                 }
@@ -386,27 +375,23 @@ const fetchCollectionGroup = async <T>({
 
             default: {
               switch (collection) {
-                case "likes":
-                case "histories": {
+                case 'likes':
+                case 'histories': {
                   return await doc
                     .collection(collection)
                     .withConverter(converter<T>())
-                    .where("index", "in", ["matters", "resources"])
+                    .where('index', 'in', ['matters', 'resources'])
                     .where(
-                      "createAt",
-                      ">=",
-                      span
-                        ? calcTime(span).start
-                        : time
-                        ? time.start
-                        : undefined
+                      'createAt',
+                      '>=',
+                      span ? calcTime(span).start : time ? time.start : undefined,
                     )
                     .where(
-                      "createAt",
-                      "<=",
-                      span ? calcTime(span).end : time ? time.end : undefined
+                      'createAt',
+                      '<=',
+                      span ? calcTime(span).end : time ? time.end : undefined,
                     )
-                    .orderBy("createAt", "desc")
+                    .orderBy('createAt', 'desc')
                     .get()
                     .catch(() => {});
                 }
@@ -416,20 +401,16 @@ const fetchCollectionGroup = async <T>({
                     .collection(collection)
                     .withConverter(converter<T>())
                     .where(
-                      "createAt",
-                      ">=",
-                      span
-                        ? calcTime(span).start
-                        : time
-                        ? time.start
-                        : undefined
+                      'createAt',
+                      '>=',
+                      span ? calcTime(span).start : time ? time.start : undefined,
                     )
                     .where(
-                      "createAt",
-                      "<=",
-                      span ? calcTime(span).end : time ? time.end : undefined
+                      'createAt',
+                      '<=',
+                      span ? calcTime(span).end : time ? time.end : undefined,
                     )
-                    .orderBy("createAt", "desc")
+                    .orderBy('createAt', 'desc')
                     .get()
                     .catch(() => {});
                 }
@@ -440,19 +421,19 @@ const fetchCollectionGroup = async <T>({
       }
     }
 
-    case "others": {
+    case 'others': {
       const collectionGroup = db.collectionGroup(collection);
 
       switch (span) {
-        case "total": {
+        case 'total': {
           switch (collection) {
-            case "likes":
-            case "histories": {
+            case 'likes':
+            case 'histories': {
               return await collectionGroup
                 .withConverter(converter<T>())
-                .where("index", "in", ["matters", "resources"])
-                .where("uid", "==", uid)
-                .orderBy("createAt", "desc")
+                .where('index', 'in', ['matters', 'resources'])
+                .where('uid', '==', uid)
+                .orderBy('createAt', 'desc')
                 .get()
                 .catch(() => {});
             }
@@ -460,8 +441,8 @@ const fetchCollectionGroup = async <T>({
             default: {
               return await collectionGroup
                 .withConverter(converter<T>())
-                .where("uid", "==", uid)
-                .orderBy("createAt", "desc")
+                .where('uid', '==', uid)
+                .orderBy('createAt', 'desc')
                 .get()
                 .catch(() => {});
             }
@@ -470,23 +451,19 @@ const fetchCollectionGroup = async <T>({
 
         default: {
           switch (collection) {
-            case "likes":
-            case "histories": {
+            case 'likes':
+            case 'histories': {
               return await collectionGroup
                 .withConverter(converter<T>())
-                .where("index", "in", ["matters", "resources"])
-                .where("uid", "==", uid)
+                .where('index', 'in', ['matters', 'resources'])
+                .where('uid', '==', uid)
                 .where(
-                  "createAt",
-                  ">=",
-                  span ? calcTime(span).start : time ? time.start : undefined
+                  'createAt',
+                  '>=',
+                  span ? calcTime(span).start : time ? time.start : undefined,
                 )
-                .where(
-                  "createAt",
-                  "<=",
-                  span ? calcTime(span).end : time ? time.end : undefined
-                )
-                .orderBy("createAt", "desc")
+                .where('createAt', '<=', span ? calcTime(span).end : time ? time.end : undefined)
+                .orderBy('createAt', 'desc')
                 .get()
                 .catch(() => {});
             }
@@ -494,18 +471,14 @@ const fetchCollectionGroup = async <T>({
             default: {
               return await collectionGroup
                 .withConverter(converter<T>())
-                .where("uid", "==", uid)
+                .where('uid', '==', uid)
                 .where(
-                  "createAt",
-                  ">=",
-                  span ? calcTime(span).start : time ? time.start : undefined
+                  'createAt',
+                  '>=',
+                  span ? calcTime(span).start : time ? time.start : undefined,
                 )
-                .where(
-                  "createAt",
-                  "<=",
-                  span ? calcTime(span).end : time ? time.end : undefined
-                )
-                .orderBy("createAt", "desc")
+                .where('createAt', '<=', span ? calcTime(span).end : time ? time.end : undefined)
+                .orderBy('createAt', 'desc')
                 .get()
                 .catch(() => {});
             }
@@ -519,14 +492,14 @@ const fetchCollectionGroup = async <T>({
   }
 };
 
-const timestamp = (i: number, span: Data["span"]): Timestamp => {
-  const location = new Date().toLocaleString("ja-JP", {
-    timeZone: "Asia/Tokyo",
+const timestamp = (i: number, span: Data['span']): Timestamp => {
+  const location = new Date().toLocaleString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
   });
   const timeZone = 60 * 60 * 9 * 1000;
 
   switch (span) {
-    case "day": {
+    case 'day': {
       const date = new Date(new Date(location).setHours(0, 0, 0, 0));
       const start = new Date(date.setDate(date.getDate() - i));
       const end = new Date(date.setHours(23, 59, 59, 999));
@@ -549,20 +522,19 @@ const timestamp = (i: number, span: Data["span"]): Timestamp => {
       return { label, time };
     }
 
-    case "week": {
+    case 'week': {
       const date = new Date(
-        new Date(
-          new Date(location).setDate(new Date(location).getDate() - i * 7)
-        ).setHours(0, 0, 0, 0)
+        new Date(new Date(location).setDate(new Date(location).getDate() - i * 7)).setHours(
+          0,
+          0,
+          0,
+          0,
+        ),
       );
       const start = new Date(
-        date.setDate(
-          date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1)
-        )
+        date.setDate(date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1)),
       );
-      const end = new Date(
-        new Date(date.setDate(start.getDate() + 6)).setHours(23, 59, 59, 999)
-      );
+      const end = new Date(new Date(date.setDate(start.getDate() + 6)).setHours(23, 59, 59, 999));
 
       const label = (() => {
         switch (i) {
@@ -583,14 +555,10 @@ const timestamp = (i: number, span: Data["span"]): Timestamp => {
     }
 
     default: {
-      const date = new Date(
-        new Date(new Date(location).setDate(1)).setHours(0, 0, 0, 0)
-      );
+      const date = new Date(new Date(new Date(location).setDate(1)).setHours(0, 0, 0, 0));
       const start = new Date(date.setMonth(date.getMonth() - i));
       const end = new Date(
-        new Date(
-          new Date(date.setMonth(date.getMonth() + 1)).setDate(0)
-        ).setHours(23, 59, 59, 999)
+        new Date(new Date(date.setMonth(date.getMonth() + 1)).setDate(0)).setHours(23, 59, 59, 999),
       );
 
       const label = (() => {

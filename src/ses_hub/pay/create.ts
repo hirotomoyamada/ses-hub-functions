@@ -94,20 +94,13 @@ const sendMail = async ({
 }) => {
   const metadata = subscription.items[0].price.product.metadata;
   const type = metadata.name;
-  const name =
-    type === 'plan'
-      ? subscription.items[0].price.nickname
-      : metadata.type === 'analytics'
-      ? 'アナリティクス'
-      : 'フリーランスダイレクト';
+  const name = type === 'plan' ? subscription.items[0].price.nickname : 'フリーランスダイレクト';
   const start = subscription.current_period_start;
   const end = subscription.current_period_end;
 
   const to = functions.config().admin.ses_hub as string;
   const from = `SES_HUB <${functions.config().admin.ses_hub}>`;
-  const subject = `SES_HUB ${
-    type === 'plan' ? 'プラン' : 'オプション'
-  }契約のお知らせ`;
+  const subject = `SES_HUB ${type === 'plan' ? 'プラン' : 'オプション'}契約のお知らせ`;
   const text = body.pay.admin('契約', type, name, start, end, users);
 
   const mail = {
@@ -120,20 +113,14 @@ const sendMail = async ({
   await send(mail);
 };
 
-const fetchChildren = async (
-  context: functions.EventContext,
-): Promise<string[] | undefined> => {
+const fetchChildren = async (context: functions.EventContext): Promise<string[] | undefined> => {
   const doc = await db
     .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(context.params.uid)
     .get()
     .catch(() => {
-      throw new functions.https.HttpsError(
-        'not-found',
-        'ユーザーの取得に失敗しました',
-        'firebase',
-      );
+      throw new functions.https.HttpsError('not-found', 'ユーザーの取得に失敗しました', 'firebase');
     });
 
   const children = doc.data()?.payment?.children;
@@ -161,10 +148,7 @@ const updateAlgolia = async (
   return;
 };
 
-const partialUpdateObject = async (
-  uid: string,
-  type?: string,
-): Promise<void> => {
+const partialUpdateObject = async (uid: string, type?: string): Promise<void> => {
   const index = algolia.initIndex('companys');
   const timestamp = Date.now();
 
@@ -280,11 +264,7 @@ const updateDoc = async ({
     .doc(uid)
     .get()
     .catch(() => {
-      throw new functions.https.HttpsError(
-        'not-found',
-        'ユーザーの取得に失敗しました',
-        'firebase',
-      );
+      throw new functions.https.HttpsError('not-found', 'ユーザーの取得に失敗しました', 'firebase');
     });
 
   if (doc.exists) {

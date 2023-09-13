@@ -29,8 +29,7 @@ export const updatePlan = functions
     const remove = subscription.ended_at ? true : false;
 
     const plan = subscription.items[0].price.product.metadata.name === 'plan';
-    const parent =
-      subscription.items[0].price.product.metadata.type === 'parent';
+    const parent = subscription.items[0].price.product.metadata.type === 'parent';
     const account = subscription.items[0].price.metadata.account;
 
     checkPlan(plan);
@@ -122,20 +121,13 @@ const sendMail = async ({
 }) => {
   const metadata = subscription.items[0].price.product.metadata;
   const type = metadata.name;
-  const name =
-    type === 'plan'
-      ? subscription.items[0].price.nickname
-      : metadata.type === 'analytics'
-      ? 'アナリティクス'
-      : 'フリーランスダイレクト';
+  const name = type === 'plan' ? subscription.items[0].price.nickname : 'フリーランスダイレクト';
   const start = subscription.current_period_start;
   const end = subscription.current_period_end;
 
   const to = functions.config().admin.ses_hub as string;
   const from = `SES_HUB <${functions.config().admin.ses_hub}>`;
-  const subject = `SES_HUB ${
-    type === 'plan' ? 'プラン' : 'オプション'
-  }解約のお知らせ`;
+  const subject = `SES_HUB ${type === 'plan' ? 'プラン' : 'オプション'}解約のお知らせ`;
   const text = body.pay.admin('解約', type, name, start, end, users);
 
   const mail = {
@@ -148,20 +140,14 @@ const sendMail = async ({
   await send(mail);
 };
 
-const fetchChildren = async (
-  context: functions.EventContext,
-): Promise<string[] | undefined> => {
+const fetchChildren = async (context: functions.EventContext): Promise<string[] | undefined> => {
   const doc = await db
     .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(context.params.uid)
     .get()
     .catch(() => {
-      throw new functions.https.HttpsError(
-        'not-found',
-        'ユーザーの取得に失敗しました',
-        'firebase',
-      );
+      throw new functions.https.HttpsError('not-found', 'ユーザーの取得に失敗しました', 'firebase');
     });
 
   const children = doc.data()?.payment?.children;
@@ -227,10 +213,7 @@ const updateAlgolia = async (
   return;
 };
 
-const partialUpdateObject = async (
-  uid: string,
-  type?: string,
-): Promise<void> => {
+const partialUpdateObject = async (uid: string, type?: string): Promise<void> => {
   const index = algolia.initIndex('companys');
   const timestamp = Date.now();
 
@@ -352,11 +335,7 @@ const updateDoc = async ({
     .doc(uid)
     .get()
     .catch(() => {
-      throw new functions.https.HttpsError(
-        'not-found',
-        'ユーザーの取得に失敗しました',
-        'firebase',
-      );
+      throw new functions.https.HttpsError('not-found', 'ユーザーの取得に失敗しました', 'firebase');
     });
 
   if (doc.exists) {
@@ -452,15 +431,13 @@ const checkDuplicate = async (
   const doc = !type
     ? subscriptions?.docs?.filter(
         (doc) =>
-          (doc.data().status === 'active' ||
-            doc.data().status === 'trialing') &&
+          (doc.data().status === 'active' || doc.data().status === 'trialing') &&
           doc.data().items[0].price.id !== price &&
           doc.data().items[0].price.product.metadata.name === 'plan',
       ).length
     : subscriptions?.docs?.filter(
         (doc) =>
-          (doc.data().status === 'active' ||
-            doc.data().status === 'trialing') &&
+          (doc.data().status === 'active' || doc.data().status === 'trialing') &&
           doc.data().items[0].price.id !== price &&
           doc.data().items[0].price.product.metadata.name === 'option' &&
           doc.data().items[0].price.product.metadata.type === type,
@@ -476,11 +453,7 @@ const checkDuplicate = async (
       .doc(context.params.sub)
       .delete()
       .then(() => {
-        throw new functions.https.HttpsError(
-          'cancelled',
-          'ドキュメントを削除しました',
-          'firebase',
-        );
+        throw new functions.https.HttpsError('cancelled', 'ドキュメントを削除しました', 'firebase');
       })
       .catch(() => {
         throw new functions.https.HttpsError(
@@ -490,11 +463,7 @@ const checkDuplicate = async (
         );
       });
   } else if (docs > 1 && doc) {
-    throw new functions.https.HttpsError(
-      'cancelled',
-      '他のプランが有効のため処理中止',
-      'firebase',
-    );
+    throw new functions.https.HttpsError('cancelled', '他のプランが有効のため処理中止', 'firebase');
   }
 };
 
@@ -524,11 +493,7 @@ const checkOption = (option: boolean): void => {
 
 const checkCancel = (status: Status): void => {
   if (status !== 'canceled') {
-    throw new functions.https.HttpsError(
-      'cancelled',
-      '更新が無いので処理中止',
-      'firebase',
-    );
+    throw new functions.https.HttpsError('cancelled', '更新が無いので処理中止', 'firebase');
   }
 
   return;

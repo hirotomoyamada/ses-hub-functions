@@ -1,8 +1,8 @@
-import * as functions from "firebase-functions";
-import { converter, db, location, runtime } from "../../_firebase";
-import { userAuthenticated } from "./_userAuthenticated";
-import * as Firestore from "../../types/firestore";
-import { log } from "../../_utils";
+import * as functions from 'firebase-functions';
+import { converter, db, location, runtime } from '../../_firebase';
+import { userAuthenticated } from './_userAuthenticated';
+import * as Firestore from '../../types/firestore';
+import { log } from '../../_utils';
 
 type Products = {
   [key: string]: {
@@ -30,8 +30,8 @@ export const fetchProducts = functions
     await verificationActive(products, context);
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "fetchProducts",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'fetchProducts',
       code: 200,
     });
 
@@ -40,34 +40,34 @@ export const fetchProducts = functions
 
 const verificationActive = async (
   products: Products,
-  context: functions.https.CallableContext
+  context: functions.https.CallableContext,
 ): Promise<void> => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   const doc = await db
-    .collection("companys")
+    .collection('companys')
     .withConverter(converter<Firestore.Company>())
     .doc(context.auth.uid)
     .get();
 
-  const type = doc.data()?.type || "individual";
+  const type = doc.data()?.type || 'individual';
 
-  if (!type || type === "child") {
+  if (!type || type === 'child') {
     throw new functions.https.HttpsError(
-      "unauthenticated",
-      "認証されていないユーザーではログインできません",
-      "auth"
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
     );
   }
 
   const collection = await db
-    .collection("products")
+    .collection('products')
     .withConverter(converter<Firestore.Product>())
     .get();
 
@@ -76,8 +76,7 @@ const verificationActive = async (
 
     switch (true) {
       case !active:
-      case metadata.type !== type && metadata.name !== "option":
-      case type === "parent" && metadata.type === "analytics":
+      case metadata.type !== type && metadata.name !== 'option':
         delete products[doc.id];
 
         break;
@@ -102,10 +101,10 @@ const verificationActive = async (
 
 const fetchPrices = async (products: Products): Promise<void> => {
   const collection = await db
-    .collectionGroup("prices")
+    .collectionGroup('prices')
     .withConverter(converter<Firestore.Price>())
-    .where("active", "==", true)
-    .orderBy("unit_amount")
+    .where('active', '==', true)
+    .orderBy('unit_amount')
     .get();
 
   collection?.forEach((doc) => {
@@ -121,7 +120,7 @@ const fetchPrices = async (products: Products): Promise<void> => {
       unit_amount: data.unit_amount,
     };
 
-    const key = doc.ref.parent.parent?.path?.replace("products/", "");
+    const key = doc.ref.parent.parent?.path?.replace('products/', '');
 
     if (!key) return;
 
@@ -135,12 +134,12 @@ const fetchPrices = async (products: Products): Promise<void> => {
 
 const fetchTax = async (): Promise<number> => {
   const collection = await db
-    .collection("products")
+    .collection('products')
     .withConverter(converter<Firestore.Product>())
-    .doc("tax_rates")
-    .collection("tax_rates")
+    .doc('tax_rates')
+    .collection('tax_rates')
     .withConverter(converter<Firestore.TaxRates>())
-    .where("active", "==", true)
+    .where('active', '==', true)
     .get();
 
   return collection?.docs?.[0]?.data().percentage * 0.01 + 1;

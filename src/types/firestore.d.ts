@@ -39,7 +39,7 @@ export interface Company {
     limit: number;
     notice: boolean;
     id?: string;
-    option?: { freelanceDirect?: boolean; analytics?: boolean };
+    option?: { freelanceDirect?: boolean };
     link?: string;
     cancel?: boolean;
     load?: boolean;

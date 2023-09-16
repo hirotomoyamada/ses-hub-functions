@@ -14,6 +14,7 @@ export const createPlan = functions
   .onCreate(async (snapshot, context) => {
     await userAuthenticated(context.params.uid);
 
+    const subscriptionId = snapshot.id;
     const subscription = snapshot.data() as Firestore.Subscription;
 
     const metadata = subscription.items[0].price.product.metadata;
@@ -33,6 +34,7 @@ export const createPlan = functions
 
     const { users } = await updateFirestore({
       context,
+      subscriptionId,
       status,
       price,
       parent,
@@ -61,6 +63,7 @@ export const createOption = functions
   .onCreate(async (snapshot, context) => {
     await userAuthenticated(context.params.uid);
 
+    const subscriptionId = snapshot.id;
     const subscription = snapshot.data() as Firestore.Subscription;
 
     const metadata = subscription.items[0].price.product.metadata;
@@ -71,7 +74,7 @@ export const createOption = functions
 
     const children = await fetchChildren(context);
 
-    const { users } = await updateFirestore({ context, type, children });
+    const { users } = await updateFirestore({ context, subscriptionId, type, children });
     await updateAlgolia(context, children, type);
 
     await sendMail({ subscription, users });
@@ -182,6 +185,7 @@ const partialUpdateObject = async (uid: string, type?: string): Promise<void> =>
 
 const updateFirestore = async ({
   context,
+  subscriptionId,
   type,
   status,
   price,
@@ -192,6 +196,7 @@ const updateFirestore = async ({
   account,
 }: {
   context: functions.EventContext;
+  subscriptionId: string;
   type?: string;
   status?: string;
   price?: string;
@@ -205,6 +210,7 @@ const updateFirestore = async ({
 
   const user = await updateDoc({
     uid: context.params.uid,
+    subscriptionId,
     type,
     status,
     price,
@@ -220,6 +226,7 @@ const updateFirestore = async ({
     for await (const uid of children) {
       const user = await updateDoc({
         uid,
+        subscriptionId,
         type,
         status,
         price,
@@ -239,6 +246,7 @@ const updateFirestore = async ({
 
 const updateDoc = async ({
   uid,
+  subscriptionId,
   type,
   status,
   price,
@@ -249,6 +257,7 @@ const updateDoc = async ({
   end,
 }: {
   uid: string;
+  subscriptionId: string;
   type?: string;
   status?: string;
   price?: string;
@@ -279,6 +288,10 @@ const updateDoc = async ({
         })
       : undefined;
 
+    const subscriptions = Object.assign(payment?.subscriptions ?? {}, {
+      [!type ? 'plan' : type]: subscriptionId,
+    });
+
     await doc.ref
       .set(
         {
@@ -287,11 +300,13 @@ const updateDoc = async ({
             option
               ? {
                   option: option,
+                  subscriptions,
                   load: false,
                 }
               : individual
               ? {
                   status,
+                  subscriptions,
                   price,
                   start,
                   end: end,
@@ -302,6 +317,7 @@ const updateDoc = async ({
                 }
               : {
                   status,
+                  subscriptions,
                   price,
                   account: Number(account),
                   children,

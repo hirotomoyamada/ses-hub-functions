@@ -16,6 +16,7 @@ export const updatePlan = functions
   .onUpdate(async (change, context) => {
     await userAuthenticated(context.params.uid);
 
+    const subscriptionId = change.after.id;
     const subscription = change.after.data() as Firestore.Subscription;
 
     const status: Status =
@@ -32,6 +33,7 @@ export const updatePlan = functions
     const parent = subscription.items[0].price.product.metadata.type === 'parent';
     const account = subscription.items[0].price.metadata.account;
 
+    checkSame(context, subscriptionId);
     checkPlan(plan);
 
     await checkDuplicate(context, remove, price);
@@ -40,6 +42,7 @@ export const updatePlan = functions
 
     const { users } = await updateFirestore({
       context,
+      subscriptionId,
       status,
       cancel,
       price,
@@ -75,6 +78,7 @@ export const updateOption = functions
   .onUpdate(async (change, context) => {
     await userAuthenticated(context.params.uid);
 
+    const subscriptionId = change.after.id;
     const subscription = change.after.data() as Firestore.Subscription;
 
     const status: Status =
@@ -88,6 +92,7 @@ export const updateOption = functions
     const option = metadata.name === 'option';
     const type = metadata.type;
 
+    checkSame(context, subscriptionId);
     checkOption(option);
     checkCancel(status);
 
@@ -95,7 +100,7 @@ export const updateOption = functions
 
     const children = await fetchChildren(context);
 
-    const { users } = await updateFirestore({ context, type, children });
+    const { users } = await updateFirestore({ context, subscriptionId, type, children });
     await updateAlgolia(context, children, type);
 
     if (remove) {
@@ -247,6 +252,7 @@ const partialUpdateObject = async (uid: string, type?: string): Promise<void> =>
 
 const updateFirestore = async ({
   context,
+  subscriptionId,
   type,
   status,
   cancel,
@@ -258,6 +264,7 @@ const updateFirestore = async ({
   children,
 }: {
   context: functions.EventContext;
+  subscriptionId: string;
   type?: string;
   status?: Status;
   cancel?: boolean;
@@ -272,6 +279,7 @@ const updateFirestore = async ({
 
   const user = await updateDoc({
     uid: context.params.uid,
+    subscriptionId,
     type: type,
     status: status,
     cancel: cancel,
@@ -288,6 +296,7 @@ const updateFirestore = async ({
     for await (const uid of children) {
       const user = await updateDoc({
         uid: uid,
+        subscriptionId,
         type: type,
         status: status,
         cancel: cancel,
@@ -317,8 +326,10 @@ const updateDoc = async ({
   parent,
   child,
   account,
+  subscriptionId,
 }: {
   uid: string;
+  subscriptionId: string;
   type?: string;
   status?: string;
   cancel?: boolean;
@@ -349,6 +360,10 @@ const updateDoc = async ({
         })
       : undefined;
 
+    const subscriptions = Object.assign(payment?.subscriptions ?? {}, {
+      [!type ? 'plan' : type]: !type && !canceled ? subscriptionId : null,
+    });
+
     await doc.ref
       .set(
         {
@@ -357,12 +372,14 @@ const updateDoc = async ({
             option
               ? {
                   option: option,
+                  subscriptions,
                   load: false,
                 }
               : individual
               ? canceled
                 ? {
                     status: status,
+                    subscriptions,
                     price: null,
                     start: null,
                     limit: payment?.status !== 'active' ? payment?.limit : 3,
@@ -372,6 +389,7 @@ const updateDoc = async ({
                   }
                 : {
                     status: status,
+                    subscriptions,
                     price: price,
                     start: start,
                     end: end,
@@ -380,6 +398,7 @@ const updateDoc = async ({
               : canceled
               ? {
                   status: status,
+                  subscriptions,
                   price: null,
                   start: null,
                   end: null,
@@ -389,6 +408,7 @@ const updateDoc = async ({
                 }
               : {
                   status: status,
+                  subscriptions,
                   price: price,
                   account: Number(account),
                   start: start,
@@ -464,6 +484,37 @@ const checkDuplicate = async (
       });
   } else if (docs > 1 && doc) {
     throw new functions.https.HttpsError('cancelled', '他のプランが有効のため処理中止', 'firebase');
+  }
+};
+
+const checkSame = async (
+  context: functions.EventContext,
+  subscriptionId: string,
+  type?: string,
+) => {
+  const doc = await db
+    .collection('companys')
+    .withConverter(converter<Firestore.Company>())
+    .doc(context.params.uid)
+    .get()
+    .catch(() => {
+      throw new functions.https.HttpsError('not-found', 'ユーザーの取得に失敗しました', 'firebase');
+    });
+
+  if (doc.exists) {
+    const data = doc.data();
+
+    const targetId = data?.payment.subscriptions?.[!type ? 'plan' : type];
+
+    if (!targetId) return;
+
+    if (targetId !== subscriptionId) return;
+
+    throw new functions.https.HttpsError(
+      'cancelled',
+      '同一のプランまたはオプションではないため処理中止',
+      'firebase',
+    );
   }
 };
 

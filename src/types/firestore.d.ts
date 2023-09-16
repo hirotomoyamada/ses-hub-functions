@@ -49,6 +49,7 @@ export interface Company {
     start?: number | null;
     end?: number | null;
     price?: string | null;
+    subscriptions?: Record<string, string | null>;
   };
   setting: {
     activity?: {

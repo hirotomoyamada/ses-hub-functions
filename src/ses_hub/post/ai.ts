@@ -5,10 +5,10 @@ import * as Algolia from '../../types/algolia';
 import { log } from '../../_utils';
 import { NestedPartial } from '../../types/utils';
 import { openai } from '../../_openai';
-import { CreateChatCompletionRequestMessage } from 'openai/resources/chat';
 import { APIError } from 'openai';
 import { CompletionUsage } from 'openai/resources';
 import { createPrompt } from '../../prompt';
+import type { ChatCompletionMessageParam } from 'openai/resources';
 import {
   position,
   industry,
@@ -112,7 +112,7 @@ const createData = async ({
 
   const date = new Date(location);
 
-  const messages: CreateChatCompletionRequestMessage[] = [
+  const messages: ChatCompletionMessageParam[] = [
     {
       role: 'system',
       content: createPrompt(index, date),
@@ -121,12 +121,14 @@ const createData = async ({
   ];
 
   const { choices, usage } = await openai.chat.completions.create({
-    model: 'gpt-4',
+    model: 'gpt-4-0125-preview',
     messages,
     temperature: 0,
   });
 
-  const data = choices[0].message?.content;
+  let data = choices[0].message?.content;
+
+  data = data?.replace(/^```(.*)?\s|\s```$/g, '') ?? null;
 
   let posts: Posts = JSON.parse(data ?? '[]');
 

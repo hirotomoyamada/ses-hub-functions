@@ -134,9 +134,9 @@ const fetchAlgolia = {
     const demo = checkDemo(context);
 
     const index = algolia.initIndex(
-      !data.target || data.target === 'createAt'
+      data.target === 'createAt'
         ? data.index
-        : `${data.index}_${data.target}_${data.type}`,
+        : `${data.index}_${data.target || 'updateAt'}_${data.type || 'desc'}`,
     );
 
     const hit: Algolia.Hit = {

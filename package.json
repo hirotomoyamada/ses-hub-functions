@@ -21,7 +21,7 @@
     "bitly": "^7.1.2",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^4.4.0",
-    "openai": "^4.2.0",
+    "openai": "^4.26.0",
     "stripe": "^8.176.0",
     "twitter-api-v2": "^1.11.0"
   },

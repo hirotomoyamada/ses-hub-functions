@@ -239,10 +239,13 @@ const fetchAlgolia = {
 
     const index = algolia.initIndex(resolvedIndex);
 
+    const timestamp = Date.now();
+
     const options: (RequestOptions & SearchOptions) | undefined = {
       queryLanguages: ['ja', 'en'],
       similarQuery: [post.position, ...post.handles].join(' '),
-      filters: 'display:public',
+      filters: `display:public AND NOT uid:${context.auth?.uid ?? ''}`,
+      numericFilters: `createAt >= ${timestamp - 6 * 30 * 24 * 60 * 60 * 1000}`,
       hitsPerPage: 100,
     };
 

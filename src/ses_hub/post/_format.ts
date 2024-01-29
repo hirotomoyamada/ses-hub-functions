@@ -59,6 +59,7 @@ export const matter = ({
       memo: post.memo,
       uid: context.auth.uid,
       createAt: timestamp,
+      updateAt: timestamp,
     };
   } else {
     return {
@@ -155,6 +156,7 @@ export const resource = ({
       memo: post.memo,
       uid: context.auth.uid,
       createAt: timestamp,
+      updateAt: timestamp,
     };
   } else {
     return {

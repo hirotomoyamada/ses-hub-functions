@@ -58,6 +58,7 @@ export interface Matter {
   likes?: number;
   outputs?: number;
   entries?: number;
+  viewed?: boolean;
 }
 
 export type MatterPromotion = Pick<
@@ -119,6 +120,7 @@ export interface Resource {
   likes?: number;
   outputs?: number;
   entries?: number;
+  viewed?: boolean;
 }
 
 export type ResourcePromotion = Pick<

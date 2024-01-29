@@ -3,6 +3,7 @@ prompt.*
 
 .env*
 .DS_Store
+.vscode
 
 /libs
 /typings

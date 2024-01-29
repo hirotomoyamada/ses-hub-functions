@@ -134,9 +134,9 @@ const fetchAlgolia = {
     const demo = checkDemo(context);
 
     const index = algolia.initIndex(
-      !data.target || data.target === 'createAt'
+      data.target === 'createAt'
         ? data.index
-        : `${data.index}_${data.target}_${data.type}`,
+        : `${data.index}_${data.target || 'updateAt'}_${data.type || 'desc'}`,
     );
 
     const hit: Algolia.Hit = {
@@ -231,12 +231,21 @@ const fetchAlgolia = {
     post: Algolia.Matter | Algolia.Resource,
     status: boolean,
   ): Promise<Algolia.Matter[] | Algolia.Resource[]> => {
-    const index = algolia.initIndex(data.index);
+    let resolvedIndex = data.index;
+
+    if (context.auth?.uid === post.uid) {
+      resolvedIndex = resolvedIndex === 'matters' ? 'resources' : 'matters';
+    }
+
+    const index = algolia.initIndex(resolvedIndex);
+
+    const timestamp = Date.now();
 
     const options: (RequestOptions & SearchOptions) | undefined = {
       queryLanguages: ['ja', 'en'],
-      similarQuery: post?.handles?.join(' '),
-      filters: 'display:public',
+      similarQuery: [post.position, ...post.handles].join(' '),
+      filters: `display:public AND NOT uid:${context.auth?.uid ?? ''}`,
+      numericFilters: `createAt >= ${timestamp - 6 * 30 * 24 * 60 * 60 * 1000}`,
       hitsPerPage: 100,
     };
 
@@ -245,7 +254,7 @@ const fetchAlgolia = {
     });
 
     const bests = (() => {
-      switch (data.index) {
+      switch (resolvedIndex) {
         case 'matters':
           return hits
             ?.map((hit) => {
@@ -279,7 +288,7 @@ const fetchAlgolia = {
       }
     })();
 
-    if (bests.length) await fetchFirestore.search(context, data.index, bests, status);
+    if (bests.length) await fetchFirestore.search(context, resolvedIndex, bests, status);
 
     return bests;
   },
@@ -360,11 +369,17 @@ const fetchFirestore = {
       );
     }
 
+    const histories = await getHistory(context, index);
+
     await Promise.allSettled(
       posts.map(async (_, i) => {
         const post = posts[i];
 
         if (!post) return;
+
+        if (status && 'objectID' in post) {
+          post.viewed = context.auth?.uid === post.uid || histories.includes(post.objectID);
+        }
 
         const doc = await db
           .collection(index === 'matters' || index === 'resources' ? 'companys' : index)
@@ -582,6 +597,34 @@ const updateLimit = async (context: functions.https.CallableContext): Promise<vo
   }
 
   return;
+};
+
+const getHistory = async (
+  context: functions.https.CallableContext,
+  index: Data['posts']['index'],
+): Promise<string[]> => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      '認証されていないユーザーではログインできません',
+      'auth',
+    );
+  }
+
+  const querySnapshot = await db
+    .collection('companys')
+    .doc(context.auth.uid)
+    .collection('histories')
+    .withConverter(converter<Firestore.Post>())
+    .where('index', '==', index)
+    .get()
+    .catch(() => {});
+
+  if (!querySnapshot) return [];
+
+  const objectIDs = querySnapshot.docs.map((doc) => doc.data().objectID);
+
+  return objectIDs;
 };
 
 const addHistory = async (

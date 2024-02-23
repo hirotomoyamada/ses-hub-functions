@@ -4,6 +4,7 @@ prompt.*
 .env*
 .DS_Store
 .vscode
+.node-version
 
 /libs
 /typings

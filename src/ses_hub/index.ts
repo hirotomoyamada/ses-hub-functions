@@ -40,6 +40,7 @@ export { promotionPosts } from './post/promotion';
 export { fetchPost, fetchPosts } from './post/fetch';
 export { userPosts } from './post/user';
 export { extractPosts } from './post/extract';
+export { historyPosts } from './post/history';
 export { homePosts } from './post/home';
 export { fetchActivity } from './post/activity';
 export { createPost, editPost, deletePost, sendPost } from './post/post';

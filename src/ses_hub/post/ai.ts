@@ -57,6 +57,14 @@ export const completePost = functions
           const label = index === 'matters' ? '案件' : '人材';
 
           if (e instanceof APIError) {
+            await log({
+              auth: { collection: 'companys', doc: context.auth?.uid },
+              run: 'completePost',
+              index,
+              code: e.status ?? 500,
+              message: e.message,
+            });
+
             if (e.error) errors = [...errors, e.error];
 
             if (e.code === 'context_length_exceeded') {
@@ -91,7 +99,7 @@ export const completePost = functions
 
     await log({
       auth: { collection: 'companys', doc: context.auth?.uid },
-      run: 'createAIPost',
+      run: 'completePost',
       index,
       code: 200,
     });

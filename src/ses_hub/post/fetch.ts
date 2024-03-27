@@ -119,7 +119,7 @@ const fetchAlgolia = {
 
     await fetchFirestore.post(context, data.index, post, status);
 
-    if (context.auth?.uid !== post.uid) await updateLimit(context);
+    // if (context.auth?.uid !== post.uid) await updateLimit(context);
 
     return post;
   },
@@ -330,15 +330,16 @@ const fetchFirestore = {
       type: data?.type,
       status: data?.payment.status,
       profile: {
-        name: !demo ? data?.profile.name : dummy.name(),
-        person: !demo
-          ? data?.profile.person
+        name: !demo && status ? data?.profile.name : dummy.name(),
+        person:
+          !demo && status
             ? data?.profile.person
-            : '名無しさん'
-          : dummy.person(),
-        body: data?.profile.body,
-        email: !demo ? data?.profile.email : undefined,
-        social: !demo && status ? data?.profile.social : undefined,
+              ? data?.profile.person
+              : '名無しさん'
+            : dummy.person(),
+        body: status ? data?.profile.body : undefined,
+        email: !demo && status ? data?.profile.email : undefined,
+        social: !demo && status && status ? data?.profile.social : undefined,
       },
     };
 
@@ -542,62 +543,62 @@ const fetchActivity = {
   },
 };
 
-const updateLimit = async (context: functions.https.CallableContext): Promise<void> => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      'unauthenticated',
-      '認証されていないユーザーではログインできません',
-      'auth',
-    );
-  }
+// const updateLimit = async (context: functions.https.CallableContext): Promise<void> => {
+//   if (!context.auth) {
+//     throw new functions.https.HttpsError(
+//       'unauthenticated',
+//       '認証されていないユーザーではログインできません',
+//       'auth',
+//     );
+//   }
 
-  const doc = await db
-    .collection('companys')
-    .withConverter(converter<Firestore.Company>())
-    .doc(context.auth.uid)
-    .get();
+//   const doc = await db
+//     .collection('companys')
+//     .withConverter(converter<Firestore.Company>())
+//     .doc(context.auth.uid)
+//     .get();
 
-  const data = doc.data();
+//   const data = doc.data();
 
-  if (doc.exists && data?.payment.status === 'canceled') {
-    const location = new Date().toLocaleString('ja-JP', {
-      timeZone: 'Asia/Tokyo',
-    });
-    const timeZone = 60 * 60 * 9 * 1000;
-    const runningTime = 60 * 60 * 24 * 60 * 1000;
-    const limitedTime = new Date(location).setHours(0, 0, 0, 0) - runningTime - timeZone;
+//   if (doc.exists && data?.payment.status === 'canceled') {
+//     const location = new Date().toLocaleString('ja-JP', {
+//       timeZone: 'Asia/Tokyo',
+//     });
+//     const timeZone = 60 * 60 * 9 * 1000;
+//     const runningTime = 60 * 60 * 24 * 60 * 1000;
+//     const limitedTime = new Date(location).setHours(0, 0, 0, 0) - runningTime - timeZone;
 
-    const createAt = data.createAt;
-    const limit = data.payment.limit;
+//     const createAt = data.createAt;
+//     const limit = data.payment.limit;
 
-    if (!limit || limit <= 0 || createAt < limitedTime) {
-      throw new functions.https.HttpsError(
-        'cancelled',
-        '閲覧回数の上限を超えたため、閲覧することができません',
-        'limit',
-      );
-    } else {
-      await doc.ref
-        .set(
-          {
-            payment: Object.assign(data.payment, {
-              limit: limit ? limit - 1 : 0,
-            }),
-          },
-          { merge: true },
-        )
-        .catch(() => {
-          throw new functions.https.HttpsError(
-            'data-loss',
-            '閲覧回数の更新に失敗しました',
-            'firebase',
-          );
-        });
-    }
-  }
+//     if (!limit || limit <= 0 || createAt < limitedTime) {
+//       throw new functions.https.HttpsError(
+//         'cancelled',
+//         '閲覧回数の上限を超えたため、閲覧することができません',
+//         'limit',
+//       );
+//     } else {
+//       await doc.ref
+//         .set(
+//           {
+//             payment: Object.assign(data.payment, {
+//               limit: limit ? limit - 1 : 0,
+//             }),
+//           },
+//           { merge: true },
+//         )
+//         .catch(() => {
+//           throw new functions.https.HttpsError(
+//             'data-loss',
+//             '閲覧回数の更新に失敗しました',
+//             'firebase',
+//           );
+//         });
+//     }
+//   }
 
-  return;
-};
+//   return;
+// };
 
 const getHistory = async (
   context: functions.https.CallableContext,

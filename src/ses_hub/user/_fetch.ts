@@ -49,11 +49,7 @@ export const company = {
       status: undefined,
       profile: {
         name: !demo ? hit.name : dummy.name(),
-        person: !demo
-          ? hit.person
-            ? hit.person
-            : '名無しさん'
-          : dummy.person(),
+        person: !demo ? (hit.person ? hit.person : '名無しさん') : dummy.person(),
         body: hit.body,
         invoice: hit.invoice,
         postal: hit.postal,
@@ -75,26 +71,20 @@ export const company = {
       type: undefined,
       status: undefined,
       profile: {
-        name: !demo ? hit.name : dummy.name(),
-        person: !demo
-          ? hit.person
-            ? hit.person
-            : '名無しさん'
-          : dummy.person(),
-        body: hit.body,
-        email: !demo ? hit.email : dummy.email(),
+        name: dummy.name(),
+        person: dummy.person(),
+        body: undefined,
+        email: dummy.email(),
         more: hit.more,
         region: hit.region,
+        url: dummy.urls(1)[0],
       },
       createAt: hit.createAt,
     };
   },
 };
 
-export const person = (
-  hit: Algolia.Person,
-  demo?: boolean,
-): Algolia.PersonItem => {
+export const person = (hit: Algolia.Person, demo?: boolean): Algolia.PersonItem => {
   return {
     uid: hit.objectID,
     request: undefined,

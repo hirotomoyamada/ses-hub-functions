@@ -88,7 +88,7 @@ const fetchAlgolia = async (
               if (hit.uid === context.auth?.uid) return fetch.auth.matter(<Algolia.Matter>hit);
 
               if ((hit as Algolia.Matter).display === 'public')
-                return fetch.other.matter(<Algolia.Matter>hit);
+                return fetch.other.matter(<Algolia.Matter>hit, status);
             }
 
             return;
@@ -102,7 +102,7 @@ const fetchAlgolia = async (
               if (hit.uid === context.auth?.uid) return fetch.auth.resource(<Algolia.Resource>hit);
 
               if ((hit as Algolia.Resource).display === 'public')
-                return fetch.other.resource(<Algolia.Resource>hit);
+                return fetch.other.resource(<Algolia.Resource>hit, status);
             }
 
             return;

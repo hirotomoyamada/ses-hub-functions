@@ -61,7 +61,7 @@ export const auth = {
 };
 
 export const other = {
-  matter: (hit: Algolia.Matter): Algolia.Matter => {
+  matter: (hit: Algolia.Matter, status: boolean): Algolia.Matter => {
     return {
       objectID: hit.objectID,
       title: hit.title,
@@ -87,12 +87,20 @@ export const other = {
       tools: hit.tools,
       requires: hit.requires,
       prefers: hit.prefers,
-      interviews: hit.interviews,
+      interviews: status
+        ? hit.interviews
+        : {
+            type: 'その他',
+            count: '1',
+            setting: '不明',
+          },
       remote: hit.remote,
-      distribution: hit.distribution,
-      span: hit.span,
-      approval: hit.approval,
-      note: hit.note,
+      distribution: status ? hit.distribution : 'その他',
+      span: status ? hit.span : 'その他',
+      approval: status ? hit.approval : '不明',
+      note: status
+        ? hit.note
+        : 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt eum inventore qui rem quam? Nulla nesciunt fuga debitis animi nemo? Id eligendi reiciendis dolorum esse nisi enim, quis et quisquam.',
       status: hit.status === '成約' ? hit.status : undefined,
       uid: hit.uid,
       createAt: hit.createAt,
@@ -100,7 +108,7 @@ export const other = {
     };
   },
 
-  resource: (hit: Algolia.Resource): Algolia.Resource => {
+  resource: (hit: Algolia.Resource, status: boolean): Algolia.Resource => {
     return {
       objectID: hit.objectID,
       roman: {
@@ -112,7 +120,7 @@ export const other = {
       age: hit.age,
       body: hit.body,
       belong: hit.belong,
-      station: hit.station,
+      station: status ? hit.station : '山田駅',
       period: hit.period,
       costs:
         hit.costs.display === 'public'
@@ -128,8 +136,10 @@ export const other = {
       handles: hit.handles,
       tools: hit.tools,
       skills: hit.skills,
-      parallel: hit.parallel,
-      note: hit.note,
+      parallel: status ? hit.parallel : 'なし',
+      note: status
+        ? hit.note
+        : 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt eum inventore qui rem quam? Nulla nesciunt fuga debitis animi nemo? Id eligendi reiciendis dolorum esse nisi enim, quis et quisquam.',
       uid: hit.uid,
       status: hit.status === '成約' ? hit.status : undefined,
       createAt: hit.createAt,
@@ -144,11 +154,7 @@ export const other = {
       status: undefined,
       profile: {
         name: !demo ? hit.name : dummy.name(),
-        person: !demo
-          ? hit.person
-            ? hit.person
-            : '名無しさん'
-          : dummy.person(),
+        person: !demo ? (hit.person ? hit.person : '名無しさん') : dummy.person(),
         body: hit.body,
       },
       createAt: hit.createAt,

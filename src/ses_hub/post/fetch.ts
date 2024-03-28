@@ -58,7 +58,7 @@ export const fetchPosts = functions
       canceled: true,
     });
 
-    const { posts, hit } = await fetchAlgolia.search(context, data);
+    const { posts, hit } = await fetchAlgolia.search(context, data, status);
 
     if (posts.length) await fetchFirestore.search(context, data.index, posts, status);
 
@@ -100,7 +100,7 @@ const fetchAlgolia = {
           }
 
           if (hit.display === 'public') {
-            return fetch.other.matter(hit as Algolia.Matter);
+            return fetch.other.matter(hit as Algolia.Matter, status);
           }
 
         case 'resources':
@@ -109,7 +109,7 @@ const fetchAlgolia = {
           }
 
           if (hit.display === 'public') {
-            return fetch.other.resource(hit as Algolia.Resource);
+            return fetch.other.resource(hit as Algolia.Resource, status);
           }
 
         default:
@@ -127,6 +127,7 @@ const fetchAlgolia = {
   search: async (
     context: functions.https.CallableContext,
     data: Data['posts'],
+    status: boolean,
   ): Promise<{
     posts: Algolia.Matter[] | Algolia.Resource[] | Algolia.CompanyItem[] | Algolia.PersonItem[];
     hit: Algolia.Hit;
@@ -185,7 +186,7 @@ const fetchAlgolia = {
             if (hit.uid === context.auth?.uid) {
               return fetch.auth.matter(<Algolia.Matter>hit);
             } else {
-              return fetch.other.matter(<Algolia.Matter>hit);
+              return fetch.other.matter(<Algolia.Matter>hit, status);
             }
           });
 
@@ -194,7 +195,7 @@ const fetchAlgolia = {
             if (hit.uid === context.auth?.uid) {
               return fetch.auth.resource(<Algolia.Resource>hit);
             } else {
-              return fetch.other.resource(<Algolia.Resource>hit);
+              return fetch.other.resource(<Algolia.Resource>hit, status);
             }
           });
 
@@ -262,7 +263,7 @@ const fetchAlgolia = {
                 if (hit.uid === context.auth?.uid) {
                   return fetch.auth.matter(<Algolia.Matter>hit);
                 } else {
-                  return fetch.other.matter(<Algolia.Matter>hit);
+                  return fetch.other.matter(<Algolia.Matter>hit, status);
                 }
 
               return;
@@ -276,7 +277,7 @@ const fetchAlgolia = {
                 if (hit.uid === context.auth?.uid) {
                   return fetch.auth.resource(<Algolia.Resource>hit);
                 } else {
-                  return fetch.other.resource(<Algolia.Resource>hit);
+                  return fetch.other.resource(<Algolia.Resource>hit, status);
                 }
 
               return;

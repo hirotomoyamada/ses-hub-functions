@@ -1,14 +1,14 @@
-import * as functions from "firebase-functions";
-import { algolia, SearchOptions, RequestOptions } from "../../_algolia";
-import { converter, db, location, runtime } from "../../_firebase";
-import { userAuthenticated } from "./_userAuthenticated";
-import * as fetch from "./_fetch";
-import * as Firestore from "../../types/firestore";
-import * as Algolia from "../../types/algolia";
-import { dummy, log } from "../../_utils";
+import * as functions from 'firebase-functions';
+import { algolia, SearchOptions, RequestOptions } from '../../_algolia';
+import { converter, db, location, runtime } from '../../_firebase';
+import { userAuthenticated } from './_userAuthenticated';
+import * as fetch from './_fetch';
+import * as Firestore from '../../types/firestore';
+import * as Algolia from '../../types/algolia';
+import { dummy, log } from '../../_utils';
 
 type Data = {
-  index: "matters" | "resources" | "companys";
+  index: 'matters' | 'resources' | 'companys';
   uid: string;
   uids?: string[];
   display?: string | null;
@@ -20,25 +20,23 @@ export const userPosts = functions
   .region(location)
   .runWith(runtime)
   .https.onCall(async (data: Data, context) => {
-    await userAuthenticated({ context });
+    const status = await userAuthenticated({ context, canceled: true });
 
     const demo = checkDemo(context);
 
     const { posts, hit } = !data.uids
-      ? await fetchPosts(context, data)
+      ? await fetchPosts(context, data, status)
       : await fetchFollows(data, demo);
 
     if (posts.length) await fetchFirestore(context, data.index, posts);
 
     await log({
-      auth: { collection: "companys", doc: context.auth?.uid },
-      run: "userPosts",
+      auth: { collection: 'companys', doc: context.auth?.uid },
+      run: 'userPosts',
       index: data.index,
       code: 200,
       objectID: posts
-        ?.map((post) =>
-          post ? ("objectID" in post && post.objectID) || post.uid : undefined
-        )
+        ?.map((post) => (post ? ('objectID' in post && post.objectID) || post.uid : undefined))
         ?.filter((post): post is string => post !== undefined),
     });
 
@@ -51,7 +49,8 @@ export const userPosts = functions
 
 const fetchPosts = async (
   context: functions.https.CallableContext,
-  data: Data
+  data: Data,
+  status: boolean,
 ): Promise<{
   posts: Algolia.Matter[] | Algolia.Resource[];
   hit: Algolia.Hit;
@@ -65,25 +64,21 @@ const fetchPosts = async (
   const options: (RequestOptions & SearchOptions) | undefined = {
     filters:
       data.uid !== context.auth?.uid
-        ? "display:public"
+        ? 'display:public'
         : data.display && data.status
         ? `display:${data.display} AND status:${data.status}`
         : data.display
         ? `display:${data.display}`
         : data.status
         ? `status:${data.status}`
-        : "",
+        : '',
     page: hit.currentPage,
   };
 
   const { hits, nbHits, nbPages } = await index
     .search<Algolia.Matter | Algolia.Resource>(data.uid, options)
     .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "algolia"
-      );
+      throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'algolia');
     });
 
   hit.posts = nbHits;
@@ -91,30 +86,26 @@ const fetchPosts = async (
 
   const posts = (() => {
     switch (data.index) {
-      case "matters":
+      case 'matters':
         return hits.map((hit) => {
           if (hit.uid === context.auth?.uid) {
             return fetch.auth.matter(<Algolia.Matter>hit);
           } else {
-            return fetch.other.matter(<Algolia.Matter>hit);
+            return fetch.other.matter(<Algolia.Matter>hit, status);
           }
         });
 
-      case "resources":
+      case 'resources':
         return hits.map((hit) => {
           if (hit.uid === context.auth?.uid) {
             return fetch.auth.resource(<Algolia.Resource>hit);
           } else {
-            return fetch.other.resource(<Algolia.Resource>hit);
+            return fetch.other.resource(<Algolia.Resource>hit, status);
           }
         });
 
       default:
-        throw new functions.https.HttpsError(
-          "not-found",
-          "投稿の取得に失敗しました",
-          "algolia"
-        );
+        throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'algolia');
     }
   })();
 
@@ -123,7 +114,7 @@ const fetchPosts = async (
 
 const fetchFollows = async (
   data: Data,
-  demo: boolean
+  demo: boolean,
 ): Promise<{
   posts: Algolia.CompanyItem[];
   hit: Algolia.Hit;
@@ -139,25 +130,16 @@ const fetchFollows = async (
   };
 
   const query = data.uids?.length
-    ? data.uids.slice(
-        hit.currentPage * hitsPerPage,
-        hitsPerPage * (hit.currentPage + 1)
-      )
+    ? data.uids.slice(hit.currentPage * hitsPerPage, hitsPerPage * (hit.currentPage + 1))
     : [];
 
-  const { results } = await index
-    .getObjects<Algolia.Company>(query)
-    .catch(() => {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "投稿の取得に失敗しました",
-        "algolia"
-      );
-    });
+  const { results } = await index.getObjects<Algolia.Company>(query).catch(() => {
+    throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'algolia');
+  });
 
   const posts = results
     ?.map((hit) => {
-      if (hit && hit.status === "enable") return fetch.other.company(hit, demo);
+      if (hit && hit.status === 'enable') return fetch.other.company(hit, demo);
 
       return;
     })
@@ -168,8 +150,8 @@ const fetchFollows = async (
 
 const fetchFirestore = async (
   context: functions.https.CallableContext,
-  index: Data["index"],
-  posts: Algolia.Matter[] | Algolia.Resource[] | Algolia.CompanyItem[]
+  index: Data['index'],
+  posts: Algolia.Matter[] | Algolia.Resource[] | Algolia.CompanyItem[],
 ): Promise<void> => {
   await Promise.allSettled(
     posts.map(async (_, i) => {
@@ -177,14 +159,10 @@ const fetchFirestore = async (
 
       if (!post) return;
 
-      if ("objectID" in post) {
-        if (index === "companys") return;
+      if ('objectID' in post) {
+        if (index === 'companys') return;
 
-        const { likes, outputs, entries } = await fetchActivity(
-          context,
-          index,
-          post
-        );
+        const { likes, outputs, entries } = await fetchActivity(context, index, post);
 
         post.likes = likes;
         post.outputs = outputs;
@@ -197,24 +175,21 @@ const fetchFirestore = async (
           .get()
           .catch(() => {
             throw new functions.https.HttpsError(
-              "not-found",
-              "ユーザーの取得に失敗しました",
-              "firebase"
+              'not-found',
+              'ユーザーの取得に失敗しました',
+              'firebase',
             );
           });
 
         if (doc.exists) {
           const data = doc.data();
-          if (
-            data?.type !== "individual" &&
-            data?.payment.status === "canceled"
-          ) {
-            post.icon = "none";
-            post.status = "none";
-            post.type = "none";
+          if (data?.type !== 'individual' && data?.payment.status === 'canceled') {
+            post.icon = 'none';
+            post.status = 'none';
+            post.type = 'none';
             post.profile = {
               name: undefined,
-              person: "存在しないユーザー",
+              person: '存在しないユーザー',
               body: undefined,
             };
           } else {
@@ -223,14 +198,14 @@ const fetchFirestore = async (
           }
         }
       }
-    })
+    }),
   );
 };
 
 const fetchActivity = async (
   context: functions.https.CallableContext,
-  index: "matters" | "resources",
-  post: Algolia.Matter | Algolia.Resource
+  index: 'matters' | 'resources',
+  post: Algolia.Matter | Algolia.Resource,
 ): Promise<{ likes: number; outputs: number; entries: number }> => {
   const demo = checkDemo(context);
 
@@ -248,14 +223,14 @@ const fetchActivity = async (
         const { docs } = await db
           .collectionGroup(collection)
           .withConverter(converter<Firestore.Post>())
-          .where("index", "==", index)
-          .where("objectID", "==", post.objectID)
-          .where("active", "==", true)
-          .orderBy("createAt", "desc")
+          .where('index', '==', index)
+          .where('objectID', '==', post.objectID)
+          .where('active', '==', true)
+          .orderBy('createAt', 'desc')
           .get();
 
         collections[collection as keyof Collections] = docs.length;
-      })
+      }),
     );
 
   return { ...collections };

@@ -325,22 +325,23 @@ const fetchFirestore = {
       throw new functions.https.HttpsError('not-found', '投稿の取得に失敗しました', 'notFound');
     }
 
+    const isShow = !demo && (status || post.uid === context.auth?.uid);
+
     post.user = {
       uid: doc.id,
       icon: data?.icon,
       type: data?.type,
       status: data?.payment.status,
       profile: {
-        name: !demo && status ? data?.profile.name : dummy.name(),
-        person:
-          !demo && status
+        name: isShow ? data?.profile.name : dummy.name(),
+        person: isShow
+          ? data?.profile.person
             ? data?.profile.person
-              ? data?.profile.person
-              : '名無しさん'
-            : dummy.person(),
-        body: status ? data?.profile.body : undefined,
-        email: !demo && status ? data?.profile.email : undefined,
-        social: !demo && status && status ? data?.profile.social : undefined,
+            : '名無しさん'
+          : dummy.person(),
+        body: isShow ? data?.profile.body : undefined,
+        email: isShow ? data?.profile.email : undefined,
+        social: isShow ? data?.profile.social : undefined,
       },
     };
 
